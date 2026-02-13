@@ -1,0 +1,3 @@
+[submodule "LM-Symfony"]
+	path = LM-Symfony
+	url = https://github.com/LaundryMap-Groupe-3/LM-Symfony.git
