@@ -1,0 +1,88 @@
+services:
+
+  backend:
+    build:
+      context: ./LM-Symfony
+      dockerfile: Dockerfile
+    container_name: symfony_backend
+    volumes:
+      - ./LM-Symfony:/var/www/html
+    networks:
+      - app-network
+
+  frontend:
+    image: node:22-alpine
+    container_name: react_frontend
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/LM-Symfony
+      - /app/docker
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://127.0.0.1:8082
+    ports:
+      - "80:5173"  # React directement sur port 80
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    networks:
+      - app-network
+
+  # nginx_react:  # Désactivé temporairement
+  #   image: nginx:alpine
+  #   container_name: nginx_react
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./docker/nginx/react.conf:/etc/nginx/conf.d/default.conf
+  #   depends_on:
+  #     - frontend
+  #   networks:
+  #     - app-network
+
+  nginx_symfony:
+    image: nginx:alpine
+    container_name: nginx_symfony
+    ports:
+      - "8080:80"
+    volumes:
+      - ./LM-Symfony:/var/www/html
+      - ./docker/nginx/symfony.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: symfony
+      MYSQL_USER: symfony
+      MYSQL_PASSWORD: symfony
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
