@@ -8,7 +8,7 @@ NC := \033[0m
 
 up:
 	@echo "$(GREEN)Démarrage des conteneurs...$(NC)"
-	docker compose up -d
+	docker compose up -d --remove-orphans
 	@echo "$(GREEN)✓ Conteneurs démarrés !$(NC)"
 	@echo "$(YELLOW)React:$(NC) http://127.0.0.1"
 	@echo "$(YELLOW)Symfony:$(NC) http://127.0.0.1:8080"
