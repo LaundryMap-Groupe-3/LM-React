@@ -1,5 +1,0 @@
-# Issue Informations
-
-Context :
-
-Pictures :
