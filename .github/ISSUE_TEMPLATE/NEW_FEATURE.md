@@ -6,12 +6,13 @@ labels: new feature
 assignees: ''
 
 ---
-## Informations générales
+## General Informations
+
 
 |Issue Informations||
 |---|---|
 | Feature number | F-{Feat num} |
-| Priority | [ ] low [ ] medium [ ] hight|
+| Priority | <ul><li>[ ] low</li> <li>[ ] medium</li> <li>[ ] hight</li></ul>|
 | estimation time | {time-h} hours |
 
 
