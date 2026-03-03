@@ -115,7 +115,8 @@ const Register = () => {
   }
 
   return (
-      <div className="max-w-sm mx-auto sm:max-w-md bg-white rounded-lg sm:shadow-lg p-4 sm:p-6">
+    <div className="min-h-screen flex items-center justify-center py-8 px-4">
+      <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl p-4 sm:p-6 md:p-8">
         <h1 className="text-center text-[#3B82F6] font-semibold text-2xl mb-4 sm:mb-6 font-sans">
           Créer un compte
         </h1>
@@ -169,7 +170,7 @@ const Register = () => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className={`w-[354px] h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
                 errors.name 
                   ? 'border-[#C51D1D] focus:ring-red-500' 
                   : 'border-gray-300 focus:ring-blue-500'
@@ -192,7 +193,7 @@ const Register = () => {
               name="firstName"
               value={formData.firstName}
               onChange={handleChange}
-              className={`w-[354px] h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
                 errors.firstName 
                   ? 'border-[#C51D1D] focus:ring-red-500' 
                   : 'border-gray-300 focus:ring-blue-500'
@@ -219,7 +220,7 @@ const Register = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className={`w-[354px] h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
                 errors.email 
                   ? 'border-[#C51D1D] focus:ring-red-500' 
                   : 'border-gray-300 focus:ring-blue-500'
@@ -243,7 +244,7 @@ const Register = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`w-[354px] h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
+                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
                   errors.password 
                     ? 'border-[#C51D1D] focus:ring-red-500' 
                     : 'border-gray-300 focus:ring-blue-500'
@@ -284,7 +285,7 @@ const Register = () => {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className={`w-[354px] h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
+                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
                   errors.confirmPassword 
                     ? 'border-[#C51D1D] focus:ring-red-500' 
                     : 'border-gray-300 focus:ring-blue-500'
@@ -369,6 +370,7 @@ const Register = () => {
           )}
         </form>
       </div>
+    </div>
   )
 }
 
