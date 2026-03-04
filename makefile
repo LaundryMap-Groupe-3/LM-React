@@ -37,8 +37,8 @@ ssh-backend:
 logs:
 	${COMPOSE} logs -f
 
-db: vendor
+db:
 	${COMPOSE} ${BACKEND_EXEC} ${CONSOLE} doctrine:database:drop --force
 	${COMPOSE} ${BACKEND_EXEC} ${CONSOLE} doctrine:database:create
-	${COMPOSE} ${BACKEND_EXEC} ${CONSOLE} doctrine:migrations:migrate --no-interaction
+	${COMPOSE} ${BACKEND_EXEC} ${CONSOLE} doctrine:schema:update --force --complete
 
