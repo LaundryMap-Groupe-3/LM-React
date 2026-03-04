@@ -1,17 +1,7 @@
 import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 
 const Register = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    firstName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    acceptCGU: false
-  })
-  
-  const [errors, setErrors] = useState({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
@@ -19,79 +9,30 @@ const Register = () => {
   // Au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
 
-  // Regex pour validation de l'email
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  // Configuration React Hook Form
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+    reset,
+    setError
+  } = useForm({
+    defaultValues: {
+      name: '',
+      firstName: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      acceptCGU: false
+    },
+    mode: 'onChange' // Validation en temps réel
+  })
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-    
-    // Supprimer l'erreur lors de la saisie
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }))
-    }
-  }
+  // Surveiller le mot de passe pour la validation de confirmation
+  const watchPassword = watch('password')
 
-  const validateForm = () => {
-    const newErrors = {}
-
-    // Validation nom
-    if (!formData.name) {
-      newErrors.name = 'Le nom est requis'
-    }
-
-    // Validation prénom
-    if (!formData.firstName) {
-      newErrors.firstName = 'Le prénom est requis'
-    }
-
-    // Validation email
-    if (!formData.email) {
-      newErrors.email = 'L\'email est requis'
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Veuillez saisir un email valide'
-    }
-
-    // Validation mot de passe
-    if (!formData.password) {
-      newErrors.password = 'Le mot de passe est requis'
-    } else if (!passwordRegex.test(formData.password)) {
-      newErrors.password = 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial'
-    }
-
-    // Validation confirmation mot de passe
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Veuillez confirmer votre mot de passe'
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Les deux mots de passe ne correspondent pas'
-    }
-
-    // Validation CGU
-    if (!formData.acceptCGU) {
-      newErrors.acceptCGU = 'Vous devez accepter les conditions générales'
-    }
-
-    return newErrors
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-
-    const validationErrors = validateForm()
-    
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors)
-      setIsSubmitting(false)
-      return
-    }
-
+  const onSubmit = async (data) => {
     try {
       // Simulation d'un appel API
       await new Promise(resolve => setTimeout(resolve, 1000))
@@ -99,18 +40,12 @@ const Register = () => {
       alert('Inscription réussie ! Bienvenue sur LaundryMap')
       
       // Réinitialiser le formulaire
-      setFormData({
-        name: '',
-        firstName: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        acceptCGU: false
-      })
+      reset()
     } catch (error) {
-      setErrors({ submit: 'Une erreur est survenue lors de l\'inscription' })
-    } finally {
-      setIsSubmitting(false)
+      setError('root', { 
+        type: 'manual', 
+        message: 'Une erreur est survenue lors de l\'inscription' 
+      })
     }
   }
 
@@ -155,7 +90,7 @@ const Register = () => {
           <div className="flex-1 border-t border-[#6A7282]"></div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
             <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
              Mes informations personnels
             </h1>
@@ -167,9 +102,9 @@ const Register = () => {
             <input
               type="text"
               id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
+              {...register('name', {
+                required: 'Le nom est requis'
+              })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
                 errors.name 
                   ? 'border-[#C51D1D] focus:ring-red-500' 
@@ -178,7 +113,7 @@ const Register = () => {
               placeholder="Dupont"
             />
             {errors.name && (
-              <p className="mt-1 text-sm text-red-600 text-left">{errors.name}</p>
+              <p className="mt-1 text-sm text-red-600 text-left">{errors.name.message}</p>
             )}
           </div>
 
@@ -190,9 +125,9 @@ const Register = () => {
             <input
               type="text"
               id="firstName"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
+              {...register('firstName', {
+                required: 'Le prénom est requis'
+              })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
                 errors.firstName 
                   ? 'border-[#C51D1D] focus:ring-red-500' 
@@ -201,7 +136,7 @@ const Register = () => {
               placeholder="Jean"
             />
             {errors.firstName && (
-              <p className="mt-1 text-sm text-red-600 text-left">{errors.firstName}</p>
+              <p className="mt-1 text-sm text-red-600 text-left">{errors.firstName.message}</p>
             )}
           </div>
 
@@ -217,9 +152,13 @@ const Register = () => {
             <input
               type="email"
               id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
+              {...register('email', {
+                required: 'L\'email est requis',
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: 'Veuillez saisir un email valide'
+                }
+              })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
                 errors.email 
                   ? 'border-[#C51D1D] focus:ring-red-500' 
@@ -228,7 +167,7 @@ const Register = () => {
               placeholder="jean.dupont@exemple.fr"
             />
             {errors.email && (
-              <p className="mt-1 text-sm text-red-600 text-left">{errors.email}</p>
+              <p className="mt-1 text-sm text-red-600 text-left">{errors.email.message}</p>
             )}
           </div>
 
@@ -241,9 +180,13 @@ const Register = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
+                {...register('password', {
+                  required: 'Le mot de passe est requis',
+                  pattern: {
+                    value: passwordRegex,
+                    message: 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial'
+                  }
+                })}
                 className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
                   errors.password 
                     ? 'border-[#C51D1D] focus:ring-red-500' 
@@ -269,7 +212,7 @@ const Register = () => {
               </button>
             </div>
             {errors.password && (
-              <p className="mt-1 text-sm text-red-600 text-left">{errors.password}</p>
+              <p className="mt-1 text-sm text-red-600 text-left">{errors.password.message}</p>
             )}
           </div>
 
@@ -282,9 +225,10 @@ const Register = () => {
               <input
                 type={showConfirmPassword ? "text" : "password"}
                 id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
+                {...register('confirmPassword', {
+                  required: 'Veuillez confirmer votre mot de passe',
+                  validate: value => value === watchPassword || 'Les deux mots de passe ne correspondent pas'
+                })}
                 className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
                   errors.confirmPassword 
                     ? 'border-[#C51D1D] focus:ring-red-500' 
@@ -310,7 +254,7 @@ const Register = () => {
               </button>
             </div>
             {errors.confirmPassword && (
-              <p className="mt-1 text-sm text-red-600 text-left">{errors.confirmPassword}</p>
+              <p className="mt-1 text-sm text-red-600 text-left">{errors.confirmPassword.message}</p>
             )}
           </div>
 
@@ -319,9 +263,9 @@ const Register = () => {
             <input
               type="checkbox"
               id="acceptCGU"
-              name="acceptCGU"
-              checked={formData.acceptCGU}
-              onChange={handleChange}
+              {...register('acceptCGU', {
+                required: 'Vous devez accepter les conditions générales'
+              })}
               className={`mt-1 h-4 w-4 text-blue-600 border-2 rounded focus:ring-blue-500 ${
                 errors.acceptCGU
                   ? 'border-[#C51D1D]'
@@ -337,13 +281,13 @@ const Register = () => {
             </label>
           </div>
           {errors.acceptCGU && (
-            <p className="text-sm text-red-600 text-left">{errors.acceptCGU}</p>
+            <p className="text-sm text-red-600 text-left">{errors.acceptCGU.message}</p>
           )}
 
           {/* Erreur générale */}
-          {errors.submit && (
+          {errors.root && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-left">
-              {errors.submit}
+              {errors.root.message}
             </div>
           )}
 
