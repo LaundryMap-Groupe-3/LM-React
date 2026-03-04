@@ -1,15 +1,15 @@
-.PHONY: up start stop logs ssh-backend vendor cc rm
+.PHONY: up start stop logs ssh-backend vendor db cc rm
 
 COMPOSE=docker compose -f docker-compose.yml
 CONSOLE=php bin/console
 BACKEND_EXEC=exec backend
 
-start: up vendor cc
+start: up vendor db cc
 
 up:
 	docker kill $$(docker ps -q) || true
 	docker network create crm_extranet_network || true
-	git submodule update --init --recursive
+	git submodule update --remote --merge --recursive
 	${COMPOSE} build --force-rm
 	${COMPOSE} up -d --remove-orphans
 
@@ -36,4 +36,9 @@ ssh-backend:
 
 logs:
 	${COMPOSE} logs -f
+
+db:
+	${COMPOSE} ${BACKEND_EXEC} ${CONSOLE} doctrine:database:drop --force
+	${COMPOSE} ${BACKEND_EXEC} ${CONSOLE} doctrine:database:create
+	${COMPOSE} ${BACKEND_EXEC} ${CONSOLE} doctrine:schema:update --force --complete
 
