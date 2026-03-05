@@ -41,4 +41,5 @@ db:
 	${COMPOSE} ${BACKEND_EXEC} ${CONSOLE} doctrine:database:drop --force
 	${COMPOSE} ${BACKEND_EXEC} ${CONSOLE} doctrine:database:create
 	${COMPOSE} ${BACKEND_EXEC} ${CONSOLE} doctrine:schema:update --force --complete
+	${COMPOSE} ${BACKEND_EXEC} ${CONSOLE} doctrine:fixtures:load --no-interaction
 
