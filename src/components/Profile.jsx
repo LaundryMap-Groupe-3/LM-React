@@ -2,16 +2,18 @@ import Edit from '../assets/images/icons/edit.svg';
 import User from '../assets/images/icons/User-Shield.svg';
 import Error from '../assets/images/icons/Error.svg';
 import Remove from '../assets/images/icons/Remove.svg';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 
 const Profile = () => {
   const { isDarkTheme, toggleDarkTheme } = useTheme();
-  const [userInfo, setUserInfo] = useState({
-    firstName: '',
-    lastName: '', 
-    email: '',
-    memberSince: ''
+  const navigate = useNavigate();
+  const [userInfo] = useState({
+    firstName: 'John',
+    lastName: 'Doe', 
+    email: 'john.doe@example.com',
+    memberSince: '15 Janvier 2025'
   });
 
   const [selectedLanguage, setSelectedLanguage] = useState('Français');
@@ -29,29 +31,9 @@ const Profile = () => {
     setIsEmailNotifications(!isEmailNotifications);
   };
 
-  useEffect(() => {
-    // TODO: Remplacer par un appel API réel pour récupérer les informations utilisateur
-    // Exemple de données temporaires
-    const fetchUserInfo = async () => {
-      try {
-        // Simulation d'un appel API
-        // const response = await fetch('/api/user/profile');
-        // const data = await response.json();
-        
-        // Données temporaires pour démonstration
-        setUserInfo({
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john.doe@example.com',
-          memberSince: '15 Janvier 2025'
-        });
-      } catch (error) {
-        console.error('Erreur lors du chargement des informations utilisateur:', error);
-      }
-    };
-
-    fetchUserInfo();
-  }, []);
+  const handleEditProfile = () => {
+    navigate('/edit-profile');
+  };
 
   return (
     <div className={`min-h-screen flex items-start justify-center p-4 sm:p-6 md:p-8 lg:p-12 ${isDarkTheme ? 'bg-gray-900' : 'bg-white'}`}>
@@ -65,9 +47,11 @@ const Profile = () => {
         }`}>
             <div className="flex items-center justify-between w-full flex-wrap gap-2">
                 <h1 className="text-left text-base sm:text-lg md:text-xl text-[#3B82F6]">Informations personnelles</h1>
-                <button className="px-3 py-1 rounded hover:bg-[#2563EB] transition-colors flex items-center gap-2 text-[#3B82F6] text-sm sm:text-base">
+                <button 
+                    onClick={handleEditProfile}
+                    className="px-3 py-1 hover:underline flex items-center gap-2 text-[#3B82F6] text-sm sm:text-base">
                     <img src={Edit} alt="Modifier" className="w-4 h-4" />
-                    <span className="hidden sm:inline">Modifier</span>
+                    <span>Modifier</span>
                 </button>
             </div>
             <div className="flex flex-col items-start mt-4">

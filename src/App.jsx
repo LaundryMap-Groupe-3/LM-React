@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import Register from './components/Register'
 import Profile from './components/Profile'
+import EditProfile from './components/EditProfile'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
@@ -25,6 +26,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
       </Routes>
       <Footer />
     </ThemeProvider>
