@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
-import Logo from '../assets/images/logos/logo-laundrymap.svg';
-import IconAccueil from '../assets/images/icons/Home-black.svg';
-import IconConnexion from '../assets/images/icons/Login-white.svg';
-import IconMotDePasseOublie from '../assets/images/icons/Key-black.svg';
-import IconUtilisateur from '../assets/images/icons/User-black.svg';
-import IconAdmistrateur from '../assets/images/icons/Administrator-black.svg';
-const Header = () => {
+import Logo from '../../assets/images/logos/logo-laundrymap.svg';
+import IconAccueil from '../../assets/images/icons/Home-black.svg';
+import IconConnexion from '../../assets/images/icons/Login-white.svg';
+import IconMotDePasseOublie from '../../assets/images/icons/Key-black.svg';
+import IconUtilisateur from '../../assets/images/icons/User-black.svg';
+import IconAdmistrateur from '../../assets/images/icons/Administrator-black.svg';
+
+const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isDarkTheme, isLoggedIn } = useTheme();
   const location = useLocation();
 
   const toggleMenu = () => {

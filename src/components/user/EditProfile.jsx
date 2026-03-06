@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
-import Save from '../assets/images/icons/Save.svg';
-import Back from '../assets/images/icons/Back.svg';
-import Shield from '../assets/images/icons/Shield.svg';
+import Save from '../../assets/images/icons/Save.svg';
+import Back from '../../assets/images/icons/Back.svg';
+import Shield from '../../assets/images/icons/Shield.svg';
 
-const EditProfile = () => {
-  const { isDarkTheme } = useTheme();
+const EditProfile = ({ isDarkTheme }) => {
   const navigate = useNavigate();
   const originalData = {
     firstName: 'John',

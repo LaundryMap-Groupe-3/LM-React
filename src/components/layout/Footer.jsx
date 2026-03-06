@@ -1,15 +1,12 @@
 import React from 'react';
-import { useTheme } from '../contexts/ThemeContext';
-import LogoFacebook from '../assets/images/logos/logo-facebook.svg';
-import LogoTwitter from '../assets/images/logos/logo-twitter.svg';
-import LogoInstagram from '../assets/images/logos/logo-instagram.svg';
-import LogoLinkedIn from '../assets/images/logos/logo-linkedin.svg';
+import LogoFacebook from '../../assets/images/logos/logo-facebook.svg';
+import LogoTwitter from '../../assets/images/logos/logo-twitter.svg';
+import LogoInstagram from '../../assets/images/logos/logo-instagram.svg';
+import LogoLinkedIn from '../../assets/images/logos/logo-linkedin.svg';
 
-const Footer = () => {
-  const { isDarkTheme, isLoggedIn } = useTheme();
-
+const Footer = ({ isDarkTheme }) => {
   return (
-    <footer className={isDarkTheme || isLoggedIn ? 'bg-[#1E293B] text-[#E2E8F0]' : 'bg-white text-[#64748B]'}>
+    <footer className={isDarkTheme ? 'bg-[#1E293B] text-[#E2E8F0]' : 'bg-white text-[#64748B]'}>
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-[14px] text-left">
           <div>

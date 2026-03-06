@@ -1,13 +1,11 @@
-import Edit from '../assets/images/icons/edit.svg';
-import User from '../assets/images/icons/User-Shield.svg';
-import Error from '../assets/images/icons/Error.svg';
-import Remove from '../assets/images/icons/Remove.svg';
+import Edit from '../../assets/images/icons/edit.svg';
+import User from '../../assets/images/icons/User-Shield.svg';
+import Error from '../../assets/images/icons/Error.svg';
+import Remove from '../../assets/images/icons/Remove.svg';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
 
-const Profile = () => {
-  const { isDarkTheme, toggleDarkTheme } = useTheme();
+const Profile = ({ isDarkTheme, toggleDarkTheme }) => {
   const navigate = useNavigate();
   const [userInfo] = useState({
     firstName: 'John',
