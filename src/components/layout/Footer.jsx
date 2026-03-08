@@ -4,7 +4,7 @@ import LogoTwitter from '../../assets/images/logos/logo-twitter.svg';
 import LogoInstagram from '../../assets/images/logos/logo-instagram.svg';
 import LogoLinkedIn from '../../assets/images/logos/logo-linkedin.svg';
 
-const Footer = ({ isDarkTheme }) => {
+const Footer = ({ isDarkTheme, isLoggedIn }) => {
   return (
     <footer className={isDarkTheme ? 'bg-[#1E293B] text-[#E2E8F0]' : 'bg-white text-[#64748B]'}>
       <div className="container mx-auto px-4 py-8">

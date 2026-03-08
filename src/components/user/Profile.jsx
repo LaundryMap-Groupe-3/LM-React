@@ -5,7 +5,7 @@ import Remove from '../../assets/images/icons/Remove.svg';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const Profile = ({ isDarkTheme, toggleDarkTheme }) => {
+const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme }) => {
   const navigate = useNavigate();
   const [userInfo] = useState({
     firstName: 'John',

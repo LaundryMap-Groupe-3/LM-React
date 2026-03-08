@@ -5,7 +5,7 @@ import Save from '../../assets/images/icons/Save.svg';
 import Back from '../../assets/images/icons/Back.svg';
 import Shield from '../../assets/images/icons/Shield.svg';
 
-const EditProfile = ({ isDarkTheme }) => {
+const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
   const navigate = useNavigate();
   const originalData = {
     firstName: 'John',

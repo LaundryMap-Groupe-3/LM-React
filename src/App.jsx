@@ -38,20 +38,27 @@ function App() {
       />
       <Routes>
         <Route path="/" element={<Home isDarkTheme={isDarkTheme} isLoggedIn={isLoggedIn} />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/register" element={
+          <Register 
+            isDarkTheme={isDarkTheme}
+            isLoggedIn={isLoggedIn}
+          />
+        } />
         <Route path="/profile" element={
           <Profile 
             isDarkTheme={isDarkTheme}
+            isLoggedIn={isLoggedIn}
             toggleDarkTheme={toggleDarkTheme}
           />
         }/> 
         <Route path="/edit-profile" element={
           <EditProfile 
             isDarkTheme={isDarkTheme}
+            isLoggedIn={isLoggedIn}
           />
         }/>
       </Routes>
-      <Footer isDarkTheme={isDarkTheme} />
+      <Footer isDarkTheme={isDarkTheme} isLoggedIn={isLoggedIn} />
     </>
   )
 }
