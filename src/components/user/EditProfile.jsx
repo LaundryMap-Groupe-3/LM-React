@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import Save from '../../assets/images/icons/Save.svg';
@@ -7,36 +6,19 @@ import Shield from '../../assets/images/icons/Shield.svg';
 
 const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
   const navigate = useNavigate();
-  const originalData = {
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com'
-  };
 
   const {
     register,
-    handleSubmit,
-    formState: { errors },
-    watch
-  } = useForm({
-    defaultValues: originalData
-  });
-
-  // Surveiller les valeurs du formulaire pour détecter les changements
-  const currentFormData = watch();
+    handleSubmit
+  } = useForm();
 
   const onSubmit = (data) => {
-    console.log('Informations sauvegardées:', data);
-    alert('Informations mises à jour avec succès !');
-    navigate('/profile');
+    console.log(data);
   };
 
   const handleCancel = () => {
     navigate('/profile');
   };
-
-  // Détecter les changements en comparant les données actuelles avec les originales
-  const hasChanges = JSON.stringify(currentFormData) !== JSON.stringify(originalData);
 
   return (
     <div className={`min-h-screen flex items-start justify-center p-4 sm:p-6 md:p-8 lg:p-12 ${isDarkTheme ? 'bg-gray-900' : 'bg-white'}`}>
@@ -62,7 +44,7 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
               <input
                 type="text"
                 id="firstName"
-                {...register('firstName', { required: 'Le prénom est requis' })}
+                {...register('firstName')}
                 className={`w-[342px] px-3 py-2 border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                   isDarkTheme 
                     ? 'bg-gray-700 border-[#D1D5DB] text-gray-100' 
@@ -70,9 +52,6 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
                 }`}
                 placeholder="Entrez votre prénom"
               />
-              {errors.firstName && (
-                <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
-              )}
             </div>
             <div>
               <label 
@@ -86,7 +65,7 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
               <input
                 type="text"
                 id="lastName"
-                {...register('lastName', { required: 'Le nom est requis' })}
+                {...register('lastName')}
                 className={`w-[342px] px-3 py-2 border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                   isDarkTheme 
                     ? 'bg-gray-700 border-[#D1D5DB] text-gray-100' 
@@ -94,9 +73,6 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
                 }`}
                 placeholder="Entrez votre nom"
               />
-              {errors.lastName && (
-                <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
-              )}
             </div>
             <div>
                 <label 
@@ -110,32 +86,18 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
                 <input
                     type="email"
                     id="email"
-                    {...register('email', { 
-                      required: 'L\'email est requis',
-                      pattern: {
-                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: 'Adresse email invalide'
-                      }
-                    })}
+                    {...register('email')}
                     className={`w-[342px] px-3 py-2 border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                         isDarkTheme ? 'bg-gray-700 border-[#D1D5DB] text-gray-100' : 'bg-white border-[#D1D5DB] text-[#111827]'
                     }`}
                     placeholder="Entrez votre adresse email"
                 />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
-                )}
             </div>
             {/* Boutons d'action */}
             <div className="flex sm:flex-row gap-4 w-[342px]">
                 <button
                     type="submit"
-                    disabled={!hasChanges}
-                    className={`w-[210px] h-[34px] px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base ${
-                    !hasChanges
-                        ? 'bg-[#3B82F6] text-white cursor-not-allowed text-[11px]' 
-                        : 'bg-[#3B82F6] text-white hover:bg-[#2563EB] focus:ring-blue-500 text-[11px]'
-                    }`}
+                    className="w-[210px] h-[34px] px-4 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base bg-[#3B82F6] text-white hover:bg-[#2563EB] focus:ring-blue-500 text-[11px]"
                 >
                     <img src={Save} alt="Sauvegarder" className="w-4 h-4" />
                     <span>Enregistrer</span>

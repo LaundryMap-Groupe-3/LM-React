@@ -2,32 +2,10 @@ import Edit from '../../assets/images/icons/edit.svg';
 import User from '../../assets/images/icons/User-Shield.svg';
 import Error from '../../assets/images/icons/Error.svg';
 import Remove from '../../assets/images/icons/Remove.svg';
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme }) => {
   const navigate = useNavigate();
-  const [userInfo] = useState({
-    firstName: 'John',
-    lastName: 'Doe', 
-    email: 'john.doe@example.com',
-    memberSince: '15 Janvier 2025'
-  });
-
-  const [selectedLanguage, setSelectedLanguage] = useState('Français');
-  const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false);
-  const [isEmailNotifications, setIsEmailNotifications] = useState(true);
-  
-  const languages = ['Français', 'English'];
-
-  const handleLanguageSelect = (language) => {
-    setSelectedLanguage(language);
-    setIsLanguageDropdownOpen(false);
-  };
-
-  const toggleEmailNotifications = () => {
-    setIsEmailNotifications(!isEmailNotifications);
-  };
 
   const handleEditProfile = () => {
     navigate('/edit-profile');
@@ -59,7 +37,7 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme }) => {
                     }`}>Prénom & Nom</p>
                     <p className={`font-medium text-left text-[14px] ${
                       isDarkTheme ? 'text-gray-100' : 'text-[#111827]'
-                    }`}>{userInfo.firstName} {userInfo.lastName}</p>
+                    }`}>John Doe</p>
                 </div>
                 <div className="mt-4">
                     <p className={`text-sm text-left ${
@@ -67,7 +45,7 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme }) => {
                     }`}>Email</p>
                     <p className={`font-medium text-left text-[14px] ${
                       isDarkTheme ? 'text-gray-100' : 'text-[#111827]'
-                    }`}>{userInfo.email}</p>
+                    }`}>john.doe@example.com</p>
                 </div>
                 <div className="mt-4">
                     <p className={`text-sm text-left ${
@@ -75,7 +53,7 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme }) => {
                     }`}>Membre depuis</p>
                     <p className={`font-medium text-left text-[14px] ${
                       isDarkTheme ? 'text-gray-100' : 'text-[#111827]'
-                    }`}>{userInfo.memberSince}</p>
+                    }`}>15 Janvier 2025</p>
                 </div>
             </div>
         </div>
@@ -102,39 +80,17 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme }) => {
                     </div>
                     <div className="relative flex-shrink-0 ml-auto">
                         <button 
-                            onClick={() => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)}
                             className={`w-[140px] sm:w-[140px] h-9 text-center text-xs sm:text-sm border rounded-md px-3 py-2 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between relative ${
                               isDarkTheme 
                                 ? 'bg-gray-700 border-gray-600 text-gray-100 hover:bg-gray-600' 
                                 : 'bg-white border-gray-300 text-[#111827]'
                             }`}
                         >
-                            <span>{selectedLanguage}</span>
+                            <span>Français</span>
                             <svg className="w-4 h-4 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        {isLanguageDropdownOpen && (
-                            <div className={`absolute z-10 mt-1 w-full border rounded-md shadow-lg ${
-                              isDarkTheme 
-                                ? 'bg-gray-700 border-gray-600' 
-                                : 'bg-white border-gray-300'
-                            }`}>
-                                {languages.map((language) => (
-                                    <button
-                                        key={language}
-                                        onClick={() => handleLanguageSelect(language)}
-                                        className={`w-full text-left px-3 py-2 text-xs sm:text-sm focus:outline-none ${
-                                          isDarkTheme 
-                                            ? 'text-gray-100 hover:bg-gray-600 focus:bg-gray-600' 
-                                            : 'text-[#111827] hover:bg-blue-50 focus:bg-blue-50'
-                                        }`}
-                                    >
-                                        {language}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
                     </div>
                 </div>
                 <div className="flex justify-between items-center w-full gap-[83px]">
@@ -172,16 +128,9 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme }) => {
                     </div>
                     <div className="flex items-center flex-shrink-0 ml-auto">
                         <button
-                            onClick={toggleEmailNotifications}
-                            className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out ${
-                                isEmailNotifications ? 'bg-blue-500' : 'bg-gray-300'
-                            }`}
+                            className="w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out bg-blue-500"
                         >
-                            <div
-                                className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ease-in-out ${
-                                    isEmailNotifications ? 'translate-x-6' : 'translate-x-0'
-                                }`}
-                            />
+                            <div className="w-4 h-4 rounded-full bg-white transition-transform duration-200 ease-in-out translate-x-6" />
                         </button>
                     </div>
                 </div>
