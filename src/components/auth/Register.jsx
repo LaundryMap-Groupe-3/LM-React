@@ -1,52 +1,14 @@
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 const Register = ({ isDarkTheme, isLoggedIn }) => {
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-
-  // Regex pour validation du mot de passe
-  // Au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
-
   // Configuration React Hook Form
   const {
     register,
-    handleSubmit,
-    watch,
-    formState: { errors, isSubmitting },
-    reset,
-    setError
-  } = useForm({
-    defaultValues: {
-      name: '',
-      firstName: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      acceptCGU: false
-    },
-    mode: 'onChange' // Validation en temps réel
-  })
+    handleSubmit
+  } = useForm()
 
-  // Surveiller le mot de passe pour la validation de confirmation
-  const watchPassword = watch('password')
-
-  const onSubmit = async (data) => {
-    try {
-      // Simulation d'un appel API
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      alert('Inscription réussie ! Bienvenue sur LaundryMap')
-      
-      // Réinitialiser le formulaire
-      reset()
-    } catch (error) {
-      setError('root', { 
-        type: 'manual', 
-        message: 'Une erreur est survenue lors de l\'inscription' 
-      })
-    }
+  const onSubmit = (data) => {
+    console.log(data)
   }
 
   return (
@@ -91,9 +53,9 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
-            <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
-             Mes informations personnels
-            </h1>
+          <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
+            Mes informations personnels
+          </h1>
           {/* Nom */}
           <div>
             <label htmlFor="name" className="block text-left text-sm text-gray-700 mb-1">
@@ -102,19 +64,10 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
             <input
               type="text"
               id="name"
-              {...register('name', {
-                required: 'Le nom est requis'
-              })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
-                errors.name 
-                  ? 'border-[#C51D1D] focus:ring-red-500' 
-                  : 'border-gray-300 focus:ring-blue-500'
-              }`}
+              {...register('name')}
+              className="w-full h-[44px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm"
               placeholder="Dupont"
             />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-600 text-left">{errors.name.message}</p>
-            )}
           </div>
 
           {/* Prénom */}
@@ -125,24 +78,15 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
             <input
               type="text"
               id="firstName"
-              {...register('firstName', {
-                required: 'Le prénom est requis'
-              })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
-                errors.firstName 
-                  ? 'border-[#C51D1D] focus:ring-red-500' 
-                  : 'border-gray-300 focus:ring-blue-500'
-              }`}
+              {...register('firstName')}
+              className="w-full h-[44px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm"
               placeholder="Jean"
             />
-            {errors.firstName && (
-              <p className="mt-1 text-sm text-red-600 text-left">{errors.firstName.message}</p>
-            )}
           </div>
 
-            <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
-             Mes informations de connexion
-            </h1>
+          <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
+            Mes informations de connexion
+          </h1>
 
           {/* Email */}
           <div>
@@ -152,68 +96,24 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
             <input
               type="email"
               id="email"
-              {...register('email', {
-                required: 'L\'email est requis',
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: 'Veuillez saisir un email valide'
-                }
-              })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
-                errors.email 
-                  ? 'border-[#C51D1D] focus:ring-red-500' 
-                  : 'border-gray-300 focus:ring-blue-500'
-              }`}
+              {...register('email')}
+              className="w-full h-[44px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm"
               placeholder="jean.dupont@exemple.fr"
             />
-            {errors.email && (
-              <p className="mt-1 text-sm text-red-600 text-left">{errors.email.message}</p>
-            )}
           </div>
 
-            {/* Mot de passe */}    
-            <div>
+          {/* Mot de passe */}    
+          <div>
             <label htmlFor="password" className="block text-left text-sm text-gray-700 mb-1">
               Mot de passe<span className="text-red-500">*</span>
             </label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                {...register('password', {
-                  required: 'Le mot de passe est requis',
-                  pattern: {
-                    value: passwordRegex,
-                    message: 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial'
-                  }
-                })}
-                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
-                  errors.password 
-                    ? 'border-[#C51D1D] focus:ring-red-500' 
-                    : 'border-gray-300 focus:ring-blue-500'
-                }`}
-                placeholder="•••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showPassword ? (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 11-4.243-4.243m4.242 4.242L9.88 9.88" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                )}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="mt-1 text-sm text-red-600 text-left">{errors.password.message}</p>
-            )}
+            <input
+              type="password"
+              id="password"
+              {...register('password')}
+              className="w-full h-[44px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm"
+              placeholder="•••"
+            />
           </div>
 
           {/* Confirmation mot de passe */}
@@ -221,41 +121,13 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
             <label htmlFor="confirmPassword" className="block text-left text-sm text-gray-700 mb-1">
               Confirmation mot de passe <span className="text-red-500">*</span>
             </label>
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                id="confirmPassword"
-                {...register('confirmPassword', {
-                  required: 'Veuillez confirmer votre mot de passe',
-                  validate: value => value === watchPassword || 'Les deux mots de passe ne correspondent pas'
-                })}
-                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 text-base sm:text-sm ${
-                  errors.confirmPassword 
-                    ? 'border-[#C51D1D] focus:ring-red-500' 
-                    : 'border-gray-300 focus:ring-blue-500'
-                }`}
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showConfirmPassword ? (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 11-4.243-4.243m4.242 4.242L9.88 9.88" />
-                  </svg>
-                ) : (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                )}
-              </button>
-            </div>
-            {errors.confirmPassword && (
-              <p className="mt-1 text-sm text-red-600 text-left">{errors.confirmPassword.message}</p>
-            )}
+            <input
+              type="password"
+              id="confirmPassword"
+              {...register('confirmPassword')}
+              className="w-full h-[44px] px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm"
+              placeholder="••••••••"
+            />
           </div>
 
           {/* Checkbox CGU */}
@@ -263,14 +135,8 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
             <input
               type="checkbox"
               id="acceptCGU"
-              {...register('acceptCGU', {
-                required: 'Vous devez accepter les conditions générales'
-              })}
-              className={`mt-1 h-4 w-4 text-blue-600 border-2 rounded focus:ring-blue-500 ${
-                errors.acceptCGU
-                  ? 'border-[#C51D1D]'
-                  : 'border-gray-300'
-              }`}
+              {...register('acceptCGU')}
+              className="mt-1 h-4 w-4 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500"
             />
             <label htmlFor="acceptCGU" className="text-sm text-gray-700">
               J'accepte les{' '}
@@ -280,38 +146,14 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
               <span className="text-red-500">*</span>
             </label>
           </div>
-          {errors.acceptCGU && (
-            <p className="text-sm text-red-600 text-left">{errors.acceptCGU.message}</p>
-          )}
-
-          {/* Erreur générale */}
-          {errors.root && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-left">
-              {errors.root.message}
-            </div>
-          )}
 
           {/* Bouton de soumission */}
           <button
             type="submit"
-            disabled={isSubmitting}
-            className={`w-full py-3 sm:py-2 px-4 rounded-md text-white font-medium transition-colors text-base sm:text-sm ${
-              isSubmitting
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-[#3B82F6] hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
-            }`}
+            className="w-full py-3 sm:py-2 px-4 rounded-md text-white font-medium transition-colors text-base sm:text-sm bg-[#3B82F6] hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
           >
-            {isSubmitting ? 'Inscription en cours...' : 'Créer mon compte'}
+            Créer mon compte
           </button>
-
-          {/* Message d'attention pour les champs - s'affiche seulement s'il y a des erreurs */}
-          {Object.keys(errors).length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3">
-              <p className="text-sm text-red-800 text-left">
-                Des champs nécessitent votre attention.
-              </p>
-            </div>
-          )}
         </form>
       </div>
     </div>
