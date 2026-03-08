@@ -1,21 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faEye, 
-  faCheck, 
-  faTimes, 
-  faSpinner,
-  faExclamationTriangle,
-  faBuilding,
-  faUser,
-  faCalendarAlt,
-  faEnvelope,
-  faPhone,
-  faMapMarkerAlt,
-  faIdCard
-} from '@fortawesome/free-solid-svg-icons';
+import Clock from '../../assets/images/icons/Clock.svg';
+import UserIcon from '../../assets/images/icons/User.svg';
+import Siren from '../../assets/images/icons/Department.svg';
+import mapIcon from '../../assets/images/icons/Location.svg';
+import ClockWait from '../../assets/images/icons/Clock-wait.svg';
+import Done from '../../assets/images/icons/Done.svg';
+import Close from '../../assets/images/icons/Close-red.svg';
+import ExternalLink from '../../assets/images/icons/External-link.svg';
 
-const AdminPanel = () => {
+const AdminPanel = ({ isLoggedIn }) => {
   const [professionals, setProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedProfessional, setSelectedProfessional] = useState(null);
@@ -23,27 +16,33 @@ const AdminPanel = () => {
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectComment, setRejectComment] = useState('');
   const [professionalToReject, setProfessionalToReject] = useState(null);
-  const [expandedCards, setExpandedCards] = useState(new Set());
-
+  const [expandedCards, setExpandedCards] = useState(new Set());  const [pendingLaundries, setPendingLaundries] = useState(0);
   useEffect(() => {
     fetchPendingProfessionals();
+    fetchPendingLaundries();
   }, []);
 
   const fetchPendingProfessionals = async () => {
     try {
-      // Simuler des données pour l'exemple, à remplacer par un vrai appel API
+      const response = await fetch('/api/professionals?status=pending');
+      const data = await response.json();
+      setProfessionals(data);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des professionnels en attente:', error);
+      // Garder les données mockées en cas d'erreur pour le développement
       const mockData = [
         {
           id: 1,
           siren: 12345678901,
           status: 'pending',
+          sirenVerified: true,
           user: {
             id: 1,
             firstName: 'Jean',
             lastName: 'Dupont',
             email: 'jean.dupont@email.com',
             phoneNumber: '0123456789',
-            createdAt: '2024-03-01 10:30:00'
+            createdAt: '2024-03-01'
           },
           address: {
             id: 1,
@@ -63,13 +62,14 @@ const AdminPanel = () => {
           id: 2,
           siren: 98765432101,
           status: 'pending',
+          sirenVerified: false,
           user: {
             id: 2,
             firstName: 'Marie',
             lastName: 'Martin',
             email: 'marie.martin@email.com',
             phoneNumber: '0987654321',
-            createdAt: '2024-03-05 14:15:00'
+            createdAt: '2024-03-05'
           },
           address: {
             id: 2,
@@ -85,12 +85,19 @@ const AdminPanel = () => {
           ]
         }
       ];
-
       setProfessionals(mockData);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des professionnels en attente:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPendingLaundries = async () => {
+    try {
+      // Simuler la récupération du nombre de laveries en attente
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setPendingLaundries(3); // À remplacer par un vrai appel API
+    } catch (error) {
+      console.error('Erreur lors de la récupération des laveries en attente:', error);
     }
   };
 
@@ -151,22 +158,47 @@ const AdminPanel = () => {
     });
   };
 
+  const getStatusDisplay = (status) => {
+    switch (status) {
+      case 'pending':
+        return {
+          text: 'En attente',
+          bgColor: 'bg-[#F59E0B]/9',
+          textColor: 'text-[#F59E0B]'
+        };
+      case 'approved':
+        return {
+          text: 'Approuvé',
+          bgColor: 'bg-green-500/9',
+          textColor: 'text-green-600'
+        };
+      case 'rejected':
+        return {
+          text: 'Rejeté',
+          bgColor: 'bg-red-500/9',
+          textColor: 'text-red-600'
+        };
+      default:
+        return {
+          text: 'En attente',
+          bgColor: 'bg-[#F59E0B]/9',
+          textColor: 'text-[#F59E0B]'
+        };
+    }
+  };
+
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    const date = new Date(dateString);
+    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
-          <FontAwesomeIcon icon={faSpinner} className="text-4xl text-blue-500 animate-spin mb-4" />
-          <p className="text-gray-600">Chargement des comptes en attente...</p>
+          <p className="text-gray-600">
+            Chargement des comptes en attente...
+          </p>
         </div>
       </div>
     );
@@ -175,160 +207,118 @@ const AdminPanel = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  <FontAwesomeIcon icon={faExclamationTriangle} className="mr-3 text-yellow-500" />
-                  Administration LaundryMap
-                </h1>
-                <p className="text-gray-600 mt-2">
-                  Validation des comptes professionnels en attente
-                </p>
-              </div>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-2">
-                <div className="flex items-center">
-                  <FontAwesomeIcon icon={faExclamationTriangle} className="text-yellow-500 mr-2" />
-                  <span className="text-yellow-800 font-medium">
-                    {professionals.length} compte(s) en attente
-                  </span>
+                <div className="text-[20px] text-[#3B82F6] font-bold text-left">
+                  <div>Administration - Validations</div>
+                  <div>des comptes profesionnels</div>
                 </div>
+                <p className="mt-2 text-[#9CA3AF] text-[12px] text-left">
+                  Gestion des comptes professionnels et des fiches de laveries
+                  en attente de validation
+                </p>
               </div>
             </div>
           </div>
         </div>
-      </div>
+
+        {/* Onglets professionnels en attente de validation - laveries en attente de validation */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-6 shadow-md bg-white rounded-lg px-4 py-2">
+            <button className="py-2 text-[13px] font-medium text-[#3B82F6] bg-[#3B82F6] rounded-[5px] w-[200px] h-[35px] text-white flex items-center justify-center gap-2">
+              Comptes professionnels
+              <span className="bg-white/20 text-white text-xs px-2 py-1 rounded-full">
+                {professionals.length}
+              </span>
+            </button>
+            <button className="py-2 text-[13px] font-medium text-gray-500 hover:text-gray-700 flex items-center justify-center gap-2">
+              Laveries
+              <span className="bg-[#F59E0B] text-white text-xs px-2 py-1 rounded-full">
+                {pendingLaundries}
+              </span>
+            </button>
+          </div>
+        </div>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-left text-[13px] font-bold text-gray-900">
+          <img src={Clock} alt="Icone Horloge" className="inline-block w-[20px] h-[20px] mr-2" />
+          Comptes Professionnels en attente
+        </h1>
         {professionals.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <FontAwesomeIcon icon={faCheck} className="text-6xl text-green-500 mb-6" />
-            <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+          <div className="rounded-lg shadow-md p-12 text-center bg-white">
+            <h3 className="text-2xl font-semibold mb-4 text-gray-900">
               Aucun compte en attente
             </h3>
-            <p className="text-gray-600 text-lg">
+            <p className="text-lg text-gray-600">
               Tous les comptes professionnels ont été traités.
             </p>
           </div>
         ) : (
           <div className="space-y-6">
             {professionals.map((professional) => (
-              <div key={professional.id} className="bg-white rounded-lg shadow-md border-l-4 border-yellow-400 overflow-hidden">
+              <div key={professional.id} className="rounded-lg shadow-md border-l-2 border-[#F59E0B] text-left overflow-hidden bg-white">
                 {/* Header de la carte */}
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center">
-                      <div className="bg-blue-100 rounded-full p-3 mr-4">
-                        <FontAwesomeIcon icon={faUser} className="text-blue-600 text-xl" />
-                      </div>
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900">
+                        <div className="flex justify-between items-start gap-[111px]">
+                          <h3 className="text-[12px] font-bold text-[#111827]">
+                            {professional.laundries[0]?.name || 'Aucune laverie'}
+                          </h3>
+                          <div className="flex items-center">
+                            <span className={`px-3 py-1 ${getStatusDisplay(professional.status).bgColor} ${getStatusDisplay(professional.status).textColor} text-[7px] font-semibold w-[74px] h-[16px] rounded-full flex items-center justify-center`}>
+                              <img src={ClockWait} alt="Icone Horloge" className="inline-block w-[8px] h-[8px] mr-1" />
+                              {getStatusDisplay(professional.status).text}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-[11px] font-regular text-[#6B7280]">
+                          <img src={UserIcon} alt="Icone Utilisateur" className="inline-block w-[20px] h-[20px] mr-2" />
                           {professional.user.firstName} {professional.user.lastName}
-                        </h3>
-                        <div className="flex items-center mt-1">
-                          <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-full mr-3">
-                            En attente de validation
+                        </p>
+                        <p className="text-[11px] text-[#6B7280] flex items-center">
+                          <img src={Siren} alt="Icone SIREN" className="inline-block w-[20px] h-[20px] mr-2" />
+                          SIREN: {professional.siren}
+                          <span className={`ml-2 px-2 py-0.5 text-[7px] font-semibold rounded-full ${
+                            professional.sirenVerified 
+                              ? 'bg-[#10B981] text-white' 
+                              : 'bg-red-500/10 text-red-600'
+                          }`}>
+                            <img 
+                              src={professional.sirenVerified ? Done : Close} 
+                              alt={professional.sirenVerified ? "Icone Vérification" : "Icone Erreur"} 
+                              className="inline-block w-[8px] h-[8px] mr-1" 
+                            />
+                            {professional.sirenVerified ? 'Vérifié' : 'Non vérifié'}
                           </span>
-                          <span className="text-sm text-gray-500">
-                            <FontAwesomeIcon icon={faCalendarAlt} className="mr-1" />
-                            Créé le {formatDate(professional.user.createdAt)}
-                          </span>
-                        </div>
+                        </p>
+                        <p className="text-[11px] text-[#6B7280]">
+                          <img src={mapIcon} alt="Icone Horloge" className="inline-block w-[20px] h-[20px] mr-2" />
+                          {professional.address.streetNumber} {professional.address.streetName}, {professional.address.postalCode} {professional.address.city}
+                        </p>
                       </div>
                     </div>
-                    <button
+                  </div>
+                  <div className="flex items-start justify-between mb-4">
+                    {/* Date de demande à gauche */}
+                    <div className="text-left">
+                      <p className="text-[10px] font-medium text-[#6B7280] mb-2">
+                        Demande du {formatDate(professional.user.createdAt)}
+                      </p>
+                    </div>
+                    
+                    {/* Bouton gérer la demande à droite */}
+                    <button 
+                      className="bg-[#3B82F6] flex items-center text-white px-4 py-2 rounded-[5px] w-[130px] h-[21px] text-[9px] font-medium hover:bg-[#2563EB] transition-colors"
                       onClick={() => toggleCardExpansion(professional.id)}
-                      className="text-blue-600 hover:text-blue-800 font-medium"
                     >
-                      {expandedCards.has(professional.id) ? 'Réduire' : 'Voir détails'}
-                    </button>
-                  </div>
-
-                  {/* Informations de base */}
-                  <div className="grid md:grid-cols-3 gap-4 mb-4">
-                    <div className="flex items-center">
-                      <FontAwesomeIcon icon={faEnvelope} className="text-gray-400 mr-2" />
-                      <span className="text-sm text-gray-600">Email:</span>
-                      <span className="ml-2 font-medium">{professional.user.email}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <FontAwesomeIcon icon={faPhone} className="text-gray-400 mr-2" />
-                      <span className="text-sm text-gray-600">Téléphone:</span>
-                      <span className="ml-2 font-medium">{professional.user.phoneNumber}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <FontAwesomeIcon icon={faIdCard} className="text-gray-400 mr-2" />
-                      <span className="text-sm text-gray-600">SIREN:</span>
-                      <span className="ml-2 font-medium">{professional.siren}</span>
-                    </div>
-                  </div>
-
-                  {/* Détails étendus */}
-                  {expandedCards.has(professional.id) && (
-                    <div className="border-t pt-4 mt-4">
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div>
-                          <h4 className="font-semibold text-lg mb-3 flex items-center">
-                            <FontAwesomeIcon icon={faMapMarkerAlt} className="mr-2 text-gray-500" />
-                            Adresse
-                          </h4>
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <p className="font-medium">
-                              {professional.address.streetNumber} {professional.address.streetName}
-                            </p>
-                            {professional.address.additionalAddress && (
-                              <p className="text-gray-600">{professional.address.additionalAddress}</p>
-                            )}
-                            <p className="text-gray-600">
-                              {professional.address.postalCode} {professional.address.city}
-                            </p>
-                            <p className="text-gray-600">{professional.address.country}</p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <h4 className="font-semibold text-lg mb-3 flex items-center">
-                            <FontAwesomeIcon icon={faBuilding} className="mr-2 text-gray-500" />
-                            Laveries déclarées ({professional.laundries.length})
-                          </h4>
-                          <div className="space-y-2">
-                            {professional.laundries.map((laundry) => (
-                              <div key={laundry.id} className="bg-gray-50 rounded-lg p-4">
-                                <h5 className="font-medium text-gray-900">{laundry.name}</h5>
-                                <p className="text-sm text-gray-600 mt-1">{laundry.description}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
-                    <button
-                      onClick={() => handleApprove(professional.id)}
-                      disabled={actionLoading === professional.id}
-                      className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                      {actionLoading === professional.id ? (
-                        <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-                      ) : (
-                        <FontAwesomeIcon icon={faCheck} />
-                      )}
-                      Approuver
-                    </button>
-
-                    <button
-                      onClick={() => openRejectModal(professional.id)}
-                      disabled={actionLoading === professional.id}
-                      className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                      <FontAwesomeIcon icon={faTimes} />
-                      Rejeter
+                      <img src={ExternalLink} alt="Icone Lien Externe" className="inline-block w-[12px] h-[12px] mr-1" />
+                      Gérer la demande
                     </button>
                   </div>
                 </div>
@@ -337,54 +327,6 @@ const AdminPanel = () => {
           </div>
         )}
       </div>
-
-      {/* Modal de rejet */}
-      {rejectModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-md">
-            <div className="p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                <FontAwesomeIcon icon={faTimes} className="mr-2 text-red-600" />
-                Motif de rejet
-              </h3>
-              <p className="text-gray-600 mb-4">
-                Veuillez préciser le motif du rejet de ce compte professionnel :
-              </p>
-              <textarea
-                value={rejectComment}
-                onChange={(e) => setRejectComment(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                rows="4"
-                placeholder="Exemple: Informations SIREN non valides, documents manquants..."
-              />
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  onClick={() => {
-                    setRejectModalOpen(false);
-                    setRejectComment('');
-                    setProfessionalToReject(null);
-                  }}
-                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Annuler
-                </button>
-                <button
-                  onClick={handleReject}
-                  disabled={!rejectComment.trim() || actionLoading === professionalToReject}
-                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {actionLoading === professionalToReject ? (
-                    <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-                  ) : (
-                    <FontAwesomeIcon icon={faTimes} />
-                  )}
-                  Confirmer le rejet
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
