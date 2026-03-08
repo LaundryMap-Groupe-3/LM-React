@@ -7,7 +7,7 @@ import IconMotDePasseOublie from '../../assets/images/icons/Key-black.svg';
 import IconUtilisateur from '../../assets/images/icons/User-black.svg';
 import IconAdmistrateur from '../../assets/images/icons/Administrator-black.svg';
 
-const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin }) => {
+const Header = ({ isDarkTheme, isLoggedIn, userType, toggleDarkTheme, toggleLogin, setUserType }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
 

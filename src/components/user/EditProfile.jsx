@@ -126,6 +126,78 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
                   <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
                 )}
             </div>
+
+            {/* Champs spécifiques selon le type d'utilisateur */}
+            {userType === 'professional' && (
+              <>
+                <div>
+                  <label 
+                    htmlFor="laundryName"
+                    className={`block text-sm font-medium mb-2 ${
+                      isDarkTheme ? 'text-[#374151] text-[12px]' : 'text-[#374151] text-[12px]'
+                    }`}
+                  >
+                    Nom de la laverie
+                  </label>
+                  <input
+                    type="text"
+                    id="laundryName"
+                    className={`w-[342px] px-3 py-2 border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      isDarkTheme 
+                        ? 'bg-gray-700 border-[#D1D5DB] text-gray-100' 
+                        : 'bg-white border-[#D1D5DB] text-[#111827]'
+                    }`}
+                    placeholder="Nom de votre laverie"
+                  />
+                </div>
+                <div>
+                  <label 
+                    htmlFor="businessNumber"
+                    className={`block text-sm font-medium mb-2 ${
+                      isDarkTheme ? 'text-[#374151] text-[12px]' : 'text-[#374151] text-[12px]'
+                    }`}
+                  >
+                    Numéro SIRET
+                  </label>
+                  <input
+                    type="text"
+                    id="businessNumber"
+                    className={`w-[342px] px-3 py-2 border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      isDarkTheme 
+                        ? 'bg-gray-700 border-[#D1D5DB] text-gray-100' 
+                        : 'bg-white border-[#D1D5DB] text-[#111827]'
+                    }`}
+                    placeholder="Numéro SIRET de l'entreprise"
+                  />
+                </div>
+              </>
+            )}
+
+            {userType === 'admin' && (
+              <div>
+                <label 
+                  htmlFor="adminPermissions"
+                  className={`block text-sm font-medium mb-2 ${
+                    isDarkTheme ? 'text-[#374151] text-[12px]' : 'text-[#374151] text-[12px]'
+                  }`}
+                >
+                  Permissions administrateur
+                </label>
+                <select
+                  id="adminPermissions"
+                  className={`w-[342px] px-3 py-2 border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    isDarkTheme 
+                      ? 'bg-gray-700 border-[#D1D5DB] text-gray-100' 
+                      : 'bg-white border-[#D1D5DB] text-[#111827]'
+                  }`}
+                >
+                  <option value="super-admin">Super Administrateur</option>
+                  <option value="moderator">Modérateur</option>
+                  <option value="support">Support</option>
+                </select>
+              </div>
+            )}
+
             {/* Boutons d'action */}
             <div className="flex sm:flex-row gap-4 w-[342px]">
                 <button
