@@ -1,4 +1,4 @@
-import Edit from '../../assets/images/icons/edit.svg';
+import Edit from '../../assets/images/icons/Edit.svg';
 import User from '../../assets/images/icons/User-Shield.svg';
 import Error from '../../assets/images/icons/Error.svg';
 import Remove from '../../assets/images/icons/Remove.svg';
