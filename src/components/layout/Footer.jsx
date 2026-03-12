@@ -1,7 +1,7 @@
 import LogoFacebook from '../../assets/images/logos/logo-facebook.svg';
 import LogoTwitter from '../../assets/images/logos/logo-twitter.svg';
 import LogoInstagram from '../../assets/images/logos/logo-instagram.svg';
-import LogoLinkedIn from '../../assets/images/logos/logo-linkedin.svg';
+import LogoLinkedIn from '../../assets/images/logos/logo-linkedIn.svg';
 
 const Footer = ({ isDarkTheme, isLoggedIn }) => {
   return (
