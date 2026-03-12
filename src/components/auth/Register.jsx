@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '../../context/I18nContext';
 import authService from '../../services/authService';
 
 const Register = ({ isDarkTheme, isLoggedIn }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -37,14 +39,14 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
     try {
       // Validate password confirmation
       if (data.password !== data.confirmPassword) {
-        setApiError('Passwords do not match');
+        setApiError(t('auth.passwords_not_match'));
         setLoading(false);
         return;
       }
 
       // Validate CGU acceptance
       if (!data.acceptCGU) {
-        setApiError('You must accept the terms and conditions');
+        setApiError(t('auth.accept_terms'));
         setLoading(false);
         return;
       }
@@ -52,7 +54,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
       // Call registration API
       const response = await authService.register(data);
 
-      setSuccessMessage('Compte créé avec succès ! Un email de vérification a été envoyé à votre adresse. Veuillez consulter votre boîte de réception pour confirmer votre inscription.');
+        setSuccessMessage(t('auth.registration_success'));
     } catch (error) {
       if (error.body?.error) {
         setApiError(error.body.error);
@@ -63,7 +65,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
           .join('\n');
         setApiError(errorMessages);
       } else {
-        setApiError('An error occurred during registration. Please try again.');
+        setApiError(t('auth.registration_error'));
       }
     } finally {
       setLoading(false);
@@ -74,7 +76,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
     <div className="min-h-screen flex items-center justify-center py-8 px-4">
       <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl p-4 sm:p-6 md:p-8">
         <h1 className="text-center text-[#3B82F6] font-semibold text-2xl mb-4 sm:mb-6 font-sans">
-          Créer un compte
+          {t('auth.create_account')}
         </h1>
 
         {/* Error Alert */}
@@ -94,7 +96,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
         {/* Création avec Google sur la même ligne */}
         <div className="flex items-center justify-center gap-[17px] mb-6">
           <h2 className="text-sm sm:text-base font-medium text-[#374151] text-[14px]">
-            Création avec :
+            {t('auth.sign_up_with')}
           </h2>
 
           <button
@@ -128,13 +130,13 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
           <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
-            Mes informations personnels
+            {t('auth.personal_info')}
           </h1>
 
           {/* Nom */}
           <div>
             <label htmlFor="name" className="block text-left text-sm text-gray-700 mb-1">
-              Nom<span className="text-red-500">*</span>
+              {t('auth.last_name')}<span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -145,7 +147,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.name ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder="Dupont"
+              placeholder={t('auth.placeholder_last_name')}
             />
             {errors.name && (
               <span className="text-red-500 text-xs mt-1">{errors.name.message}</span>
@@ -155,7 +157,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
           {/* Prénom */}
           <div>
             <label htmlFor="firstName" className="block text-left text-sm text-gray-700 mb-1">
-              Prénom<span className="text-red-500">*</span>
+              {t('auth.first_name')}<span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -166,7 +168,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.firstName ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder="Jean"
+              placeholder={t('auth.placeholder_first_name')}
             />
             {errors.firstName && (
               <span className="text-red-500 text-xs mt-1">{errors.firstName.message}</span>
@@ -174,13 +176,13 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
           </div>
 
           <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
-            Mes informations de connexion
+            {t('auth.connection_info')}
           </h1>
 
           {/* Email */}
           <div>
             <label htmlFor="email" className="block text-left text-sm text-gray-700 mb-1">
-              Email<span className="text-red-500">*</span>
+              {t('auth.email')}<span className="text-red-500">*</span>
             </label>
             <input
               type="email"
@@ -195,7 +197,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.email ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder="jean.dupont@exemple.fr"
+              placeholder={t('auth.placeholder_email')}
             />
             {errors.email && (
               <span className="text-red-500 text-xs mt-1">{errors.email.message}</span>
@@ -205,7 +207,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
           {/* Mot de passe */}
           <div>
             <label htmlFor="password" className="block text-left text-sm text-gray-700 mb-1">
-              Mot de passe<span className="text-red-500">*</span>
+              {t('auth.password')}<span className="text-red-500">*</span>
             </label>
             <input
               type="password"
@@ -220,7 +222,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.password ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder="•••"
+              placeholder="••••••••"
             />
             {errors.password && (
               <span className="text-red-500 text-xs mt-1">{errors.password.message}</span>
@@ -230,7 +232,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
           {/* Confirmation mot de passe */}
           <div>
             <label htmlFor="confirmPassword" className="block text-left text-sm text-gray-700 mb-1">
-              Confirmation mot de passe <span className="text-red-500">*</span>
+              {t('auth.confirm_password')} <span className="text-red-500">*</span>
             </label>
             <input
               type="password"
@@ -260,9 +262,9 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
             />
             <div>
               <label htmlFor="acceptCGU" className="text-sm text-gray-700">
-                J'accepte les{' '}
+                {t('auth.accept_cgu')}
                 <a href="#" className="text-blue-600 hover:text-blue-500 underline">
-                  conditions générales d'utilisation
+                  {t('auth.cgu_link')}
                 </a>
                 <span className="text-red-500">*</span>
               </label>
@@ -282,18 +284,18 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
                 : 'bg-[#3B82F6] hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
             }`}
           >
-            {loading ? 'Création en cours...' : 'Créer mon compte'}
+            {loading ? t('auth.register_loading') : t('auth.create_account')}
           </button>
         </form>
 
         {/* Link to login */}
         <p className="text-center mt-4 text-sm text-gray-600">
-          Vous avez déjà un compte?{' '}
+          {t('navigation.have_account')}{' '}
           <button
             onClick={() => navigate('/login')}
             className="text-[#3B82F6] hover:text-blue-700 font-medium underline"
           >
-            Se connecter
+            {t('auth.login')}
           </button>
         </p>
       </div>
