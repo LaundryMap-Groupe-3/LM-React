@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import { useTranslation } from './context/I18nContext'
 import Register from './components/auth/Register'
 import Login from './components/auth/Login'
 import Profile from './components/user/Profile'
@@ -11,9 +12,10 @@ import './App.css'
 
 // Composant pour la page d'accueil
 const Home = ({ isDarkTheme, isLoggedIn }) => {
+  const { t } = useTranslation()
   return (
     <div className={`min-h-screen flex items-center justify-center ${isDarkTheme || isLoggedIn ? 'bg-[#1E293B]' : 'bg-white'}`}>
-      <h1 className="text-3xl font-bold text-[#3B82F6]">Bienvenue sur LaundryMap</h1>
+      <h1 className="text-3xl font-bold text-[#3B82F6]">{t('common.welcome')} {t('common.app_name')}</h1>
     </div>
   )
 }

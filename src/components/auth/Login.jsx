@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '../../context/I18nContext';
 import authService from '../../services/authService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const Login = ({ isDarkTheme, onLoginSuccess }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
 
@@ -79,7 +81,7 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
           .join('\n');
         setApiError(errorMessages);
       } else {
-        setApiError('Invalid email or password');
+        setApiError(t('auth.invalid_email_password'));
       }
     } finally {
       setLoading(false);
@@ -96,7 +98,7 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
         <h1 className={`text-center font-semibold text-2xl mb-6 sm:mb-8 font-sans ${
           isDarkTheme ? 'text-[#3B82F6]' : 'text-[#3B82F6]'
         }`}>
-          Se connecter
+          {t('auth.login')}
         </h1>
 
         {/* Error Alert */}
@@ -111,7 +113,7 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
           <h2 className={`text-sm sm:text-base font-medium text-[14px] ${
             isDarkTheme ? 'text-gray-300' : 'text-[#374151]'
           }`}>
-            Connexion avec :
+            {t('auth.login_with')}
           </h2>
 
           <button
@@ -141,7 +143,7 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
           <div className={`flex-1 border-t ${isDarkTheme ? 'border-gray-600' : 'border-[#6A7282]'}`}></div>
           <span className={`px-3 text-sm font-extrabold ${
             isDarkTheme ? 'text-gray-400' : 'text-[#6A7282]'
-          }`}>OU</span>
+          }`}>{t('common.or')}</span>
           <div className={`flex-1 border-t ${isDarkTheme ? 'border-gray-600' : 'border-[#6A7282]'}`}></div>
         </div>
 
@@ -152,7 +154,7 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
             <label htmlFor="email" className={`block text-left text-sm font-medium mb-2 ${
               isDarkTheme ? 'text-gray-300' : 'text-gray-700'
             }`}>
-              Email<span className="text-red-500">*</span>
+              {t('auth.email')}<span className="text-red-500">*</span>
             </label>
             <input
               type="email"
@@ -167,7 +169,7 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.email ? 'border-red-500' : isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-gray-300 bg-white text-gray-900'
               }`}
-              placeholder="jean.dupont@exemple.fr"
+              placeholder={t('auth.placeholder_email')}
             />
             {errors.email && (
               <span className="text-red-500 text-xs mt-1">{errors.email.message}</span>
@@ -179,7 +181,7 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
             <label htmlFor="password" className={`block text-left text-sm font-medium mb-2 ${
               isDarkTheme ? 'text-gray-300' : 'text-gray-700'
             }`}>
-              Mot de passe<span className="text-red-500">*</span>
+              {t('auth.password')}<span className="text-red-500">*</span>
             </label>
             <input
               type="password"
@@ -205,7 +207,7 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
                 className="w-4 h-4 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500"
               />
               <span className={`text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
-                Se souvenir de moi
+                {t('auth.remember_me')}
               </span>
             </label>
             <button
@@ -213,7 +215,7 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
               onClick={() => navigate('/forgot-password')}
               className="text-[#3B82F6] hover:text-blue-700 font-medium text-sm"
             >
-              Mot de passe oublié?
+              {t('auth.forgot_password')}
             </button>
           </div>
 
@@ -227,18 +229,18 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
                 : 'bg-[#3B82F6] hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
             }`}
           >
-            {loading ? 'Connexion en cours...' : 'Se connecter'}
+            {loading ? t('auth.loading') : t('auth.login')}
           </button>
         </form>
 
         {/* Sign up link */}
         <p className={`text-center mt-6 text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-600'}`}>
-          Vous n'avez pas de compte?{' '}
+          {t('navigation.no_account')}{' '}
           <button
             onClick={() => navigate('/register')}
             className="text-[#3B82F6] hover:text-blue-700 font-medium underline"
           >
-            Créer un compte
+            {t('auth.create_account')}
           </button>
         </p>
       </div>
