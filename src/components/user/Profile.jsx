@@ -12,42 +12,45 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme }) => {
   };
 
   return (
-    <div className={`min-h-screen flex items-start justify-center p-4 sm:p-6 md:p-8 lg:p-12 ${isDarkTheme ? 'bg-gray-900' : 'bg-white'}`}>
-      <div className="flex flex-col space-y-6 sm:space-y-8 w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl">
+    <div className={`min-h-screen flex items-start justify-center p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16 ${isDarkTheme ? 'bg-gray-900' : 'bg-white'}`}>
+      <div className="flex flex-col space-y-6 sm:space-y-8 md:space-y-10 lg:space-y-12 w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl">
         
-        {/* Premier rectangle */}
-        <div className={`rounded-lg border p-4 sm:p-6 md:p-8 w-full flex flex-col items-start ${
+        {/* Conteneur responsive pour les cartes */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 xl:gap-12 w-full">
+        
+        {/* Premier rectangle - Informations personnelles */}
+        <div className={`rounded-lg border p-4 sm:p-6 md:p-8 lg:p-10 w-full flex flex-col items-start ${
           isDarkTheme 
             ? 'border-gray-600 bg-gray-800' 
             : 'border-[#E5E7EB] bg-white'
         }`}>
             <div className="flex items-center justify-between w-full flex-wrap gap-2">
-                <h1 className="text-left text-base sm:text-lg md:text-xl text-[#3B82F6]">Informations personnelles</h1>
+                <h1 className="text-left text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl text-[#3B82F6]">Informations personnelles</h1>
                 <button 
                     onClick={handleEditProfile}
-                    className="px-3 py-1 hover:underline flex items-center gap-2 text-[#3B82F6] text-sm sm:text-base">
-                    <img src={Edit} alt="Modifier" className="w-4 h-4" />
+                    className="px-3 py-1 hover:underline flex items-center gap-2 text-[#3B82F6] text-sm sm:text-base md:text-lg">
+                    <img src={Edit} alt="Modifier" className="w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6" />
                     <span>Modifier</span>
                 </button>
             </div>
-            <div className="flex flex-col items-start mt-4">
-                <div className="mt-4">
-                    <p className={`text-sm text-left ${
+            <div className="flex flex-col items-start mt-4 md:mt-6 lg:mt-8 w-full">
+                <div className="mt-4 w-full">
+                    <p className={`text-sm md:text-base lg:text-lg text-left ${
                       isDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'
                     }`}>Prénom & Nom</p>
-                    <p className={`font-medium text-left text-[14px] ${
+                    <p className={`font-medium text-left text-[14px] md:text-base lg:text-lg ${
                       isDarkTheme ? 'text-gray-100' : 'text-[#111827]'
                     }`}>John Doe</p>
                 </div>
-                <div className="mt-4">
-                    <p className={`text-sm text-left ${
+                <div className="mt-4 md:mt-6 w-full">
+                    <p className={`text-sm md:text-base lg:text-lg text-left ${
                       isDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'
                     }`}>Email</p>
-                    <p className={`font-medium text-left text-[14px] ${
+                    <p className={`font-medium text-left text-[14px] md:text-base lg:text-lg ${
                       isDarkTheme ? 'text-gray-100' : 'text-[#111827]'
                     }`}>john.doe@example.com</p>
                 </div>
-                <div className="mt-4">
+                <div className="mt-4 md:mt-6 w-full">
                     <p className={`text-sm text-left ${
                       isDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'
                     }`}>Membre depuis</p>
@@ -159,6 +162,8 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme }) => {
                 <span>Supprimer définitivement mon compte</span>
             </button>
         </div>
+        
+        </div> {/* Fermeture de la div grid */}
       </div>
     </div>
   )
