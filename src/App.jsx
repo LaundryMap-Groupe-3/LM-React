@@ -1,8 +1,9 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { useState } from 'react'
 import Register from './components/auth/Register'
 import Profile from './components/user/Profile'
 import EditProfile from './components/user/EditProfile'
+import PendingProfessionalAccountsAdmin from './components/admin/PendingProfessionalAccountsAdmin'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import './App.css'
@@ -37,7 +38,12 @@ function App() {
         toggleLogin={toggleLogin}
       />
       <Routes>
-        <Route path="/" element={<Home isDarkTheme={isDarkTheme} isLoggedIn={isLoggedIn} />} />
+        <Route path="/" element={
+          <Home 
+            isDarkTheme={isDarkTheme} 
+            isLoggedIn={isLoggedIn} 
+          />
+        } />
         <Route path="/register" element={
           <Register 
             isDarkTheme={isDarkTheme}
@@ -54,6 +60,12 @@ function App() {
         <Route path="/edit-profile" element={
           <EditProfile 
             isDarkTheme={isDarkTheme}
+            isLoggedIn={isLoggedIn}
+          />
+        }/>
+        <Route path="/admin" element={<Navigate to="/admin/pending-professional-accounts" replace />} />
+        <Route path="/admin/pending-professional-accounts" element={
+          <PendingProfessionalAccountsAdmin 
             isLoggedIn={isLoggedIn}
           />
         }/>
