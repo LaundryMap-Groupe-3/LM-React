@@ -4,6 +4,7 @@ import { useTranslation } from './context/I18nContext'
 import Register from './components/auth/Register'
 import ProfessionalRegister from './components/auth/ProfessionalRegister'
 import Login from './components/auth/Login'
+import VerifyEmail from './components/auth/VerifyEmail'
 import Profile from './components/user/Profile'
 import EditProfile from './components/user/EditProfile'
 import Header from './components/layout/Header'
@@ -105,6 +106,7 @@ function App() {
             onLoginSuccess={handleLoginSuccess}
           />
         } />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/profile" element={
           <ProtectedRoute isLoggedIn={isLoggedIn}>
             <Profile 

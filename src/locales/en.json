@@ -43,7 +43,7 @@
     "passwords_not_match": "Passwords do not match",
     "accept_terms": "You must accept the terms and conditions",
     "registration_success": "Account created successfully! A verification email has been sent to your address. Please check your inbox to confirm your registration.",
-    "professional_registration_success": "Your professional account has been created successfully. An administrator will validate your application shortly.",
+    "professional_registration_success": "Your professional account has been created successfully. An administrator will validate your application shortly. A verification email has been sent to your address. Please check your inbox to confirm your registration.",
     "registration_error": "An error occurred during registration. Please try again.",
     "first_name": "First Name",
     "last_name": "Last Name",

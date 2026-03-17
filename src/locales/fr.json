@@ -43,7 +43,7 @@
     "passwords_not_match": "Les mots de passe ne correspondent pas",
     "accept_terms": "Vous devez accepter les conditions d'utilisation",
     "registration_success": "Compte créé avec succès ! Un email de vérification a été envoyé à votre adresse. Veuillez consulter votre boîte de réception pour confirmer votre inscription.",
-    "professional_registration_success": "Votre compte professionnel a été créé avec succès. Un administrateur validera votre demande sous peu.",
+    "professional_registration_success": "Votre compte professionnel a été créé avec succès. Un administrateur validera votre demande sous peu. Un email de vérification a été envoyé à votre adresse. Veuillez consulter votre boîte de réception pour confirmer votre inscription.",
     "registration_error": "Une erreur s'est produite lors de l'inscription. Veuillez réessayer.",
     "first_name": "Prénom",
     "last_name": "Nom",
