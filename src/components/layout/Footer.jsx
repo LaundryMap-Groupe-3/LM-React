@@ -1,4 +1,3 @@
-import React from 'react';
 import LogoFacebook from '../../assets/images/logos/logo-facebook.svg';
 import LogoTwitter from '../../assets/images/logos/logo-twitter.svg';
 import LogoInstagram from '../../assets/images/logos/logo-instagram.svg';
@@ -8,10 +7,10 @@ const Footer = ({ isDarkTheme, isLoggedIn }) => {
   return (
     <footer className={isDarkTheme ? 'bg-[#1E293B] text-[#E2E8F0]' : 'bg-white text-[#64748B]'}>
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-[14px] text-left">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-left justify-items-center md:justify-items-start">
           <div>
             {/*Titre */}
-            <h3 className="font-semibold text-[12px] text-[#3B82F6]">LaundryMap</h3>
+            <h3 className="font-semibold text-[12px] text-[#3B82F6] mb-2">LaundryMap</h3>
             {/* Liens rapides */}
             <div>
               <ul className="text-left space-y-2">
@@ -40,7 +39,7 @@ const Footer = ({ isDarkTheme, isLoggedIn }) => {
           </div>
           {/* Contact */}
           <div>
-            <h3 className="font-semibold text-[12px] text-[#3B82F6]">Contact</h3>
+            <h3 className="font-semibold text-[12px] text-[#3B82F6] mb-2">Contact</h3>
             <ul className="space-y-2 text-gray-300">
               <li>
                 <a href="#" className={`text-[12px] font-medium transition duration-300 ${isDarkTheme || isLoggedIn ? 'text-[#CBD5E1] hover:text-[#3B82F6]' : 'text-[#64748B] hover:text-[#3B82F6]'}`}>
@@ -48,17 +47,17 @@ const Footer = ({ isDarkTheme, isLoggedIn }) => {
                 </a>
               </li>
               <li>
-                <a href='#' className={`text-[12px] font-medium flex items-center ${isDarkTheme || isLoggedIn ? 'text-[#CBD5E1]' : 'text-[#64748B]'}`}>
+                <a href='#' className={`text-[12px] font-medium transition duration-300 ${isDarkTheme || isLoggedIn ? 'text-[#CBD5E1]' : 'text-[#64748B]'}`}>
                   contact@laundrymap.fr
                 </a>
               </li>
               <li>
-                <a href='#' className={`text-[12px] font-medium flex items-center ${isDarkTheme || isLoggedIn ? 'text-[#CBD5E1]' : 'text-[#64748B]'}`}>
+                <a href='#' className={`text-[12px] font-medium transition duration-300 ${isDarkTheme || isLoggedIn ? 'text-[#CBD5E1]' : 'text-[#64748B]'}`}>
                   01 23 45 67 89
                 </a>
               </li>
               <li>
-                <a href='#' className={`text-[12px] font-medium flex items-center ${isDarkTheme || isLoggedIn ? 'text-[#CBD5E1]' : 'text-[#64748B]'}`}>
+                <a href='#' className={`text-[12px] font-medium transition duration-300 ${isDarkTheme || isLoggedIn ? 'text-[#CBD5E1]' : 'text-[#64748B]'}`}>
                   Centre d'aide
                 </a>
               </li>
