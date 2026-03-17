@@ -57,7 +57,7 @@
     "placeholder_first_name": "Jean",
     "placeholder_last_name": "Dupont",
     "company_name": "Nom de l'entreprise",
-    "siret_siren": "SIRET/SIREN",
+    "siret": "SIRET",
     "phone": "Téléphone",
     "professional_address": "Adresse professionnelle",
     "street": "Rue et numéro",

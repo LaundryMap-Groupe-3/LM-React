@@ -57,7 +57,7 @@
     "placeholder_first_name": "John",
     "placeholder_last_name": "Doe",
     "company_name": "Company Name",
-    "siret_siren": "SIRET/SIREN",
+    "siret": "SIRET",
     "phone": "Phone",
     "professional_address": "Professional Address",
     "street": "Street and number",

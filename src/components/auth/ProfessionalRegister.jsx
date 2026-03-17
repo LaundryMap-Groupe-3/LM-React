@@ -190,19 +190,19 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
             {t('auth.professional_info')}
           </h1>
 
-          {/* SIRET/SIREN */}
+          {/* SIRET */}
           <div>
             <label htmlFor="siret" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.siret_siren')}<span className="text-red-500">*</span>
+              {t('auth.siret')}<span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               id="siret"
               {...register('siret', {
-                required: 'SIRET/SIREN is required',
+                required: 'SIRET is required',
                 pattern: {
                   value: /^\d{13,14}$/,
-                  message: 'SIRET/SIREN must be 13 or 14 digits',
+                  message: 'SIRET must be 13 or 14 digits',
                 },
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
