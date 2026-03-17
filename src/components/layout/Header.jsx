@@ -38,7 +38,7 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin }) => {
           <nav className="hidden md:flex items-center space-x-8">
             <Link to="/" className={`${isActivePage('/') ? (isDarkTheme || isLoggedIn ? 'text-white bg-[#3B82F6]' : 'text-white bg-[#3B82F6]') : (isDarkTheme || isLoggedIn ? 'text-[#E2E8F0] hover:text-white hover:bg-[#3B82F6]' : 'text-gray-700 hover:text-white hover:bg-[#3B82F6]')} transition-colors font-medium px-4 h-[38px] flex items-center rounded-[5px]`}>{t('navigation.home')}</Link>
             {!isLoggedIn && (
-              <a href="#" className={`transition-colors font-medium px-4 h-[38px] flex items-center rounded-[5px] ${isDarkTheme || isLoggedIn ? 'text-[#E2E8F0] hover:text-white hover:bg-[#3B82F6]' : 'text-gray-700 hover:text-white hover:bg-[#3B82F6]'}`}>{t('auth.login')}</a>
+              <a href="/login" className={`transition-colors font-medium px-4 h-[38px] flex items-center rounded-[5px] ${isDarkTheme || isLoggedIn ? 'text-[#E2E8F0] hover:text-white hover:bg-[#3B82F6]' : 'text-gray-700 hover:text-white hover:bg-[#3B82F6]'}`}>{t('auth.login')}</a>
             )}
             {isLoggedIn && (
               <Link to="/profile" className={`${isActivePage('/profile') ? (isDarkTheme || isLoggedIn ? 'text-white bg-[#3B82F6]' : 'text-white bg-[#3B82F6]') : (isDarkTheme || isLoggedIn ? 'text-[#E2E8F0] hover:text-white hover:bg-[#3B82F6]' : 'text-gray-700 hover:text-white hover:bg-[#3B82F6]')} transition-colors font-medium px-4 h-[38px] flex items-center rounded-[5px]`}>{t('navigation.profile')}</Link>

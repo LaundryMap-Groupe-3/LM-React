@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
 import authService from '../../services/authService';
 
-const Register = ({ isDarkTheme, isLoggedIn }) => {
+const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
@@ -25,6 +25,11 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
       email: '',
       password: '',
       confirmPassword: '',
+      siret: '',
+      street: '',
+      postalCode: '',
+      city: '',
+      country: 'France',
       acceptCGU: false,
     },
   });
@@ -51,11 +56,13 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
         return;
       }
 
-      // Call registration API
-      const response = await authService.register(data);
+      // Call professional registration API
+      const response = await authService.registerProfessional(data);
 
-        setSuccessMessage(t('auth.registration_success'));
+      setSuccessMessage(t('auth.professional_registration_success'));
     } catch (error) {
+      console.error('Professional registration error:', error);
+      
       if (error.body?.error) {
         setApiError(error.body.error);
       } else if (error.body?.errors) {
@@ -64,8 +71,10 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
           .map(([field, message]) => `${field}: ${message}`)
           .join('\n');
         setApiError(errorMessages);
+      } else if (error.message) {
+        setApiError(error.message);
       } else {
-        setApiError(t('auth.registration_error'));
+        setApiError(t('auth.registration_error') + ' - ' + JSON.stringify(error));
       }
     } finally {
       setLoading(false);
@@ -76,7 +85,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
     <div className="min-h-screen flex items-center justify-center py-8 px-4">
       <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl p-4 sm:p-6 md:p-8">
         <h1 className="text-center text-[#3B82F6] font-semibold text-2xl mb-4 sm:mb-6 font-sans">
-          {t('auth.create_account')}
+          {t('auth.register_professional')}
         </h1>
 
         {/* Error Alert */}
@@ -129,6 +138,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
+          {/* INFORMATIONS PERSONNELLES */}
           <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
             {t('auth.personal_info')}
           </h1>
@@ -175,7 +185,126 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
             )}
           </div>
 
-          <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
+          {/* INFORMATIONS PROFESSIONNELLES */}
+          <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6">
+            {t('auth.professional_info')}
+          </h1>
+
+          {/* SIRET/SIREN */}
+          <div>
+            <label htmlFor="siret" className="block text-left text-sm text-gray-700 mb-1">
+              {t('auth.siret_siren')}<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="siret"
+              {...register('siret', {
+                required: 'SIRET/SIREN is required',
+                pattern: {
+                  value: /^\d{13,14}$/,
+                  message: 'SIRET/SIREN must be 13 or 14 digits',
+                },
+              })}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                errors.siret ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder={t('auth.placeholder_siret')}
+            />
+            {errors.siret && (
+              <span className="text-red-500 text-xs mt-1">{errors.siret.message}</span>
+            )}
+          </div>
+
+          {/* Rue et numéro */}
+          <div>
+            <label htmlFor="street" className="block text-left text-sm text-gray-700 mb-1">
+              {t('auth.street')}<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="street"
+              {...register('street', {
+                required: 'Street is required',
+              })}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                errors.street ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder={t('auth.placeholder_street')}
+            />
+            {errors.street && (
+              <span className="text-red-500 text-xs mt-1">{errors.street.message}</span>
+            )}
+          </div>
+
+          {/* Code postal */}
+          <div>
+            <label htmlFor="postalCode" className="block text-left text-sm text-gray-700 mb-1">
+              {t('auth.postal_code')}<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="postalCode"
+              {...register('postalCode', {
+                required: 'Postal code is required',
+                pattern: {
+                  value: /^\d{5}$/,
+                  message: 'Postal code must be exactly 5 digits',
+                },
+              })}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                errors.postalCode ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder={t('auth.placeholder_postal_code')}
+            />
+            {errors.postalCode && (
+              <span className="text-red-500 text-xs mt-1">{errors.postalCode.message}</span>
+            )}
+          </div>
+
+          {/* Ville */}
+          <div>
+            <label htmlFor="city" className="block text-left text-sm text-gray-700 mb-1">
+              {t('auth.city')}<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="city"
+              {...register('city', {
+                required: 'City is required',
+              })}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                errors.city ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder={t('auth.placeholder_city')}
+            />
+            {errors.city && (
+              <span className="text-red-500 text-xs mt-1">{errors.city.message}</span>
+            )}
+          </div>
+
+          {/* Pays */}
+          <div>
+            <label htmlFor="country" className="block text-left text-sm text-gray-700 mb-1">
+              {t('auth.country')}<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="country"
+              {...register('country', {
+                required: 'Country is required',
+              })}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                errors.country ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder={t('auth.placeholder_country')}
+            />
+            {errors.country && (
+              <span className="text-red-500 text-xs mt-1">{errors.country.message}</span>
+            )}
+          </div>
+
+          {/* INFORMATIONS DE CONNEXION */}
+          <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6">
             {t('auth.connection_info')}
           </h1>
 
@@ -284,7 +413,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
                 : 'bg-[#3B82F6] hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
             }`}
           >
-            {loading ? t('auth.register_loading') : t('auth.create_account')}
+            {loading ? t('auth.register_loading') : t('auth.register_professional')}
           </button>
         </form>
 
@@ -299,14 +428,14 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
           </button>
         </p>
 
-        {/* Link to professional registration */}
+        {/* Link to regular registration */}
         <p className="text-center mt-2 text-sm text-gray-600">
           {t('common.or')}{' '}
           <button
-            onClick={() => navigate('/register/professional')}
+            onClick={() => navigate('/register')}
             className="text-[#3B82F6] hover:text-blue-700 font-medium underline"
           >
-            {t('auth.register_professional')}
+            {t('auth.register_user')}
           </button>
         </p>
       </div>
@@ -314,4 +443,4 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
   );
 };
 
-export default Register;
+export default ProfessionalRegister;

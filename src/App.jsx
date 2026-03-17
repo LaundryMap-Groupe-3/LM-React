@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useTranslation } from './context/I18nContext'
 import Register from './components/auth/Register'
+import ProfessionalRegister from './components/auth/ProfessionalRegister'
 import Login from './components/auth/Login'
 import Profile from './components/user/Profile'
 import EditProfile from './components/user/EditProfile'
@@ -86,6 +87,13 @@ function App() {
         <Route path="/register" element={
           isLoggedIn ? <Navigate to="/profile" replace /> :
           <Register 
+            isDarkTheme={isDarkTheme}
+            isLoggedIn={isLoggedIn}
+          />
+        } />
+        <Route path="/register/professional" element={
+          isLoggedIn ? <Navigate to="/profile" replace /> :
+          <ProfessionalRegister 
             isDarkTheme={isDarkTheme}
             isLoggedIn={isLoggedIn}
           />

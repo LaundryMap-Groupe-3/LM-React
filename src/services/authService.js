@@ -76,6 +76,41 @@ const authService = {
     return !!localStorage.getItem('jwt_token');
   },
 
+  registerProfessional: async (professionalData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/register/professional`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: professionalData.email,
+          password: professionalData.password,
+          firstName: professionalData.firstName,
+          lastName: professionalData.name,
+          siret: professionalData.siret,
+          street: professionalData.street,
+          postalCode: professionalData.postalCode,
+          city: professionalData.city,
+          country: professionalData.country,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw {
+          status: response.status,
+          body: data,
+        };
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   getCurrentUser: async () => {
     try {
       const token = localStorage.getItem('jwt_token');
