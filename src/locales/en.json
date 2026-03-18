@@ -80,6 +80,16 @@
     "placeholder_city": "New York",
     "placeholder_country": "France",
     "placeholder_address": "123 Main Street, New York, NY 10001",
+    "token_not_found": "Token not found in URL",
+    "email_verified_success": "Email verified successfully!",
+    "verification_failed": "Verification failed",
+    "error_occurred": "An error occurred",
+    "verification_in_progress": "Verification in progress...",
+    "please_wait_verification": "Please wait while we verify your email address.",
+    "email_verified": "Email verified successfully!",
+    "redirecting_in_3_seconds": "Redirecting to login in 3 seconds...",
+    "verification_error": "Verification error",
+    "back_to_registration": "Back to registration",
     "professional_info": "Professional Information"
   },
   "profile": {
@@ -129,5 +139,14 @@
     "contact_email": "contact@laundrymap.com",
     "contact_phone": "+1 (555) 123-4567",
     "help_center": "Help Center"
+  },
+  "page_titles": {
+    "home": "Home - LaundryMap",
+    "login": "Login - LaundryMap",
+    "register": "Sign Up - LaundryMap",
+    "register_professional": "Professional Registration - LaundryMap",
+    "verify_email": "Verify Your Email - LaundryMap",
+    "profile": "My Profile - LaundryMap",
+    "edit_profile": "Edit My Profile - LaundryMap"
   }
 }

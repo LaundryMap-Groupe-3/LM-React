@@ -80,6 +80,16 @@
     "placeholder_city": "Paris",
     "placeholder_country": "France",
     "placeholder_address": "123 Rue de la Paix, 75000 Paris",
+    "token_not_found": "Token non trouvé dans l'URL",
+    "email_verified_success": "Email vérifié avec succès!",
+    "verification_failed": "La vérification a échoué",
+    "error_occurred": "Une erreur s'est produite",
+    "verification_in_progress": "Vérification en cours...",
+    "please_wait_verification": "Veuillez patienter pendant que nous vérifions votre adresse email.",
+    "email_verified": "Email vérifié avec succès!",
+    "redirecting_in_3_seconds": "Redirection vers la connexion dans 3 secondes...",
+    "verification_error": "Erreur de vérification",
+    "back_to_registration": "Retour à l'inscription",
     "professional_info": "Informations professionnelles"
   },
   "profile": {
@@ -129,5 +139,14 @@
     "contact_email": "contact@laundrymap.fr",
     "contact_phone": "01 23 45 67 89",
     "help_center": "Centre d'aide"
+  },
+  "page_titles": {
+    "home": "Accueil - LaundryMap",
+    "login": "Se connecter - LaundryMap",
+    "register": "S'inscrire - LaundryMap",
+    "register_professional": "Inscription Professionnelle - LaundryMap",
+    "verify_email": "Vérifier votre email - LaundryMap",
+    "profile": "Mon Profil - LaundryMap",
+    "edit_profile": "Modifier mon Profil - LaundryMap"
   }
 }

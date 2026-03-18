@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useTranslation } from './context/I18nContext'
+import usePageTitle from './hooks/usePageTitle'
 import Register from './components/auth/Register'
 import ProfessionalRegister from './components/auth/ProfessionalRegister'
 import Login from './components/auth/Login'
@@ -16,6 +17,7 @@ import './App.css'
 const Home = ({ isDarkTheme, isLoggedIn }) => {
   const { t } = useTranslation()
   const [user, setUser] = useState(null)
+  usePageTitle('page_titles.home', t)
 
   useEffect(() => {
     if (isLoggedIn) {

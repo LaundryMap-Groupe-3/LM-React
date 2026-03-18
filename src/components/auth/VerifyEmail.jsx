@@ -1,10 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import '../../index.css';
+import { useTranslation } from '../../context/I18nContext';
+import usePageTitle from '../../hooks/usePageTitle';
 
-export default function VerifyEmail() {
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+const VerifyEmail = ({ isDarkTheme }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  usePageTitle('page_titles.verify_email', t);
   const [status, setStatus] = useState('verifying'); // 'verifying', 'success', 'error'
   const [message, setMessage] = useState('');
 
@@ -18,11 +23,11 @@ export default function VerifyEmail() {
 
       if (!token) {
         setStatus('error');
-        setMessage('Token non trouvé dans l\'URL');
+        setMessage(t('auth.token_not_found') || 'Token non trouvé dans l\'URL');
         return;
       }
 
-      const response = await fetch('http://localhost:8080/api/verify-email', {
+      const response = await fetch(`${API_BASE_URL}/api/verify-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token })
@@ -32,7 +37,7 @@ export default function VerifyEmail() {
 
       if (response.ok) {
         setStatus('success');
-        setMessage('Email vérifié avec succès!');
+        setMessage(t('auth.email_verified_success') || 'Email vérifié avec succès!');
         
         // Redirection vers login après 3 secondes
         setTimeout(() => {
@@ -40,130 +45,83 @@ export default function VerifyEmail() {
         }, 3000);
       } else {
         setStatus('error');
-        setMessage(data.error || data.message || 'La vérification a échoué');
+        setMessage(data.error || data.message || (t('auth.verification_failed') || 'La vérification a échoué'));
         console.error('API Error:', data);
       }
     } catch (error) {
       setStatus('error');
-      setMessage('Une erreur s\'est produite: ' + error.message);
+      setMessage((t('auth.error_occurred') || 'Une erreur s\'est produite: ') + error.message);
     }
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
+    <div className={`min-h-screen flex items-center justify-center py-8 px-4 ${
+      isDarkTheme ? 'bg-gray-900' : 'bg-gray-50'
+    }`}>
+      <div className={`w-full max-w-sm sm:max-w-md p-6 sm:p-8 rounded-lg shadow-lg ${
+        isDarkTheme ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'
+      }`}>
         {status === 'verifying' && (
           <>
-            <div style={styles.spinner}></div>
-            <h2 style={styles.title}>Vérification en cours...</h2>
-            <p style={styles.subtitle}>Veuillez patienter pendant que nous vérifions votre adresse email.</p>
+            <div className="flex justify-center mb-6">
+              <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+            </div>
+            <h2 className="text-2xl font-bold text-center mb-3">
+              {t('auth.verification_in_progress') || 'Vérification en cours...'}
+            </h2>
+            <p className={`text-center text-base ${
+              isDarkTheme ? 'text-gray-400' : 'text-gray-600'
+            }`}>
+              {t('auth.please_wait_verification') || 'Veuillez patienter pendant que nous vérifions votre adresse email.'}
+            </p>
           </>
         )}
 
         {status === 'success' && (
           <>
-            <div style={styles.successIcon}>✓</div>
-            <h2 style={styles.title}>Email vérifié avec succès!</h2>
-            <p style={styles.subtitle}>{message}</p>
-            <p style={styles.redirectMessage}>Redirection vers la connexion dans 3 secondes...</p>
+            <div className="flex justify-center mb-4">
+              <div className="text-6xl font-bold text-green-500">✓</div>
+            </div>
+            <h2 className="text-2xl font-bold text-center mb-3 text-green-600">
+              {t('auth.email_verified') || 'Email vérifié avec succès!'}
+            </h2>
+            <p className={`text-center text-base mb-3 ${
+              isDarkTheme ? 'text-gray-300' : 'text-gray-600'
+            }`}>
+              {message}
+            </p>
+            <p className={`text-center text-sm italic ${
+              isDarkTheme ? 'text-gray-500' : 'text-gray-500'
+            }`}>
+              {t('auth.redirecting_in_3_seconds') || 'Redirection vers la connexion dans 3 secondes...'}
+            </p>
           </>
         )}
 
         {status === 'error' && (
           <>
-            <div style={styles.errorIcon}>✕</div>
-            <h2 style={styles.title}>Erreur de vérification</h2>
-            <p style={styles.errorMessage}>{message}</p>
-            <button style={styles.button} onClick={() => navigate('/register')}>
-              Retour à l'inscription
+            <div className="flex justify-center mb-4">
+              <div className="text-6xl font-bold text-red-500">✕</div>
+            </div>
+            <h2 className="text-2xl font-bold text-center mb-3 text-red-600">
+              {t('auth.verification_error') || 'Erreur de vérification'}
+            </h2>
+            <p className={`text-center text-base mb-6 ${
+              isDarkTheme ? 'text-red-400' : 'text-red-600'
+            }`}>
+              {message}
+            </p>
+            <button
+              onClick={() => navigate('/register')}
+              className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-md transition-colors shadow-sm"
+            >
+              {t('auth.back_to_registration') || 'Retour à l\'inscription'}
             </button>
           </>
         )}
       </div>
     </div>
   );
-}
-
-const styles = {
-  container: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '100vh',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    fontFamily: 'Arial, sans-serif',
-    padding: '20px',
-  },
-  card: {
-    background: 'white',
-    borderRadius: '10px',
-    padding: '40px',
-    textAlign: 'center',
-    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
-    maxWidth: '500px',
-    width: '100%',
-  },
-  spinner: {
-    width: '50px',
-    height: '50px',
-    border: '4px solid #f3f3f3',
-    borderTop: '4px solid #667eea',
-    borderRadius: '50%',
-    animation: 'spin 1s linear infinite',
-    margin: '0 auto 30px',
-  },
-  title: {
-    fontSize: '24px',
-    fontWeight: 'bold',
-    color: '#333',
-    margin: '0 0 10px 0',
-  },
-  subtitle: {
-    fontSize: '16px',
-    color: '#666',
-    margin: '10px 0 30px 0',
-  },
-  successIcon: {
-    fontSize: '60px',
-    color: '#28a745',
-    marginBottom: '20px',
-    fontWeight: 'bold',
-  },
-  errorIcon: {
-    fontSize: '60px',
-    color: '#dc3545',
-    marginBottom: '20px',
-    fontWeight: 'bold',
-  },
-  errorMessage: {
-    fontSize: '16px',
-    color: '#dc3545',
-    margin: '10px 0 30px 0',
-  },
-  redirectMessage: {
-    fontSize: '14px',
-    color: '#999',
-    margin: '10px 0',
-    fontStyle: 'italic',
-  },
-  button: {
-    backgroundColor: '#667eea',
-    color: 'white',
-    border: 'none',
-    padding: '12px 30px',
-    fontSize: '16px',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    marginTop: '20px',
-  },
 };
 
-// Ajoute l'animation CSS
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-`;
-document.head.appendChild(style);
+export default VerifyEmail;

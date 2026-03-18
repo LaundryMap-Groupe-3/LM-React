@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
+import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 
 const Register = ({ isDarkTheme, isLoggedIn }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  usePageTitle('page_titles.register', t);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -124,7 +126,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
         {/* Séparateur */}
         <div className="flex items-center mb-6">
           <div className="flex-1 border-t border-[#6A7282]"></div>
-          <span className="px-3 text-sm text-[#6A7282] font-extrabold">OU</span>
+          <span className="px-3 text-sm text-[#6A7282] font-extrabold">{t('common.or')}</span>
           <div className="flex-1 border-t border-[#6A7282]"></div>
         </div>
 

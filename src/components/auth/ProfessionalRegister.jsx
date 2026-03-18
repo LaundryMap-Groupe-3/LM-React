@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
+import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 
 const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  usePageTitle('page_titles.register_professional', t);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -101,41 +103,6 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
             {successMessage}
           </div>
         )}
-
-        {/* Création avec Google sur la même ligne */}
-        <div className="flex items-center justify-center gap-[17px] mb-6">
-          <h2 className="text-sm sm:text-base font-medium text-[#374151] text-[14px]">
-            {t('auth.sign_up_with')}
-          </h2>
-
-          <button
-            type="button"
-            className="flex items-center justify-center gap-[14px] w-[118px] h-[48px] bg-[#C5DBFF] hover:bg-[#B7D2FF] text-[#3B82F6] rounded-[6px] border-0 transition-colors shadow-sm sm:shadow-md text-sm font-semibold"
-            onClick={() => {
-              console.log('Connexion avec Google');
-            }}
-          >
-            <svg
-              className="w-[22px] h-[22px] flex-shrink-0"
-              viewBox="0 0 48 48"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.655 32.657 29.195 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.955 3.045l5.657-5.657C34.668 6.053 29.61 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.651-.389-3.917z" />
-              <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.955 3.045l5.657-5.657C34.668 6.053 29.61 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" />
-              <path fill="#4CAF50" d="M24 44c5.518 0 10.48-2.113 14.209-5.548l-6.56-5.548C29.615 34.452 26.933 36 24 36c-5.176 0-9.625-3.329-11.29-7.946l-6.52 5.025C9.503 39.556 16.227 44 24 44z" />
-              <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.052 12.052 0 0 1-3.654 4.904l.003-.002 6.56 5.548C37.749 38.195 44 34 44 24c0-1.341-.138-2.651-.389-3.917z" />
-            </svg>
-            <span className="font-bold">Google</span>
-          </button>
-        </div>
-
-        {/* Séparateur */}
-        <div className="flex items-center mb-6">
-          <div className="flex-1 border-t border-[#6A7282]"></div>
-          <span className="px-3 text-sm text-[#6A7282] font-extrabold">OU</span>
-          <div className="flex-1 border-t border-[#6A7282]"></div>
-        </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
           {/* INFORMATIONS PERSONNELLES */}

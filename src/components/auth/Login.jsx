@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
+import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -9,6 +10,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const Login = ({ isDarkTheme, onLoginSuccess }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  usePageTitle('page_titles.login', t);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [errorCode, setErrorCode] = useState(null);
@@ -145,11 +147,11 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center py-8 px-4 ${
+    <div className={`flex justify-center py-8 px-4 ${
       isDarkTheme ? 'bg-gray-900' : 'bg-white'
     }`}>
       <div className={`w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl p-4 sm:p-6 md:p-8 rounded-lg ${
-        isDarkTheme ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
+        isDarkTheme ? 'bg-gray-800' : 'bg-white'
       }`}>
         <h1 className={`text-center font-semibold text-2xl mb-6 sm:mb-8 font-sans ${
           isDarkTheme ? 'text-[#3B82F6]' : 'text-[#3B82F6]'
