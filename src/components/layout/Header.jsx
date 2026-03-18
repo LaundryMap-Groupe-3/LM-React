@@ -9,7 +9,7 @@ import IconUtilisateur from '../../assets/images/icons/User-black.svg';
 import IconAdmistrateur from '../../assets/images/icons/Administrator-black.svg';
 import LanguageSwitcher from './LanguageSwitcher';
 
-const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin }) => {
+const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { t } = useTranslation();
@@ -42,6 +42,9 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin }) => {
             )}
             {isLoggedIn && (
               <Link to="/profile" className={`${isActivePage('/profile') ? (isDarkTheme || isLoggedIn ? 'text-white bg-[#3B82F6]' : 'text-white bg-[#3B82F6]') : (isDarkTheme || isLoggedIn ? 'text-[#E2E8F0] hover:text-white hover:bg-[#3B82F6]' : 'text-gray-700 hover:text-white hover:bg-[#3B82F6]')} transition-colors font-medium px-4 h-[38px] flex items-center rounded-[5px]`}>{t('navigation.profile')}</Link>
+            )}
+            {isLoggedIn && (
+              <button onClick={onLogout} className={`transition-colors font-medium px-4 h-[38px] flex items-center rounded-[5px] ${isDarkTheme || isLoggedIn ? 'text-[#E2E8F0] hover:text-white hover:bg-red-600' : 'text-gray-700 hover:text-white hover:bg-red-600'}`}>{t('common.logout')}</button>
             )}
             {!isLoggedIn && (
               <Link to="/register" className={`${isActivePage('/register') ? (isDarkTheme || isLoggedIn ? 'text-white bg-[#3B82F6]' : 'text-white bg-[#3B82F6]') : (isDarkTheme || isLoggedIn ? 'text-[#E2E8F0] hover:text-white hover:bg-[#3B82F6]' : 'text-gray-700 hover:text-white hover:bg-[#3B82F6]')} transition-colors font-medium px-4 h-[38px] flex items-center rounded-[5px]`}>{t('auth.register')}</Link>
@@ -107,6 +110,14 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin }) => {
                             <img src={IconUtilisateur} alt={t('navigation.profile')} className={`w-4 h-4 mr-2 ${isActivePage('/profile') ? 'filter invert' : 'group-hover:filter group-hover:invert'} transition-all`} />
                             {t('navigation.profile')}
                         </Link>
+                    )}
+                    {isLoggedIn && (
+                        <button onClick={() => { onLogout(); toggleMenu(); }} className={`px-3 text-[12px] rounded-[5px] transition-colors font-medium flex items-center h-[38px] group w-full ${isDarkTheme || isLoggedIn ? 'text-[#E2E8F0] hover:bg-red-600 hover:text-white' : 'text-[#0F172A] hover:bg-red-600 hover:text-white'}`}>
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            {t('common.logout')}
+                        </button>
                     )}
                 </div>
                 {!isLoggedIn && (

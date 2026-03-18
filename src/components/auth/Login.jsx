@@ -11,6 +11,10 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
+  const [errorCode, setErrorCode] = useState(null);
+  const [lastAttemptedEmail, setLastAttemptedEmail] = useState('');
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMessage, setResendMessage] = useState(null);
 
   const {
     register,
@@ -27,6 +31,9 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
   const onSubmit = async (data) => {
     setLoading(true);
     setApiError(null);
+    setErrorCode(null);
+    setResendMessage(null);
+    setLastAttemptedEmail(data.email);
 
     try {
       // Call login API - lexik_jwt_authentication will handle token
@@ -63,28 +70,77 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
       // Get user info and redirect
       const user = await authService.getCurrentUser();
       if (user) {
-        // Redirect based on user type
-        if (user.type === 'professional') {
-          navigate('/professional/dashboard');
-        } else if (user.type === 'admin') {
-          navigate('/admin/dashboard');
-        } else {
-          navigate('/profile');
-        }
+        // Redirect to home page
+        navigate('/');
       }
     } catch (error) {
+      let errorMessage = t('auth.invalid_email_password');
+      let code = null;
+
       if (error.body?.error) {
-        setApiError(error.body.error);
+        const errorCodeValue = error.body.error;
+        code = errorCodeValue;
+        // Check if error is a translation key (snake_case format)
+        if (typeof errorCodeValue === 'string' && errorCodeValue.match(/^[a-z_]+$/)) {
+          // Try to translate it
+          const translatedError = t(`auth.${errorCodeValue}`);
+          if (translatedError && translatedError !== `auth.${errorCodeValue}`) {
+            errorMessage = translatedError;
+          } else {
+            errorMessage = errorCodeValue;
+          }
+        } else {
+          errorMessage = errorCodeValue;
+        }
       } else if (error.body?.errors) {
         const errorMessages = Object.entries(error.body.errors)
           .map(([field, message]) => `${field}: ${message}`)
           .join('\n');
-        setApiError(errorMessages);
-      } else {
-        setApiError(t('auth.invalid_email_password'));
+        errorMessage = errorMessages;
       }
+
+      setApiError(errorMessage);
+      setErrorCode(code);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendEmail = async () => {
+    setResendLoading(true);
+    setResendMessage(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/resend-verification-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: lastAttemptedEmail,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setResendMessage({
+          type: 'success',
+          text: t('auth.email_sent_successfully'),
+        });
+      } else {
+        setResendMessage({
+          type: 'error',
+          text: t('auth.resend_error'),
+        });
+      }
+    } catch (error) {
+      setResendMessage({
+        type: 'error',
+        text: t('auth.resend_error'),
+      });
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -102,9 +158,35 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
         </h1>
 
         {/* Error Alert */}
-        {apiError && (
+        {apiError && !resendMessage && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm whitespace-pre-line">
-            {apiError}
+            <div className="flex flex-col gap-2">
+              <p>{apiError}</p>
+              
+              {/* Resend Email Link for email_not_verified */}
+              {errorCode === 'email_not_verified' && (
+                <button
+                  onClick={handleResendEmail}
+                  disabled={resendLoading}
+                  className={`text-left underline font-semibold hover:no-underline transition-all ${
+                    resendLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                  }`}
+                >
+                  {resendLoading ? t('auth.resend_loading') : t('auth.resend_verification_email')}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Success Message */}
+        {resendMessage && (
+          <div className={`mb-4 p-3 rounded-md text-sm ${
+            resendMessage.type === 'success'
+              ? 'bg-green-100 border border-green-400 text-green-700'
+              : 'bg-red-100 border border-red-400 text-red-700'
+          }`}>
+            {resendMessage.text}
           </div>
         )}
 

@@ -15,9 +15,51 @@ import './App.css'
 // Composant pour la page d'accueil
 const Home = ({ isDarkTheme, isLoggedIn }) => {
   const { t } = useTranslation()
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      const fetchUser = async () => {
+        const currentUser = await authService.getCurrentUser()
+        if (currentUser) {
+          setUser(currentUser)
+        }
+      }
+      fetchUser()
+    }
+  }, [isLoggedIn])
+
+  const getRoleLabel = (type) => {
+    const roleMap = {
+      'admin': 'Administrateur',
+      'professional': 'Professionnel',
+      'user': 'Utilisateur'
+    }
+    return roleMap[type] || type
+  }
+
   return (
     <div className={`min-h-screen flex items-center justify-center ${isDarkTheme || isLoggedIn ? 'bg-[#1E293B]' : 'bg-white'}`}>
-      <h1 className="text-3xl font-bold text-[#3B82F6]">{t('common.welcome')} {t('common.app_name')}</h1>
+      <div className="flex flex-col items-center justify-center gap-6">
+        <h1 className="text-3xl font-bold text-[#3B82F6]">{t('common.welcome')} {t('common.app_name')}</h1>
+        
+        {isLoggedIn && user && (
+          <div className={`p-6 rounded-lg border ${isDarkTheme ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+            <div className={`text-center ${isDarkTheme ? 'text-gray-100' : 'text-gray-800'}`}>
+              <p className="text-lg font-semibold">
+                {user.firstName && user.lastName 
+                  ? `${user.firstName} ${user.lastName}` 
+                  : user.email}
+              </p>
+              <p className="text-sm mt-2">
+                <span className="inline-block px-3 py-1 rounded-full bg-[#3B82F6] text-white font-medium">
+                  {getRoleLabel(user.type)}
+                </span>
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
