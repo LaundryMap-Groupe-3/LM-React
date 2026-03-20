@@ -3,9 +3,13 @@ import User from '../../assets/images/icons/User-Shield.svg';
 import Error from '../../assets/images/icons/Error.svg';
 import Remove from '../../assets/images/icons/Remove.svg';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '../../context/I18nContext';
+import usePageTitle from '../../hooks/usePageTitle';
 
 const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  usePageTitle('page_titles.profile', t);
 
   const handleEditProfile = () => {
     navigate('/edit-profile');

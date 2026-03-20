@@ -1,11 +1,15 @@
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '../../context/I18nContext';
+import usePageTitle from '../../hooks/usePageTitle';
 import Save from '../../assets/images/icons/Save.svg';
 import Back from '../../assets/images/icons/Back.svg';
 import Shield from '../../assets/images/icons/Shield.svg';
 
 const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  usePageTitle('page_titles.edit_profile', t);
 
   const {
     register,

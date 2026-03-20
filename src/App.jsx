@@ -1,32 +1,123 @@
-import { Routes, Route } from 'react-router-dom'
-import { useState } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useTranslation } from './context/I18nContext'
+import usePageTitle from './hooks/usePageTitle'
 import Register from './components/auth/Register'
+import ProfessionalRegister from './components/auth/ProfessionalRegister'
+import Login from './components/auth/Login'
+import VerifyEmail from './components/auth/VerifyEmail'
 import Profile from './components/user/Profile'
 import EditProfile from './components/user/EditProfile'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
+import authService from './services/authService'
 import './App.css'
 
 // Composant pour la page d'accueil
 const Home = ({ isDarkTheme, isLoggedIn }) => {
+  const { t } = useTranslation()
+  const [user, setUser] = useState(null)
+  usePageTitle('page_titles.home', t)
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      const fetchUser = async () => {
+        const currentUser = await authService.getCurrentUser()
+        if (currentUser) {
+          setUser(currentUser)
+        }
+      }
+      fetchUser()
+    }
+  }, [isLoggedIn])
+
+  const getRoleLabel = (type) => {
+    const roleMap = {
+      'admin': 'Administrateur',
+      'professional': 'Professionnel',
+      'user': 'Utilisateur'
+    }
+    return roleMap[type] || type
+  }
+
   return (
     <div className={`min-h-screen flex items-center justify-center ${isDarkTheme || isLoggedIn ? 'bg-[#1E293B]' : 'bg-white'}`}>
-      <h1 className="text-3xl font-bold text-[#3B82F6]">Bienvenue sur LaundryMap</h1>
+      <div className="flex flex-col items-center justify-center gap-6">
+        <h1 className="text-3xl font-bold text-[#3B82F6]">{t('common.welcome')} {t('common.app_name')}</h1>
+        
+        {isLoggedIn && user && (
+          <div className={`p-6 rounded-lg border ${isDarkTheme ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+            <div className={`text-center ${isDarkTheme ? 'text-gray-100' : 'text-gray-800'}`}>
+              <p className="text-lg font-semibold">
+                {user.firstName && user.lastName 
+                  ? `${user.firstName} ${user.lastName}` 
+                  : user.email}
+              </p>
+              <p className="text-sm mt-2">
+                <span className="inline-block px-3 py-1 rounded-full bg-[#3B82F6] text-white font-medium">
+                  {getRoleLabel(user.type)}
+                </span>
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
+}
+
+// Protected Route Component
+const ProtectedRoute = ({ isLoggedIn, children }) => {
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />
+  }
+  return children
 }
 
 function App() {
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Check if user is already logged in on mount
+  useEffect(() => {
+    const checkAuthentication = async () => {
+      if (authService.isAuthenticated()) {
+        const user = await authService.getCurrentUser();
+        if (user) {
+          setIsLoggedIn(true);
+        } else {
+          // Token is invalid or expired
+          authService.logout();
+          setIsLoggedIn(false);
+        }
+      }
+      setLoading(false);
+    };
+
+    checkAuthentication();
+  }, []);
 
   const toggleDarkTheme = () => {
     setIsDarkTheme(!isDarkTheme);
   };
 
-  const toggleLogin = () => {
-    setIsLoggedIn(!isLoggedIn);
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
   };
+
+  const handleLogout = () => {
+    authService.logout();
+    setIsLoggedIn(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3B82F6]"></div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -34,28 +125,49 @@ function App() {
         isDarkTheme={isDarkTheme}
         isLoggedIn={isLoggedIn}
         toggleDarkTheme={toggleDarkTheme}
-        toggleLogin={toggleLogin}
+        onLogout={handleLogout}
       />
       <Routes>
         <Route path="/" element={<Home isDarkTheme={isDarkTheme} isLoggedIn={isLoggedIn} />} />
         <Route path="/register" element={
+          isLoggedIn ? <Navigate to="/profile" replace /> :
           <Register 
             isDarkTheme={isDarkTheme}
             isLoggedIn={isLoggedIn}
           />
         } />
-        <Route path="/profile" element={
-          <Profile 
+        <Route path="/register/professional" element={
+          isLoggedIn ? <Navigate to="/profile" replace /> :
+          <ProfessionalRegister 
             isDarkTheme={isDarkTheme}
             isLoggedIn={isLoggedIn}
-            toggleDarkTheme={toggleDarkTheme}
           />
+        } />
+        <Route path="/login" element={
+          isLoggedIn ? <Navigate to="/profile" replace /> :
+          <Login 
+            isDarkTheme={isDarkTheme}
+            onLoginSuccess={handleLoginSuccess}
+          />
+        } />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/profile" element={
+          <ProtectedRoute isLoggedIn={isLoggedIn}>
+            <Profile 
+              isDarkTheme={isDarkTheme}
+              isLoggedIn={isLoggedIn}
+              toggleDarkTheme={toggleDarkTheme}
+              onLogout={handleLogout}
+            />
+          </ProtectedRoute>
         }/> 
         <Route path="/edit-profile" element={
-          <EditProfile 
-            isDarkTheme={isDarkTheme}
-            isLoggedIn={isLoggedIn}
-          />
+          <ProtectedRoute isLoggedIn={isLoggedIn}>
+            <EditProfile 
+              isDarkTheme={isDarkTheme}
+              isLoggedIn={isLoggedIn}
+            />
+          </ProtectedRoute>
         }/>
       </Routes>
       <Footer isDarkTheme={isDarkTheme} isLoggedIn={isLoggedIn} />

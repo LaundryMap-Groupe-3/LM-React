@@ -6,10 +6,10 @@ import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import { translateErrorKey, formatValidationErrors } from '../../utils/translateErrorKey';
 
-const Register = ({ isDarkTheme, isLoggedIn }) => {
+const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  usePageTitle('page_titles.register', t);
+  usePageTitle('page_titles.register_professional', t);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -24,6 +24,13 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
     passwordTooShort: t('validation.password_too_short'),
     passwordConfirmationRequired: t('validation.password_confirmation_required'),
     acceptTerms: t('auth.accept_terms'),
+    siretRequired: t('validation.siret_required'),
+    siretInvalidLength: t('validation.siret_invalid_length'),
+    streetRequired: t('validation.street_required'),
+    postalCodeRequired: t('validation.postal_code_required'),
+    postalCodeInvalid: t('validation.postal_code_invalid_exact'),
+    cityRequired: t('validation.city_required'),
+    countryRequired: t('validation.country_required'),
   };
 
   // Configuration React Hook Form
@@ -40,6 +47,11 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
       email: '',
       password: '',
       confirmPassword: '',
+      siret: '',
+      street: '',
+      postalCode: '',
+      city: '',
+      country: 'France',
       acceptCGU: false,
     },
   });
@@ -66,16 +78,20 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
         return;
       }
 
-      // Call registration API
-      const response = await authService.register(data);
+      // Call professional registration API
+      const response = await authService.registerProfessional(data);
 
-        setSuccessMessage(t('auth.registration_success'));
+      setSuccessMessage(t('auth.professional_registration_success'));
     } catch (error) {
+      console.error('Professional registration error:', error);
+      
       if (error.body?.error) {
         setApiError(translateErrorKey(error.body.error, t));
       } else if (error.body?.errors) {
         // Handle multiple field errors
         setApiError(formatValidationErrors(error.body.errors, t));
+      } else if (error.message) {
+        setApiError(error.message);
       } else {
         setApiError(t('auth.registration_error'));
       }
@@ -88,7 +104,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
     <div className="min-h-screen flex items-center justify-center py-8 px-4">
       <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl p-4 sm:p-6 md:p-8">
         <h1 className="text-center text-[#3B82F6] font-semibold text-2xl mb-4 sm:mb-6 font-sans">
-          {t('auth.create_account')}
+          {t('auth.register_professional')}
         </h1>
 
         {/* Error Alert */}
@@ -105,42 +121,8 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
           </div>
         )}
 
-        {/* Création avec Google sur la même ligne */}
-        <div className="flex items-center justify-center gap-[17px] mb-6">
-          <h2 className="text-sm sm:text-base font-medium text-[#374151] text-[14px]">
-            {t('auth.sign_up_with')}
-          </h2>
-
-          <button
-            type="button"
-            className="flex items-center justify-center gap-[14px] w-[118px] h-[48px] bg-[#C5DBFF] hover:bg-[#B7D2FF] text-[#3B82F6] rounded-[6px] border-0 transition-colors shadow-sm sm:shadow-md text-sm font-semibold"
-            onClick={() => {
-              console.log('Connexion avec Google');
-            }}
-          >
-            <svg
-              className="w-[22px] h-[22px] flex-shrink-0"
-              viewBox="0 0 48 48"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.655 32.657 29.195 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.955 3.045l5.657-5.657C34.668 6.053 29.61 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.651-.389-3.917z" />
-              <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.955 3.045l5.657-5.657C34.668 6.053 29.61 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" />
-              <path fill="#4CAF50" d="M24 44c5.518 0 10.48-2.113 14.209-5.548l-6.56-5.548C29.615 34.452 26.933 36 24 36c-5.176 0-9.625-3.329-11.29-7.946l-6.52 5.025C9.503 39.556 16.227 44 24 44z" />
-              <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.052 12.052 0 0 1-3.654 4.904l.003-.002 6.56 5.548C37.749 38.195 44 34 44 24c0-1.341-.138-2.651-.389-3.917z" />
-            </svg>
-            <span className="font-bold">Google</span>
-          </button>
-        </div>
-
-        {/* Séparateur */}
-        <div className="flex items-center mb-6">
-          <div className="flex-1 border-t border-[#6A7282]"></div>
-          <span className="px-3 text-sm text-[#6A7282] font-extrabold">{t('common.or')}</span>
-          <div className="flex-1 border-t border-[#6A7282]"></div>
-        </div>
-
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
+          {/* INFORMATIONS PERSONNELLES */}
           <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
             {t('auth.personal_info')}
           </h1>
@@ -187,7 +169,126 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
             )}
           </div>
 
-          <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
+          {/* INFORMATIONS PROFESSIONNELLES */}
+          <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6">
+            {t('auth.professional_info')}
+          </h1>
+
+          {/* SIRET */}
+          <div>
+            <label htmlFor="siret" className="block text-left text-sm text-gray-700 mb-1">
+              {t('auth.siret')}<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="siret"
+              {...register('siret', {
+                required: validationMessages.siretRequired,
+                pattern: {
+                  value: /^\d{13,14}$/,
+                  message: validationMessages.siretInvalidLength,
+                },
+              })}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                errors.siret ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder={t('auth.placeholder_siret')}
+            />
+            {errors.siret && (
+              <span className="text-red-500 text-xs mt-1">{errors.siret.message}</span>
+            )}
+          </div>
+
+          {/* Rue et numéro */}
+          <div>
+            <label htmlFor="street" className="block text-left text-sm text-gray-700 mb-1">
+              {t('auth.street')}<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="street"
+              {...register('street', {
+                required: validationMessages.streetRequired,
+              })}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                errors.street ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder={t('auth.placeholder_street')}
+            />
+            {errors.street && (
+              <span className="text-red-500 text-xs mt-1">{errors.street.message}</span>
+            )}
+          </div>
+
+          {/* Code postal */}
+          <div>
+            <label htmlFor="postalCode" className="block text-left text-sm text-gray-700 mb-1">
+              {t('auth.postal_code')}<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="postalCode"
+              {...register('postalCode', {
+                required: validationMessages.postalCodeRequired,
+                pattern: {
+                  value: /^\d{5}$/,
+                  message: validationMessages.postalCodeInvalid,
+                },
+              })}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                errors.postalCode ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder={t('auth.placeholder_postal_code')}
+            />
+            {errors.postalCode && (
+              <span className="text-red-500 text-xs mt-1">{errors.postalCode.message}</span>
+            )}
+          </div>
+
+          {/* Ville */}
+          <div>
+            <label htmlFor="city" className="block text-left text-sm text-gray-700 mb-1">
+              {t('auth.city')}<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="city"
+              {...register('city', {
+                required: validationMessages.cityRequired,
+              })}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                errors.city ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder={t('auth.placeholder_city')}
+            />
+            {errors.city && (
+              <span className="text-red-500 text-xs mt-1">{errors.city.message}</span>
+            )}
+          </div>
+
+          {/* Pays */}
+          <div>
+            <label htmlFor="country" className="block text-left text-sm text-gray-700 mb-1">
+              {t('auth.country')}<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="country"
+              {...register('country', {
+                required: validationMessages.countryRequired,
+              })}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                errors.country ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder={t('auth.placeholder_country')}
+            />
+            {errors.country && (
+              <span className="text-red-500 text-xs mt-1">{errors.country.message}</span>
+            )}
+          </div>
+
+          {/* INFORMATIONS DE CONNEXION */}
+          <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6">
             {t('auth.connection_info')}
           </h1>
 
@@ -296,7 +397,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
                 : 'bg-[#3B82F6] hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
             }`}
           >
-            {loading ? t('auth.register_loading') : t('auth.create_account')}
+            {loading ? t('auth.register_loading') : t('auth.register_professional')}
           </button>
         </form>
 
@@ -311,14 +412,14 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
           </button>
         </p>
 
-        {/* Link to professional registration */}
+        {/* Link to regular registration */}
         <p className="text-center mt-2 text-sm text-gray-600">
           {t('common.or')}{' '}
           <button
-            onClick={() => navigate('/register/professional')}
+            onClick={() => navigate('/register')}
             className="text-[#3B82F6] hover:text-blue-700 font-medium underline"
           >
-            {t('auth.register_professional')}
+            {t('auth.register_user')}
           </button>
         </p>
       </div>
@@ -326,4 +427,4 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
   );
 };
 
-export default Register;
+export default ProfessionalRegister;
