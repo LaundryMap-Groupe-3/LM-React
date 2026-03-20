@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { getPendingAccounts, getPendingAccountsCount } from '../../api/getPendingsProfessionnalAccounts';
+import { getPendingsLaundriesCount } from '../../api/getPendingsLaundries';
 import Clock from '../../assets/images/icons/Clock.svg';
 import UserIcon from '../../assets/images/icons/User.svg';
 import Siren from '../../assets/images/icons/Department.svg';
@@ -6,10 +8,12 @@ import mapIcon from '../../assets/images/icons/Location.svg';
 import ClockWait from '../../assets/images/icons/Clock-wait.svg';
 import Done from '../../assets/images/icons/Done.svg';
 import Close from '../../assets/images/icons/Close-red.svg';
-import ExternalLink from '../../assets/images/icons/External-link.svg';
+import ExternalLink from '../../assets/images/icons/External-Link.svg';
 
 const PendingProfessionalAccountsAdmin = ({ isLoggedIn }) => {
   const [professionals, setProfessionals] = useState([]);
+  const [pendingLaundriesCount, setPendingLaundriesCount] = useState(0);
+  const [PendingAccountsCount, setPendingAccountsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [selectedProfessional, setSelectedProfessional] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
@@ -17,95 +21,56 @@ const PendingProfessionalAccountsAdmin = ({ isLoggedIn }) => {
   const [rejectComment, setRejectComment] = useState('');
   const [professionalToReject, setProfessionalToReject] = useState(null);
   const [expandedCards, setExpandedCards] = useState(new Set());
-  const [pendingLaundries, setPendingLaundries] = useState(0);
   
   // États pour la pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(1); // Nombre d'éléments par page
+  const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage] = useState(2);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handlePrevious = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleNext = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  };
+
   useEffect(() => {
-    fetchPendingProfessionals();
-    fetchPendingLaundries();
+    const fetchCounter = async () => {
+      try {
+        setPendingAccountsCount(await getPendingAccountsCount());
+        setPendingLaundriesCount(await getPendingsLaundriesCount());
+        setTotalPages(PendingAccountsCount / itemsPerPage);
+      } catch (error) {
+        console.error(`Error : ${error.message}`);
+      }
+    }
+
+    fetchCounter();
   }, []);
 
-  const fetchPendingProfessionals = async () => {
-    try {
-      const response = await fetch('/api/professionals?status=pending');
-      const data = await response.json();
-      setProfessionals(data);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des professionnels en attente:', error);
-      // Garder les données mockées en cas d'erreur pour le développement
-      const mockData = [
-        {
-          id: 1,
-          siren: 12345678901,
-          status: 'pending',
-          sirenVerified: true,
-          user: {
-            id: 1,
-            firstName: 'Jean',
-            lastName: 'Dupont',
-            email: 'jean.dupont@email.com',
-            phoneNumber: '0123456789',
-            createdAt: '2024-03-01'
-          },
-          address: {
-            id: 1,
-            streetNumber: '123',
-            streetName: 'Rue de la Paix',
-            additionalAddress: '',
-            postalCode: '75001',
-            city: 'Paris',
-            country: 'France'
-          },
-          laundries: [
-            { id: 1, name: 'Laverie du Centre', description: 'Laverie automatique 24h/24' },
-            { id: 2, name: 'Clean Express', description: 'Service de nettoyage rapide' }
-          ]
-        },
-        {
-          id: 2,
-          siren: 98765432101,
-          status: 'pending',
-          sirenVerified: false,
-          user: {
-            id: 2,
-            firstName: 'Marie',
-            lastName: 'Martin',
-            email: 'marie.martin@email.com',
-            phoneNumber: '0987654321',
-            createdAt: '2024-03-05'
-          },
-          address: {
-            id: 2,
-            streetNumber: '45',
-            streetName: 'Avenue des Champs',
-            additionalAddress: 'Apt 12',
-            postalCode: '69000',
-            city: 'Lyon',
-            country: 'France'
-          },
-          laundries: [
-            { id: 3, name: 'Lavomatique Lyon', description: 'Laverie écologique' }
-          ]
-        }
-      ];
-      setProfessionals(mockData);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    if (!PendingAccountsCount) return;
 
-  const fetchPendingLaundries = async () => {
-    try {
-      // Simuler la récupération du nombre de laveries en attente
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setPendingLaundries(3); // À remplacer par un vrai appel API
-    } catch (error) {
-      console.error('Erreur lors de la récupération des laveries en attente:', error);
-    }
-  };
+    const fetchPendingAccounts = async () => {
+      try {
+        setLoading(true);
+        setProfessionals(await getPendingAccounts(currentPage, itemsPerPage));
+      } catch (error) {
+        console.error(`Error : ${error.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchPendingAccounts();
+  }, [PendingAccountsCount, currentPage]);
+
+  /*
   const handleApprove = async (professionalId) => {
     setActionLoading(professionalId);
     try {
@@ -216,24 +181,8 @@ const PendingProfessionalAccountsAdmin = ({ isLoggedIn }) => {
     const date = new Date(dateString);
     return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
   };
+  */
 
-  // Fonctions pour la pagination
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProfessionals = professionals.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(professionals.length / itemsPerPage);
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-
-  const handlePrevious = () => {
-    setCurrentPage(prev => Math.max(prev - 1, 1));
-  };
-
-  const handleNext = () => {
-    setCurrentPage(prev => Math.min(prev + 1, totalPages));
-  };
 
   if (loading) {
     return (
@@ -248,42 +197,36 @@ const PendingProfessionalAccountsAdmin = ({ isLoggedIn }) => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen max-w-7xl mx-auto md:pl-auto pl-4 md:pr-auto pr-4">
       {/* Header */}
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="py-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-[20px] text-[#3B82F6] font-bold text-left">
-                  <div>Administration - Validations</div>
-                  <div>des comptes professionnels</div>
-                </div>
-                <p className="mt-2 text-[#9CA3AF] text-[12px] text-left">
-                  Gestion des comptes professionnels et des fiches de laveries
-                  en attente de validation
-                </p>
-              </div>
-            </div>
-          </div>
+      <div className="flex items-center justify-between py-6">
+        <div>
+          <h1 className="text-[20px] text-[#3B82F6] font-bold text-left">
+            Administration - Validations des comptes professionnels
+          </h1>
+          <p className="mt-2 text-[#9CA3AF] text-[12px] text-left">
+            Gestion des comptes professionnels et des fiches de laveries
+            en attente de validation
+          </p>
         </div>
+      </div>
 
-        {/* Onglets professionnels en attente de validation - laveries en attente de validation */}
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex flex-row items-center gap-2 shadow-md bg-white rounded-lg px-4 py-2">
-            <button className="p-[11px] text-[13px] font-medium text-[#3B82F6] bg-[#3B82F6] rounded-[5px] flex-1 h-[35px] text-white flex items-center justify-center gap-2 whitespace-nowrap">
-              Comptes professionnels
-              <span className="bg-white/20 text-white text-xs px-2 py-1 rounded-full">
-                {professionals.length}
-              </span>
-            </button>
-            <button className="p-[11px] text-[13px] font-medium text-gray-500 hover:text-gray-700 flex-1 flex items-center justify-center gap-2 whitespace-nowrap">
-              Laveries
-              <span className="bg-[#F59E0B] text-white text-xs px-2 py-1 rounded-full">
-                {pendingLaundries}
-              </span>
-            </button>
-          </div>
-        </div>
+      {/* Onglets professionnels en attente de validation - laveries en attente de validation */}
+      <div className="flex flex-row items-center gap-2 shadow-md bg-white rounded-lg px-4 py-2">
+        <button className="p-3 text-[13px] font-medium bg-[#3B82F6] rounded-[5px] flex-1 h-9 text-white flex items-center justify-center gap-2 whitespace-nowrap">
+          Comptes professionnels
+          <span className="bg-white/20 text-white text-xs px-2 py-1 h-6 w-6 rounded-full">
+            {PendingAccountsCount}
+          </span>
+        </button>
+        <button className="p-3 text-[13px] font-medium text-gray-500 hover:text-gray-700 flex-1 flex items-center justify-center gap-2 whitespace-nowrap">
+          Laveries
+          <span className="bg-[#F59E0B] text-white text-xs px-2 py-1 h-6 w-6 rounded-full">
+            {pendingLaundriesCount}
+          </span>
+        </button>
+      </div>
+
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -302,7 +245,7 @@ const PendingProfessionalAccountsAdmin = ({ isLoggedIn }) => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {currentProfessionals.map((professional) => (
               <div key={professional.id} className="rounded-lg shadow-md border-l-2 border-[#F59E0B] text-left overflow-hidden bg-white hover:shadow-lg transition-shadow duration-300">
                 {/* Header de la carte */}
@@ -358,11 +301,11 @@ const PendingProfessionalAccountsAdmin = ({ isLoggedIn }) => {
                     
                     {/* Bouton gérer la demande */}
                     <button 
-                      className="bg-[#3B82F6] flex items-center text-white px-3 4 py-2 rounded-[5px] w-[121px] h-[21px] text-[9px] font-medium hover:bg-[#2563EB] transition-colors justify-center"
+                      className="bg-[#3B82F6] flex items-center text-white px-3 4 rounded-[5px] w-32 h-6 text-[9px] font-medium hover:bg-[#2563EB] transition-colors justify-center"
                       onClick={() => toggleCardExpansion(professional.id)}
                     >
-                      <img src={ExternalLink} alt="Icone Lien Externe" className="inline-block w-[12px] h-[12px] mr-1" />
-                      Gérer la demande
+                      <img src={ExternalLink} alt="Icone Lien Externe" className="w-5 h-5 mr-1" />
+                      <p className="m-auto">Gérer la demande</p>
                     </button>
                   </div>
                 </div>
