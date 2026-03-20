@@ -3,7 +3,7 @@ import { useTranslation } from '../../context/I18nContext';
 import LogoFacebook from '../../assets/images/logos/logo-facebook.svg';
 import LogoTwitter from '../../assets/images/logos/logo-twitter.svg';
 import LogoInstagram from '../../assets/images/logos/logo-instagram.svg';
-import LogoLinkedIn from '../../assets/images/logos/logo-linkedIn.svg';
+import LogoLinkedIn from '../../assets/images/logos/logo-linkedin.svg';
 
 const Footer = ({ isDarkTheme, isLoggedIn }) => {
   const { t } = useTranslation();

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
+import { translateErrorKey, formatValidationErrors } from '../../utils/translateErrorKey';
 
 const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
   const navigate = useNavigate();
@@ -12,6 +13,25 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+
+  // Validation messages
+  const validationMessages = {
+    lastNameRequired: t('validation.last_name_required'),
+    firstNameRequired: t('validation.first_name_required'),
+    emailRequired: t('validation.email_required'),
+    emailInvalid: t('validation.email_invalid'),
+    passwordRequired: t('validation.password_required'),
+    passwordTooShort: t('validation.password_too_short'),
+    passwordConfirmationRequired: t('validation.password_confirmation_required'),
+    acceptTerms: t('auth.accept_terms'),
+    siretRequired: t('validation.siret_required'),
+    siretInvalidLength: t('validation.siret_invalid_length'),
+    streetRequired: t('validation.street_required'),
+    postalCodeRequired: t('validation.postal_code_required'),
+    postalCodeInvalid: t('validation.postal_code_invalid_exact'),
+    cityRequired: t('validation.city_required'),
+    countryRequired: t('validation.country_required'),
+  };
 
   // Configuration React Hook Form
   const {
@@ -66,17 +86,14 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
       console.error('Professional registration error:', error);
       
       if (error.body?.error) {
-        setApiError(error.body.error);
+        setApiError(translateErrorKey(error.body.error, t));
       } else if (error.body?.errors) {
         // Handle multiple field errors
-        const errorMessages = Object.entries(error.body.errors)
-          .map(([field, message]) => `${field}: ${message}`)
-          .join('\n');
-        setApiError(errorMessages);
+        setApiError(formatValidationErrors(error.body.errors, t));
       } else if (error.message) {
         setApiError(error.message);
       } else {
-        setApiError(t('auth.registration_error') + ' - ' + JSON.stringify(error));
+        setApiError(t('auth.registration_error'));
       }
     } finally {
       setLoading(false);
@@ -119,7 +136,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               type="text"
               id="name"
               {...register('name', {
-                required: 'Last name is required',
+                required: validationMessages.lastNameRequired,
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.name ? 'border-red-500' : 'border-gray-300'
@@ -140,7 +157,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               type="text"
               id="firstName"
               {...register('firstName', {
-                required: 'First name is required',
+                required: validationMessages.firstNameRequired,
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.firstName ? 'border-red-500' : 'border-gray-300'
@@ -166,10 +183,10 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               type="text"
               id="siret"
               {...register('siret', {
-                required: 'SIRET is required',
+                required: validationMessages.siretRequired,
                 pattern: {
                   value: /^\d{13,14}$/,
-                  message: 'SIRET must be 13 or 14 digits',
+                  message: validationMessages.siretInvalidLength,
                 },
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
@@ -191,7 +208,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               type="text"
               id="street"
               {...register('street', {
-                required: 'Street is required',
+                required: validationMessages.streetRequired,
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.street ? 'border-red-500' : 'border-gray-300'
@@ -212,10 +229,10 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               type="text"
               id="postalCode"
               {...register('postalCode', {
-                required: 'Postal code is required',
+                required: validationMessages.postalCodeRequired,
                 pattern: {
                   value: /^\d{5}$/,
-                  message: 'Postal code must be exactly 5 digits',
+                  message: validationMessages.postalCodeInvalid,
                 },
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
@@ -237,7 +254,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               type="text"
               id="city"
               {...register('city', {
-                required: 'City is required',
+                required: validationMessages.cityRequired,
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.city ? 'border-red-500' : 'border-gray-300'
@@ -258,7 +275,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               type="text"
               id="country"
               {...register('country', {
-                required: 'Country is required',
+                required: validationMessages.countryRequired,
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.country ? 'border-red-500' : 'border-gray-300'
@@ -284,10 +301,10 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               type="email"
               id="email"
               {...register('email', {
-                required: 'Email is required',
+                required: validationMessages.emailRequired,
                 pattern: {
                   value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: 'Email format is invalid',
+                  message: validationMessages.emailInvalid,
                 },
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
@@ -309,10 +326,10 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               type="password"
               id="password"
               {...register('password', {
-                required: 'Password is required',
+                required: validationMessages.passwordRequired,
                 minLength: {
                   value: 8,
-                  message: 'Password must be at least 8 characters long',
+                  message: validationMessages.passwordTooShort,
                 },
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
@@ -334,7 +351,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               type="password"
               id="confirmPassword"
               {...register('confirmPassword', {
-                required: 'Password confirmation is required',
+                required: validationMessages.passwordConfirmationRequired,
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
@@ -352,7 +369,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               type="checkbox"
               id="acceptCGU"
               {...register('acceptCGU', {
-                required: 'You must accept the terms and conditions',
+                required: validationMessages.acceptTerms,
               })}
               className="mt-1 h-4 w-4 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500"
             />

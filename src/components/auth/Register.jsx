@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
+import { translateErrorKey, formatValidationErrors } from '../../utils/translateErrorKey';
 
 const Register = ({ isDarkTheme, isLoggedIn }) => {
   const navigate = useNavigate();
@@ -12,6 +13,18 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+
+  // Validation messages
+  const validationMessages = {
+    lastNameRequired: t('validation.last_name_required'),
+    firstNameRequired: t('validation.first_name_required'),
+    emailRequired: t('validation.email_required'),
+    emailInvalid: t('validation.email_invalid'),
+    passwordRequired: t('validation.password_required'),
+    passwordTooShort: t('validation.password_too_short'),
+    passwordConfirmationRequired: t('validation.password_confirmation_required'),
+    acceptTerms: t('auth.accept_terms'),
+  };
 
   // Configuration React Hook Form
   const {
@@ -59,13 +72,10 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
         setSuccessMessage(t('auth.registration_success'));
     } catch (error) {
       if (error.body?.error) {
-        setApiError(error.body.error);
+        setApiError(translateErrorKey(error.body.error, t));
       } else if (error.body?.errors) {
         // Handle multiple field errors
-        const errorMessages = Object.entries(error.body.errors)
-          .map(([field, message]) => `${field}: ${message}`)
-          .join('\n');
-        setApiError(errorMessages);
+        setApiError(formatValidationErrors(error.body.errors, t));
       } else {
         setApiError(t('auth.registration_error'));
       }
@@ -144,7 +154,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
               type="text"
               id="name"
               {...register('name', {
-                required: 'Last name is required',
+                required: validationMessages.lastNameRequired,
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.name ? 'border-red-500' : 'border-gray-300'
@@ -165,7 +175,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
               type="text"
               id="firstName"
               {...register('firstName', {
-                required: 'First name is required',
+                required: validationMessages.firstNameRequired,
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.firstName ? 'border-red-500' : 'border-gray-300'
@@ -190,10 +200,10 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
               type="email"
               id="email"
               {...register('email', {
-                required: 'Email is required',
+                required: validationMessages.emailRequired,
                 pattern: {
                   value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: 'Email format is invalid',
+                  message: validationMessages.emailInvalid,
                 },
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
@@ -215,10 +225,10 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
               type="password"
               id="password"
               {...register('password', {
-                required: 'Password is required',
+                required: validationMessages.passwordRequired,
                 minLength: {
                   value: 8,
-                  message: 'Password must be at least 8 characters long',
+                  message: validationMessages.passwordTooShort,
                 },
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
@@ -240,7 +250,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
               type="password"
               id="confirmPassword"
               {...register('confirmPassword', {
-                required: 'Password confirmation is required',
+                required: validationMessages.passwordConfirmationRequired,
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
@@ -258,7 +268,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
               type="checkbox"
               id="acceptCGU"
               {...register('acceptCGU', {
-                required: 'You must accept the terms and conditions',
+                required: validationMessages.acceptTerms,
               })}
               className="mt-1 h-4 w-4 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500"
             />

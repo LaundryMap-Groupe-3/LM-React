@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
+import { translateErrorKey } from '../../utils/translateErrorKey';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -45,7 +46,10 @@ const VerifyEmail = ({ isDarkTheme }) => {
         }, 3000);
       } else {
         setStatus('error');
-        setMessage(data.error || data.message || (t('auth.verification_failed') || 'La vérification a échoué'));
+        // Translate error key if it comes from backend
+        let errorMessage = data.error || data.message || t('auth.verification_failed');
+        errorMessage = translateErrorKey(errorMessage, t);
+        setMessage(errorMessage);
         console.error('API Error:', data);
       }
     } catch (error) {

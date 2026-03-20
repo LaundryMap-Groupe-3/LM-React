@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
+import { translateErrorKey, formatValidationErrors } from '../../utils/translateErrorKey';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -17,6 +18,13 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
   const [lastAttemptedEmail, setLastAttemptedEmail] = useState('');
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMessage, setResendMessage] = useState(null);
+
+  // Validation messages
+  const validationMessages = {
+    emailRequired: t('validation.email_required'),
+    emailInvalid: t('validation.email_invalid'),
+    passwordRequired: t('validation.password_required'),
+  };
 
   const {
     register,
@@ -76,28 +84,15 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
         navigate('/');
       }
     } catch (error) {
-      let errorMessage = t('auth.invalid_email_password');
+      let errorMessage = t('errors.invalid_email_password');
       let code = null;
 
       if (error.body?.error) {
         const errorCodeValue = error.body.error;
         code = errorCodeValue;
-        // Check if error is a translation key (snake_case format)
-        if (typeof errorCodeValue === 'string' && errorCodeValue.match(/^[a-z_]+$/)) {
-          // Try to translate it
-          const translatedError = t(`auth.${errorCodeValue}`);
-          if (translatedError && translatedError !== `auth.${errorCodeValue}`) {
-            errorMessage = translatedError;
-          } else {
-            errorMessage = errorCodeValue;
-          }
-        } else {
-          errorMessage = errorCodeValue;
-        }
+        errorMessage = translateErrorKey(errorCodeValue, t);
       } else if (error.body?.errors) {
-        const errorMessages = Object.entries(error.body.errors)
-          .map(([field, message]) => `${field}: ${message}`)
-          .join('\n');
+        const errorMessages = formatValidationErrors(error.body.errors, t);
         errorMessage = errorMessages;
       }
 
@@ -244,10 +239,10 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
               type="email"
               id="email"
               {...register('email', {
-                required: 'Email is required',
+                required: validationMessages.emailRequired,
                 pattern: {
                   value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: 'Email format is invalid',
+                  message: validationMessages.emailInvalid,
                 },
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
@@ -271,7 +266,7 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
               type="password"
               id="password"
               {...register('password', {
-                required: 'Password is required',
+                required: validationMessages.passwordRequired,
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.password ? 'border-red-500' : isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-gray-300 bg-white text-gray-900'
