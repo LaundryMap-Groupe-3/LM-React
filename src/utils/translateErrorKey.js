@@ -1,7 +1,7 @@
 /**
  * Translate an error key received from backend API
  * If the key looks like a translation key (contains dot), attempt to translate it
- * Otherwise return the original string
+ * Otherwise try to translate it as auth.[key]
  * 
  * @param {string} errorKey - The error string/key from API
  * @param {Function} t - The translation function from useTranslation
@@ -10,12 +10,21 @@
 export const translateErrorKey = (errorKey, t) => {
   if (!errorKey) return '';
   
+  let keyToTranslate = errorKey;
+  
   // Check if it looks like a translation key (contains dot, snake_case format)
-  if (typeof errorKey === 'string' && errorKey.includes('.')) {
-    const translated = t(errorKey);
+  if (typeof errorKey === 'string') {
+    if (errorKey.includes('.')) {
+      keyToTranslate = errorKey;
+    } else {
+      // Try with auth prefix for backend error keys
+      keyToTranslate = `auth.${errorKey}`;
+    }
+    
+    const translated = t(keyToTranslate);
     // If translation returned the same key, it means translation not found
     // In that case return the original error
-    return translated !== errorKey ? translated : errorKey;
+    return translated !== keyToTranslate ? translated : errorKey;
   }
   
   return errorKey;

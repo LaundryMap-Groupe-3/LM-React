@@ -4,6 +4,8 @@
     "welcome": "Bienvenue sur",
     "logout": "Déconnexion",
     "loading": "Chargement...",
+    "saving": "Enregistrement...",
+    "saved": "Enregistré",
     "error": "Erreur",
     "success": "Succès",
     "edit": "Modifier",
@@ -116,7 +118,7 @@
     "new_password": "Nouveau mot de passe",
     "confirm_new_password": "Confirmer le nouveau mot de passe",
     "last_modified": "Dernière modification",
-    "change_password": "Modifier le mot de passe",
+    "change_password": "Modifier",
     "placeholder_first_name": "Entrez votre prénom",
     "placeholder_last_name": "Entrez votre nom",
     "placeholder_email": "Entrez votre adresse email",
@@ -168,7 +170,9 @@
     "postal_code_invalid_exact": "Le code postal doit contenir exactement 5 chiffres",
     "city_required": "La ville est requise",
     "country_required": "Le pays est requis",
-    "password_confirmation_required": "La confirmation du mot de passe est requise"
+    "password_confirmation_required": "La confirmation du mot de passe est requise",
+    "language_not_found": "Langue non trouvée",
+    "invalid_theme": "Thème invalide"
   },
   "errors": {
     "invalid_email_password": "Email ou mot de passe invalide",
@@ -188,6 +192,28 @@
     "siret_verify_error": "Impossible de vérifier le SIRET: {message}",
     "insee_api_key_missing": "La clé API INSEE est manquante",
     "api_error": "Erreur API",
-    "generic_error": "Une erreur s'est produite. Veuillez réessayer."
+    "generic_error": "Une erreur s'est produite. Veuillez réessayer.",
+    "profile_update_error": "Erreur lors de la mise à jour du profil",
+    "password_change_error": "Erreur lors du changement de mot de passe",
+    "invalid_current_password": "Le mot de passe actuel est incorrect",
+    "account_deletion_error": "Erreur lors de la suppression du compte",
+    "profile_load_error": "Erreur lors du chargement du profil",
+    "same_password_as_old": "Le nouveau mot de passe doit être différent de l'ancien",
+    "password_required": "Le mot de passe est requis",
+    "preferences_update_error": "Erreur lors de la mise à jour des préférences"
+  },
+  "success": {
+    "profile_updated": "Profil mis à jour avec succès",
+    "password_changed": "Mot de passe modifié avec succès",
+    "account_deleted": "Compte supprimé avec succès",
+    "preferences_saved": "Préférences enregistrées avec succès"
+  },
+  "confirm": {
+    "delete_account_title": "Supprimer votre compte?",
+    "delete_account_message": "Êtes-vous sûr de vouloir supprimer définitivement votre compte et toutes vos données? Cette action ne peut pas être annulée.",
+    "delete_account_confirm": "Oui, supprimer mon compte",
+    "delete_account_cancel": "Non, garder mon compte",
+    "delete_account_password": "Entrez votre mot de passe pour confirmer",
+    "enter_password": "Veuillez entrer votre mot de passe pour confirmer"
   }
 }
