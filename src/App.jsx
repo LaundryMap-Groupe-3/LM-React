@@ -7,6 +7,8 @@ import Register from './components/auth/Register'
 import ProfessionalRegister from './components/auth/ProfessionalRegister'
 import Login from './components/auth/Login'
 import VerifyEmail from './components/auth/VerifyEmail'
+import ForgotPassword from './components/auth/ForgotPassword'
+import ResetPassword from './components/auth/ResetPassword'
 import Profile from './components/user/Profile'
 import EditProfile from './components/user/EditProfile'
 import Header from './components/layout/Header'
@@ -154,6 +156,14 @@ function App() {
             isDarkTheme={isDarkTheme}
             onLoginSuccess={handleLoginSuccess}
           />
+        } />
+        <Route path="/forgot-password" element={
+          isLoggedIn ? <Navigate to="/profile" replace /> :
+          <ForgotPassword isDarkTheme={isDarkTheme} />
+        } />
+        <Route path="/reset-password" element={
+          isLoggedIn ? <Navigate to="/profile" replace /> :
+          <ResetPassword isDarkTheme={isDarkTheme} />
         } />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/profile" element={
