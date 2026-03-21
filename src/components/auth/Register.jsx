@@ -5,8 +5,9 @@ import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import { translateErrorKey, formatValidationErrors } from '../../utils/translateErrorKey';
+import { useGoogleLogin } from '@react-oauth/google';
 
-const Register = ({ isDarkTheme, isLoggedIn }) => {
+const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   usePageTitle('page_titles.register', t);
@@ -45,6 +46,31 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
   });
 
   const password = watch('password');
+
+  const siginWithGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      const data = await authService.handleGoogleSuccess(tokenResponse.access_token);
+
+      if (!data) {
+        console.error('Échec connexion Google');
+        setApiError(t('auth.login_with_google_error'));
+        return;
+      }
+
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      }
+
+      const user = await authService.getCurrentUser();
+      if (user) {
+        navigate('/');
+      }
+    },
+    onError: () => {
+      console.error('Échec connexion Google');
+      setApiError(t('auth.login_with_google_error'));
+    },
+  });
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -115,7 +141,7 @@ const Register = ({ isDarkTheme, isLoggedIn }) => {
             type="button"
             className="flex items-center justify-center gap-[14px] w-[118px] h-[48px] bg-[#C5DBFF] hover:bg-[#B7D2FF] text-[#3B82F6] rounded-[6px] border-0 transition-colors shadow-sm sm:shadow-md text-sm font-semibold"
             onClick={() => {
-              console.log('Connexion avec Google');
+              siginWithGoogle();
             }}
           >
             <svg

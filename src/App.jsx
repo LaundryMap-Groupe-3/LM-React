@@ -141,6 +141,7 @@ function App() {
           <Register 
             isDarkTheme={isDarkTheme}
             isLoggedIn={isLoggedIn}
+            onLoginSuccess={handleLoginSuccess}
           />
         } />
         <Route path="/register/professional" element={

@@ -41,6 +41,8 @@
     "create_account": "Create Account",
     "sign_up_with": "Sign Up With:",
     "login_with": "Login With:",
+    "sign_up_with_google_error": "An error occurred while signing up with Google",
+    "login_with_google_error": "An error occurred while logging in with Google",
     "invalid_email_password": "Invalid email or password",
     "passwords_not_match": "Passwords do not match",
     "accept_terms": "You must accept the terms and conditions",

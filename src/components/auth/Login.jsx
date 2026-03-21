@@ -5,6 +5,7 @@ import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import { translateErrorKey, formatValidationErrors } from '../../utils/translateErrorKey';
+import { useGoogleLogin } from '@react-oauth/google';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -25,6 +26,31 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
     emailInvalid: t('validation.email_invalid'),
     passwordRequired: t('validation.password_required'),
   };
+
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      const data = await authService.handleGoogleSuccess(tokenResponse.access_token);
+
+      if (!data) {
+        console.error('Échec connexion Google');
+        setApiError(t('auth.login_with_google_error'));
+        return;
+      }
+
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      }
+
+      const user = await authService.getCurrentUser();
+      if (user) {
+        navigate('/');
+      }
+    },
+    onError: () => {
+      console.error('Échec connexion Google');
+      setApiError(t('auth.login_with_google_error'));
+    },
+  });
 
   const {
     register,
@@ -198,9 +224,7 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
           <button
             type="button"
             className="flex items-center justify-center gap-[14px] w-[118px] h-[48px] bg-[#C5DBFF] hover:bg-[#B7D2FF] text-[#3B82F6] rounded-[6px] border-0 transition-colors shadow-sm sm:shadow-md text-sm font-semibold"
-            onClick={() => {
-              console.log('Connexion avec Google');
-            }}
+            onClick={loginWithGoogle}
           >
             <svg
               className="w-[22px] h-[22px] flex-shrink-0"

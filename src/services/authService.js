@@ -1,6 +1,30 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const authService = {
+  handleGoogleSuccess: async (accessToken) => {
+    try{
+      const response = await fetch(`${API_BASE_URL}/api/auth-google`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({token: accessToken})
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw { status: response.status, body: data };
+      }
+
+      if (data.token) {
+        localStorage.setItem('jwt_token', data.token);
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   register: async (userData) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/register`, {
