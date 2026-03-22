@@ -19,10 +19,30 @@ export const I18nProvider = ({ children }) => {
     return translations[browserLang] ? browserLang : 'fr';
   });
 
+  // Listen for language changes from PreferencesContext
+  useEffect(() => {
+    const handleLanguageChange = (event) => {
+      const newLanguage = event.detail?.language;
+      if (newLanguage && translations[newLanguage]) {
+        setLanguage(newLanguage);
+      }
+    };
+
+    window.addEventListener('language-changed', handleLanguageChange);
+    
+    return () => {
+      window.removeEventListener('language-changed', handleLanguageChange);
+    };
+  }, []);
+
   const changeLanguage = (lang) => {
     if (translations[lang]) {
       setLanguage(lang);
       localStorage.setItem('language', lang);
+      // Notify PreferencesContext about the change
+      window.dispatchEvent(new CustomEvent('language-changed', {
+        detail: { language: lang }
+      }));
     }
   };
 

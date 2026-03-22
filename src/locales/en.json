@@ -4,6 +4,8 @@
     "welcome": "Welcome on",
     "logout": "Logout",
     "loading": "Loading...",
+    "saving": "Saving...",
+    "saved": "Saved",
     "error": "Error",
     "success": "Success",
     "edit": "Edit",
@@ -90,7 +92,24 @@
     "redirecting_in_3_seconds": "Redirecting to login in 3 seconds...",
     "verification_error": "Verification error",
     "back_to_registration": "Back to registration",
-    "professional_info": "Professional Information"
+    "professional_info": "Professional Information",
+    "forgot_password_description": "Enter your email address and we'll send you a link to reset your password.",
+    "password_reset_email_sent": "Password reset email sent successfully!",
+    "check_email_for_reset_link": "Check your email for the password reset link.",
+    "email_sent_to": "An email has been sent to",
+    "back_to_login": "Back to login",
+    "send_reset_link": "Send reset link",
+    "new_password": "New Password",
+    "placeholder_new_password": "Your new password",
+    "placeholder_confirm_password": "Confirm your password",
+    "password_requirements": "Password Requirements",
+    "password_min_8_chars": "At least 8 characters",
+    "password_reset_success": "Your password has been reset successfully!",
+    "reset_password": "Reset Password",
+    "request_new_reset_link": "Request a new reset link",
+    "redirecting_to_login": "Redirecting to login...",
+    "hide": "Hide",
+    "show": "Show"
   },
   "profile": {
     "personal_info": "Personal Information",
@@ -146,6 +165,8 @@
     "register": "Sign Up - LaundryMap",
     "register_professional": "Professional Registration - LaundryMap",
     "verify_email": "Verify Your Email - LaundryMap",
+    "forgot_password": "Forgot Password - LaundryMap",
+    "reset_password": "Reset Password - LaundryMap",
     "profile": "My Profile - LaundryMap",
     "edit_profile": "Edit My Profile - LaundryMap"
   },
@@ -168,7 +189,9 @@
     "postal_code_invalid_exact": "Postal code must be exactly 5 digits",
     "city_required": "City is required",
     "country_required": "Country is required",
-    "password_confirmation_required": "Password confirmation is required"
+    "password_confirmation_required": "Password confirmation is required",
+    "language_not_found": "Language not found",
+    "invalid_theme": "Invalid theme"
   },
   "errors": {
     "invalid_email_password": "Invalid email or password",
@@ -178,8 +201,10 @@
     "professional_account_error": "An error occurred while creating the professional account",
     "token_required": "Token is required",
     "token_invalid": "Invalid or expired token",
+    "invalid_or_expired_token": "The reset link is invalid or has expired. Please request a new one.",
     "email_send_error": "An error occurred while sending the verification email.",
     "user_not_found": "User with email \"{email}\" not found.",
+    "email_not_found_generic": "No account found with this email address.",
     "admin_not_found": "Admin not found",
     "user_not_found_generic": "User not found",
     "unsupported_user_class": "Unsupported user class",
@@ -188,6 +213,28 @@
     "siret_verify_error": "Unable to verify SIRET: {message}",
     "insee_api_key_missing": "INSEE API key is missing",
     "api_error": "API error",
-    "generic_error": "An error occurred. Please try again."
+    "generic_error": "An error occurred. Please try again.",
+    "profile_update_error": "Error updating profile",
+    "password_change_error": "Error changing password",
+    "invalid_current_password": "Current password is incorrect",
+    "account_deletion_error": "Error deleting account",
+    "profile_load_error": "Error loading profile",
+    "same_password_as_old": "New password must be different from the old one",
+    "password_required": "Password is required",
+    "preferences_update_error": "Error updating preferences"
+  },
+  "success": {
+    "profile_updated": "Profile updated successfully",
+    "password_changed": "Password changed successfully",
+    "account_deleted": "Account deleted successfully",
+    "preferences_saved": "Preferences saved successfully"
+  },
+  "confirm": {
+    "delete_account_title": "Delete your account?",
+    "delete_account_message": "Are you sure you want to permanently delete your account and all your data? This action cannot be undone.",
+    "delete_account_confirm": "Yes, delete my account",
+    "delete_account_cancel": "No, keep my account",
+    "delete_account_password": "Enter your password to confirm",
+    "enter_password": "Please enter your password to confirm"
   }
 }

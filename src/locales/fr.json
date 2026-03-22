@@ -4,6 +4,8 @@
     "welcome": "Bienvenue sur",
     "logout": "Déconnexion",
     "loading": "Chargement...",
+    "saving": "Enregistrement...",
+    "saved": "Enregistré",
     "error": "Erreur",
     "success": "Succès",
     "edit": "Modifier",
@@ -90,7 +92,24 @@
     "redirecting_in_3_seconds": "Redirection vers la connexion dans 3 secondes...",
     "verification_error": "Erreur de vérification",
     "back_to_registration": "Retour à l'inscription",
-    "professional_info": "Informations professionnelles"
+    "professional_info": "Informations professionnelles",
+    "forgot_password_description": "Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.",
+    "password_reset_email_sent": "Email de réinitialisation envoyé avec succès!",
+    "check_email_for_reset_link": "Vérifiez votre email pour le lien de réinitialisation du mot de passe.",
+    "email_sent_to": "Un email a été envoyé à",
+    "back_to_login": "Retour à la connexion",
+    "send_reset_link": "Envoyer le lien de réinitialisation",
+    "new_password": "Nouveau mot de passe",
+    "placeholder_new_password": "Votre nouveau mot de passe",
+    "placeholder_confirm_password": "Confirmez votre mot de passe",
+    "password_requirements": "Exigences du mot de passe",
+    "password_min_8_chars": "Au moins 8 caractères",
+    "password_reset_success": "Votre mot de passe a été réinitialisé avec succès!",
+    "reset_password": "Réinitialiser le mot de passe",
+    "request_new_reset_link": "Demander un nouveau lien de réinitialisation",
+    "redirecting_to_login": "Redirection vers la connexion...",
+    "hide": "Masquer",
+    "show": "Afficher"
   },
   "profile": {
     "personal_info": "Informations personnelles",
@@ -116,7 +135,7 @@
     "new_password": "Nouveau mot de passe",
     "confirm_new_password": "Confirmer le nouveau mot de passe",
     "last_modified": "Dernière modification",
-    "change_password": "Modifier le mot de passe",
+    "change_password": "Modifier",
     "placeholder_first_name": "Entrez votre prénom",
     "placeholder_last_name": "Entrez votre nom",
     "placeholder_email": "Entrez votre adresse email",
@@ -146,6 +165,8 @@
     "register": "S'inscrire - LaundryMap",
     "register_professional": "Inscription Professionnelle - LaundryMap",
     "verify_email": "Vérifier votre email - LaundryMap",
+    "forgot_password": "Mot de passe oublié - LaundryMap",
+    "reset_password": "Réinitialiser le mot de passe - LaundryMap",
     "profile": "Mon Profil - LaundryMap",
     "edit_profile": "Modifier mon Profil - LaundryMap"
   },
@@ -168,7 +189,9 @@
     "postal_code_invalid_exact": "Le code postal doit contenir exactement 5 chiffres",
     "city_required": "La ville est requise",
     "country_required": "Le pays est requis",
-    "password_confirmation_required": "La confirmation du mot de passe est requise"
+    "password_confirmation_required": "La confirmation du mot de passe est requise",
+    "language_not_found": "Langue non trouvée",
+    "invalid_theme": "Thème invalide"
   },
   "errors": {
     "invalid_email_password": "Email ou mot de passe invalide",
@@ -178,8 +201,10 @@
     "professional_account_error": "Une erreur s'est produite lors de la création du compte professionnel",
     "token_required": "Le token est requis",
     "token_invalid": "Token invalide ou expiré",
+    "invalid_or_expired_token": "Le lien de réinitialisation est invalide ou a expiré. Veuillez demander un nouveau lien.",
     "email_send_error": "Une erreur s'est produite lors de l'envoi de l'email de vérification.",
     "user_not_found": "Utilisateur avec l'email \"{email}\" non trouvé.",
+    "email_not_found_generic": "Aucun compte trouvé avec cette adresse email.",
     "admin_not_found": "Admin non trouvé",
     "user_not_found_generic": "Utilisateur non trouvé",
     "unsupported_user_class": "Classe d'utilisateur non supportée",
@@ -188,6 +213,28 @@
     "siret_verify_error": "Impossible de vérifier le SIRET: {message}",
     "insee_api_key_missing": "La clé API INSEE est manquante",
     "api_error": "Erreur API",
-    "generic_error": "Une erreur s'est produite. Veuillez réessayer."
+    "generic_error": "Une erreur s'est produite. Veuillez réessayer.",
+    "profile_update_error": "Erreur lors de la mise à jour du profil",
+    "password_change_error": "Erreur lors du changement de mot de passe",
+    "invalid_current_password": "Le mot de passe actuel est incorrect",
+    "account_deletion_error": "Erreur lors de la suppression du compte",
+    "profile_load_error": "Erreur lors du chargement du profil",
+    "same_password_as_old": "Le nouveau mot de passe doit être différent de l'ancien",
+    "password_required": "Le mot de passe est requis",
+    "preferences_update_error": "Erreur lors de la mise à jour des préférences"
+  },
+  "success": {
+    "profile_updated": "Profil mis à jour avec succès",
+    "password_changed": "Mot de passe modifié avec succès",
+    "account_deleted": "Compte supprimé avec succès",
+    "preferences_saved": "Préférences enregistrées avec succès"
+  },
+  "confirm": {
+    "delete_account_title": "Supprimer votre compte?",
+    "delete_account_message": "Êtes-vous sûr de vouloir supprimer définitivement votre compte et toutes vos données? Cette action ne peut pas être annulée.",
+    "delete_account_confirm": "Oui, supprimer mon compte",
+    "delete_account_cancel": "Non, garder mon compte",
+    "delete_account_password": "Entrez votre mot de passe pour confirmer",
+    "enter_password": "Veuillez entrer votre mot de passe pour confirmer"
   }
 }

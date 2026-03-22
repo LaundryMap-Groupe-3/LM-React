@@ -1,11 +1,14 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useTranslation } from './context/I18nContext'
+import { usePreferences } from './context/PreferencesContext'
 import usePageTitle from './hooks/usePageTitle'
 import Register from './components/auth/Register'
 import ProfessionalRegister from './components/auth/ProfessionalRegister'
 import Login from './components/auth/Login'
 import VerifyEmail from './components/auth/VerifyEmail'
+import ForgotPassword from './components/auth/ForgotPassword'
+import ResetPassword from './components/auth/ResetPassword'
 import Profile from './components/user/Profile'
 import EditProfile from './components/user/EditProfile'
 import Header from './components/layout/Header'
@@ -41,7 +44,7 @@ const Home = ({ isDarkTheme, isLoggedIn }) => {
   }
 
   return (
-    <div className={`min-h-screen flex items-center justify-center ${isDarkTheme || isLoggedIn ? 'bg-[#1E293B]' : 'bg-white'}`}>
+    <div className={`min-h-screen flex items-center justify-center ${isDarkTheme ? 'bg-[#1E293B]' : 'bg-white'}`}>
       <div className="flex flex-col items-center justify-center gap-6">
         <h1 className="text-3xl font-bold text-[#3B82F6]">{t('common.welcome')} {t('common.app_name')}</h1>
         
@@ -75,7 +78,7 @@ const ProtectedRoute = ({ isLoggedIn, children }) => {
 }
 
 function App() {
-  const [isDarkTheme, setIsDarkTheme] = useState(false);
+  const { isDarkTheme, toggleTheme, reloadUserPreferences } = usePreferences();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -86,6 +89,8 @@ function App() {
         const user = await authService.getCurrentUser();
         if (user) {
           setIsLoggedIn(true);
+          // Load user preferences after authentication check
+          reloadUserPreferences();
         } else {
           // Token is invalid or expired
           authService.logout();
@@ -98,17 +103,19 @@ function App() {
     checkAuthentication();
   }, []);
 
-  const toggleDarkTheme = () => {
-    setIsDarkTheme(!isDarkTheme);
-  };
-
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
+    // Reload user preferences after successful login (non-await to avoid blocking)
+    setTimeout(() => {
+      reloadUserPreferences();
+    }, 0);
   };
 
   const handleLogout = () => {
     authService.logout();
     setIsLoggedIn(false);
+    // Reset to browser preferences on logout
+    window.location.reload();
   };
 
   if (loading) {
@@ -124,7 +131,7 @@ function App() {
       <Header 
         isDarkTheme={isDarkTheme}
         isLoggedIn={isLoggedIn}
-        toggleDarkTheme={toggleDarkTheme}
+        toggleDarkTheme={toggleTheme}
         onLogout={handleLogout}
       />
       <Routes>
@@ -150,13 +157,21 @@ function App() {
             onLoginSuccess={handleLoginSuccess}
           />
         } />
+        <Route path="/forgot-password" element={
+          isLoggedIn ? <Navigate to="/profile" replace /> :
+          <ForgotPassword isDarkTheme={isDarkTheme} />
+        } />
+        <Route path="/reset-password" element={
+          isLoggedIn ? <Navigate to="/profile" replace /> :
+          <ResetPassword isDarkTheme={isDarkTheme} />
+        } />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/profile" element={
           <ProtectedRoute isLoggedIn={isLoggedIn}>
             <Profile 
               isDarkTheme={isDarkTheme}
               isLoggedIn={isLoggedIn}
-              toggleDarkTheme={toggleDarkTheme}
+              toggleDarkTheme={toggleTheme}
               onLogout={handleLogout}
             />
           </ProtectedRoute>
