@@ -103,7 +103,7 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
                         {t('navigation.home')}
                     </Link>
                     {!isLoggedIn && (
-                        <a href="#" onClick={toggleMenu} className={`px-3 text-[12px] rounded-[5px] transition-colors font-medium flex items-center h-[38px] group ${isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white'}`}>
+                        <a href="/login" onClick={toggleMenu} className={`px-3 text-[12px] rounded-[5px] transition-colors font-medium flex items-center h-[38px] group ${isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white'}`}>
                             <img src={IconConnexion} alt={t('auth.login')} className="w-4 h-4 mr-2 brightness-0 group-hover:brightness-100 transition-all" />
                             {t('auth.login')}
                         </a>
