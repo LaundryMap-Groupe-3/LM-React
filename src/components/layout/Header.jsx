@@ -9,7 +9,7 @@ import IconUtilisateur from '../../assets/images/icons/User-black.svg';
 import IconAdmistrateur from '../../assets/images/icons/Administrator-black.svg';
 import LanguageSwitcher from './LanguageSwitcher';
 
-const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogout }) => {
+const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogout, userType }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { t } = useTranslation();
@@ -40,8 +40,11 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
             {!isLoggedIn && (
               <a href="/login" className={`transition-colors font-medium px-4 h-[38px] flex items-center rounded-[5px] ${isDarkTheme ? 'text-[#E2E8F0] hover:text-white hover:bg-[#3B82F6]' : 'text-gray-700 hover:text-white hover:bg-[#3B82F6]'}`}>{t('auth.login')}</a>
             )}
-            {isLoggedIn && (
+            {isLoggedIn && userType !== 'admin' && (
               <Link to="/profile" className={`${isActivePage('/profile') ? 'text-white bg-[#3B82F6]' : (isDarkTheme ? 'text-[#E2E8F0] hover:text-white hover:bg-[#3B82F6]' : 'text-gray-700 hover:text-white hover:bg-[#3B82F6]')} transition-colors font-medium px-4 h-[38px] flex items-center rounded-[5px]`}>{t('navigation.profile')}</Link>
+            )}
+            {isLoggedIn && userType === 'admin' && (
+              <Link to="/admin/pending-professionals" className={`${isActivePage('/admin/pending-professionals') ? 'text-white bg-[#3B82F6]' : (isDarkTheme ? 'text-[#E2E8F0] hover:text-white hover:bg-[#3B82F6]' : 'text-gray-700 hover:text-white hover:bg-[#3B82F6]')} transition-colors font-medium px-4 h-[38px] flex items-center rounded-[5px]`}>{t('navigation.pending_professionals')}</Link>
             )}
             {isLoggedIn && (
               <button onClick={onLogout} className={`transition-colors font-medium px-4 h-[38px] flex items-center rounded-[5px] ${isDarkTheme ? 'text-[#E2E8F0] hover:text-white hover:bg-red-600' : 'text-gray-700 hover:text-white hover:bg-red-600'}`}>{t('common.logout')}</button>
@@ -105,10 +108,16 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
                             {t('auth.login')}
                         </a>
                     )}
-                    {isLoggedIn && (
+                    {isLoggedIn && userType !== 'admin' && (
                         <Link to="/profile" onClick={toggleMenu} className={`px-3 text-[12px] ${isActivePage('/profile') ? 'bg-[#3B82F6] text-white' : (isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white')} rounded-[5px] transition-colors font-medium flex items-center h-[38px] group`}>
                             <img src={IconUtilisateur} alt={t('navigation.profile')} className={`w-4 h-4 mr-2 ${isActivePage('/profile') ? 'filter invert' : 'group-hover:filter group-hover:invert'} transition-all`} />
                             {t('navigation.profile')}
+                        </Link>
+                    )}
+                    {isLoggedIn && userType === 'admin' && (
+                        <Link to="/admin/pending-professionals" onClick={toggleMenu} className={`px-3 text-[12px] ${isActivePage('/admin/pending-professionals') ? 'bg-[#3B82F6] text-white' : (isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white')} rounded-[5px] transition-colors font-medium flex items-center h-[38px] group`}>
+                            <img src={IconAdmistrateur} alt={t('navigation.pending_professionals')} className={`w-4 h-4 mr-2 ${isActivePage('/admin/pending-professionals') ? 'filter invert' : 'group-hover:filter group-hover:invert'} transition-all`} />
+                            {t('navigation.pending_professionals')}
                         </Link>
                     )}
                     {isLoggedIn && (

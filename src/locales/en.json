@@ -15,7 +15,9 @@
     "close": "Close",
     "back": "Back",
     "loading_text": "in progress...",
-    "or": "OR"
+    "or": "OR",
+    "previous": "Previous",
+    "next": "Next"
   },
   "navigation": {
     "home": "Home",
@@ -26,7 +28,8 @@
     "main_pages": "Main Pages",
     "inscription": "Registration",
     "no_account": "Don't have an account?",
-    "have_account": "Already have an account?"
+    "have_account": "Already have an account?",
+    "pending_professionals": "Pending Professionals"
   },
   "auth": {
     "login": "Login",
@@ -170,7 +173,9 @@
     "forgot_password": "Forgot Password - LaundryMap",
     "reset_password": "Reset Password - LaundryMap",
     "profile": "My Profile - LaundryMap",
-    "edit_profile": "Edit My Profile - LaundryMap"
+    "edit_profile": "Edit My Profile - LaundryMap",
+    "admin_pending_professionals": "Pending Professionals - Administration",
+    "admin_professional_details": "Professional Details - Administration"
   },
   "validation": {
     "email_required": "Email is required",
@@ -192,6 +197,9 @@
     "city_required": "City is required",
     "country_required": "Country is required",
     "password_confirmation_required": "Password confirmation is required",
+    "phone_required": "Phone number is required",
+    "phone_invalid": "Phone number is invalid",
+    "company_name_required": "Company name is required",
     "language_not_found": "Language not found",
     "invalid_theme": "Invalid theme"
   },
@@ -223,7 +231,57 @@
     "profile_load_error": "Error loading profile",
     "same_password_as_old": "New password must be different from the old one",
     "password_required": "Password is required",
-    "preferences_update_error": "Error updating preferences"
+    "preferences_update_error": "Error updating preferences",
+    "admin_access_required": "Administrator access required",
+    "fetch_error": "Error loading data"
+  },
+  "admin": {
+    "admin_title": "Administration - Professional Account Validations",
+    "pending_professionals": "Pending Professional Registrations",
+    "pending_professionals_description": "Manage professional accounts and laundry registrations awaiting validation",
+    "professional_accounts": "Professional Accounts",
+    "laundries": "Laundries",
+    "pending_accounts_title": "Professional Accounts Pending",
+    "total_pending": "Total pending",
+    "no_pending_professionals": "No pending accounts",
+    "all_accounts_processed": "All professional accounts have been processed.",
+    "professional_name": "Professional Name",
+    "email": "Email",
+    "siret": "SIRET",
+    "address": "Address",
+    "registration_date": "Registration Date",
+    "page": "Page",
+    "of": "of",
+    "pending": "Pending",
+    "request_date": "Request date",
+    "manage_request": "Manage request",
+    "professional_details": "Professional Details",
+    "personal_information": "Personal Information",
+    "professional_information": "Professional Information",
+    "company_name": "Company Name",
+    "phone": "Phone",
+    "street": "Street Address",
+    "postal_code": "Postal Code",
+    "city": "City",
+    "country": "Country",
+    "approval_section": "Approval Decision",
+    "approval_status": "Approval Status",
+    "rejected": "Rejected",
+    "approved": "Approved",
+    "rejection_reason": "Rejection Reason",
+    "rejection_reason_placeholder": "Explain why this account is being rejected...",
+    "rejection_reason_required": "Please provide a rejection reason",
+    "approve_button": "Approve",
+    "reject_button": "Reject",
+    "cancel_button": "Cancel",
+    "back_to_list": "Back to List",
+    "approve_confirmation": "Are you sure you want to approve this account?",
+    "reject_confirmation": "Are you sure you want to reject this account?",
+    "approving": "Approving...",
+    "rejecting": "Rejecting...",
+    "approval_success": "Account approved successfully",
+    "rejection_success": "Account rejected successfully",
+    "loading_details": "Loading professional details..."
   },
   "success": {
     "profile_updated": "Profile updated successfully",
