@@ -136,7 +136,7 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
                             <img src={IconUtilisateur} alt={t('auth.register_user')} className={`w-4 h-4 mr-2 ${isActivePage('/register') ? 'filter invert' : 'group-hover:filter group-hover:invert'} transition-all`} />
                             {t('auth.register_user')}
                         </Link>
-                        <Link to="/register-professional" onClick={toggleMenu} className={`px-3 text-[12px] rounded-[5px] transition-colors font-medium flex items-center h-[38px] group ${isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white'}`}>
+                        <Link to="/register/professional" onClick={toggleMenu} className={`px-3 text-[12px] rounded-[5px] transition-colors font-medium flex items-center h-[38px] group ${isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white'}`}>
                             <img src={IconAdmistrateur} alt={t('auth.register_professional')} className="w-4 h-4 mr-2 group-hover:filter group-hover:invert transition-all" />
                             {t('auth.register_professional')}
                         </Link>
