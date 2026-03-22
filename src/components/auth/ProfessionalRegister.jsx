@@ -31,6 +31,9 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
     postalCodeInvalid: t('validation.postal_code_invalid_exact'),
     cityRequired: t('validation.city_required'),
     countryRequired: t('validation.country_required'),
+    phoneRequired: t('validation.phone_required'),
+    phoneInvalid: t('validation.phone_invalid'),
+    companyNameRequired: t('validation.company_name_required'),
   };
 
   // Configuration React Hook Form
@@ -48,6 +51,8 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
       password: '',
       confirmPassword: '',
       siret: '',
+      companyName: '',
+      phone: '',
       street: '',
       postalCode: '',
       city: '',
@@ -196,6 +201,48 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
             />
             {errors.siret && (
               <span className="text-red-500 text-xs mt-1">{errors.siret.message}</span>
+            )}
+          </div>
+
+          {/* Nom de l'entreprise */}
+          <div>
+            <label htmlFor="companyName" className="block text-left text-sm text-gray-700 mb-1">
+              {t('auth.company_name')}<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="companyName"
+              {...register('companyName', {
+                required: validationMessages.companyNameRequired,
+              })}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                errors.companyName ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder={t('auth.placeholder_company_name')}
+            />
+            {errors.companyName && (
+              <span className="text-red-500 text-xs mt-1">{errors.companyName.message}</span>
+            )}
+          </div>
+
+          {/* Téléphone */}
+          <div>
+            <label htmlFor="phone" className="block text-left text-sm text-gray-700 mb-1">
+              {t('auth.phone')}<span className="text-red-500">*</span>
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              {...register('phone', {
+                required: validationMessages.phoneRequired,
+              })}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                errors.phone ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder={t('auth.placeholder_phone')}
+            />
+            {errors.phone && (
+              <span className="text-red-500 text-xs mt-1">{errors.phone.message}</span>
             )}
           </div>
 

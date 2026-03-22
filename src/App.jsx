@@ -11,8 +11,13 @@ import ForgotPassword from './components/auth/ForgotPassword'
 import ResetPassword from './components/auth/ResetPassword'
 import Profile from './components/user/Profile'
 import EditProfile from './components/user/EditProfile'
+import AdminPendingProfessionals from './components/admin/AdminPendingProfessionals'
+import AdminProfessionalDetails from './components/admin/AdminProfessionalDetails'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
+import Page404 from './components/common/Page404'
+import Page500 from './components/common/Page500'
+import ErrorBoundary from './components/common/ErrorBoundary'
 import authService from './services/authService'
 import './App.css'
 
@@ -77,9 +82,32 @@ const ProtectedRoute = ({ isLoggedIn, children }) => {
   return children
 }
 
+// Protected Admin Route Component
+const ProtectedAdminRoute = ({ isLoggedIn, userType, children }) => {
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />
+  }
+  if (userType !== 'admin') {
+    return <Navigate to="/" replace />
+  }
+  return children
+}
+
+// Protected Non-Admin Route Component (deny access to admins)
+const ProtectedNonAdminRoute = ({ isLoggedIn, userType, children }) => {
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />
+  }
+  if (userType === 'admin') {
+    return <Navigate to="/" replace />
+  }
+  return children
+}
+
 function App() {
   const { isDarkTheme, toggleTheme, reloadUserPreferences } = usePreferences();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userType, setUserType] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Check if user is already logged in on mount
@@ -89,12 +117,14 @@ function App() {
         const user = await authService.getCurrentUser();
         if (user) {
           setIsLoggedIn(true);
+          setUserType(user.type);
           // Load user preferences after authentication check
           reloadUserPreferences();
         } else {
           // Token is invalid or expired
           authService.logout();
           setIsLoggedIn(false);
+          setUserType(null);
         }
       }
       setLoading(false);
@@ -108,12 +138,19 @@ function App() {
     // Reload user preferences after successful login (non-await to avoid blocking)
     setTimeout(() => {
       reloadUserPreferences();
+      // Fetch user type after login
+      authService.getCurrentUser().then(user => {
+        if (user) {
+          setUserType(user.type);
+        }
+      });
     }, 0);
   };
 
   const handleLogout = () => {
     authService.logout();
     setIsLoggedIn(false);
+    setUserType(null);
     // Reset to browser preferences on logout
     window.location.reload();
   };
@@ -131,61 +168,82 @@ function App() {
       <Header 
         isDarkTheme={isDarkTheme}
         isLoggedIn={isLoggedIn}
+        userType={userType}
         toggleDarkTheme={toggleTheme}
         onLogout={handleLogout}
       />
-      <Routes>
-        <Route path="/" element={<Home isDarkTheme={isDarkTheme} isLoggedIn={isLoggedIn} />} />
-        <Route path="/register" element={
-          isLoggedIn ? <Navigate to="/profile" replace /> :
-          <Register 
-            isDarkTheme={isDarkTheme}
-            isLoggedIn={isLoggedIn}
-            onLoginSuccess={handleLoginSuccess}
-          />
-        } />
-        <Route path="/register/professional" element={
-          isLoggedIn ? <Navigate to="/profile" replace /> :
-          <ProfessionalRegister 
-            isDarkTheme={isDarkTheme}
-            isLoggedIn={isLoggedIn}
-          />
-        } />
-        <Route path="/login" element={
-          isLoggedIn ? <Navigate to="/profile" replace /> :
-          <Login 
-            isDarkTheme={isDarkTheme}
-            onLoginSuccess={handleLoginSuccess}
-          />
-        } />
-        <Route path="/forgot-password" element={
-          isLoggedIn ? <Navigate to="/profile" replace /> :
-          <ForgotPassword isDarkTheme={isDarkTheme} />
-        } />
-        <Route path="/reset-password" element={
-          isLoggedIn ? <Navigate to="/profile" replace /> :
-          <ResetPassword isDarkTheme={isDarkTheme} />
-        } />
-        <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/profile" element={
-          <ProtectedRoute isLoggedIn={isLoggedIn}>
-            <Profile 
+      <ErrorBoundary isDarkTheme={isDarkTheme}>
+        <Routes>
+          <Route path="/" element={<Home isDarkTheme={isDarkTheme} isLoggedIn={isLoggedIn} />} />
+          <Route path="/register" element={
+            isLoggedIn ? <Navigate to="/profile" replace /> :
+            <Register 
               isDarkTheme={isDarkTheme}
               isLoggedIn={isLoggedIn}
-              toggleDarkTheme={toggleTheme}
-              onLogout={handleLogout}
+              onLoginSuccess={handleLoginSuccess}
             />
-          </ProtectedRoute>
-        }/> 
-        <Route path="/edit-profile" element={
-          <ProtectedRoute isLoggedIn={isLoggedIn}>
-            <EditProfile 
+          } />
+          <Route path="/register/professional" element={
+            isLoggedIn ? <Navigate to="/profile" replace /> :
+            <ProfessionalRegister 
               isDarkTheme={isDarkTheme}
               isLoggedIn={isLoggedIn}
             />
-          </ProtectedRoute>
-        }/>
-      </Routes>
+          } />
+          <Route path="/login" element={
+            isLoggedIn ? <Navigate to="/profile" replace /> :
+            <Login 
+              isDarkTheme={isDarkTheme}
+              onLoginSuccess={handleLoginSuccess}
+            />
+          } />
+          <Route path="/forgot-password" element={
+            isLoggedIn ? <Navigate to="/profile" replace /> :
+            <ForgotPassword isDarkTheme={isDarkTheme} />
+          } />
+          <Route path="/reset-password" element={
+            isLoggedIn ? <Navigate to="/profile" replace /> :
+            <ResetPassword isDarkTheme={isDarkTheme} />
+          } />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/profile" element={
+            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <Profile 
+                isDarkTheme={isDarkTheme}
+                isLoggedIn={isLoggedIn}
+                toggleDarkTheme={toggleTheme}
+                onLogout={handleLogout}
+              />
+            </ProtectedNonAdminRoute>
+          }/> 
+          <Route path="/edit-profile" element={
+            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <EditProfile 
+                isDarkTheme={isDarkTheme}
+                isLoggedIn={isLoggedIn}
+              />
+            </ProtectedNonAdminRoute>
+          }/>
+          <Route path="/admin/professionals" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminPendingProfessionals 
+                isDarkTheme={isDarkTheme}
+              />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/professionals/:id" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminProfessionalDetails 
+                isDarkTheme={isDarkTheme}
+              />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/pending-professionals" element={
+            <Navigate to="/admin/professionals" replace />
+          }/>
+          <Route path="*" element={<Page404 isDarkTheme={isDarkTheme} />} />
+        </Routes>
+      </ErrorBoundary>
       <Footer isDarkTheme={isDarkTheme} isLoggedIn={isLoggedIn} />
     </>
   )

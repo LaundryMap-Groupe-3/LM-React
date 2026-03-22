@@ -112,6 +112,8 @@ const authService = {
           password: professionalData.password,
           firstName: professionalData.firstName,
           lastName: professionalData.name,
+          phone: professionalData.phone,
+          companyName: professionalData.companyName,
           siret: professionalData.siret,
           street: professionalData.street,
           postalCode: professionalData.postalCode,
