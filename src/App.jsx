@@ -15,6 +15,9 @@ import AdminPendingProfessionals from './components/admin/AdminPendingProfession
 import AdminProfessionalDetails from './components/admin/AdminProfessionalDetails'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
+import Page404 from './components/common/Page404'
+import Page500 from './components/common/Page500'
+import ErrorBoundary from './components/common/ErrorBoundary'
 import authService from './services/authService'
 import './App.css'
 
@@ -169,75 +172,78 @@ function App() {
         toggleDarkTheme={toggleTheme}
         onLogout={handleLogout}
       />
-      <Routes>
-        <Route path="/" element={<Home isDarkTheme={isDarkTheme} isLoggedIn={isLoggedIn} />} />
-        <Route path="/register" element={
-          isLoggedIn ? <Navigate to="/profile" replace /> :
-          <Register 
-            isDarkTheme={isDarkTheme}
-            isLoggedIn={isLoggedIn}
-            onLoginSuccess={handleLoginSuccess}
-          />
-        } />
-        <Route path="/register/professional" element={
-          isLoggedIn ? <Navigate to="/profile" replace /> :
-          <ProfessionalRegister 
-            isDarkTheme={isDarkTheme}
-            isLoggedIn={isLoggedIn}
-          />
-        } />
-        <Route path="/login" element={
-          isLoggedIn ? <Navigate to="/profile" replace /> :
-          <Login 
-            isDarkTheme={isDarkTheme}
-            onLoginSuccess={handleLoginSuccess}
-          />
-        } />
-        <Route path="/forgot-password" element={
-          isLoggedIn ? <Navigate to="/profile" replace /> :
-          <ForgotPassword isDarkTheme={isDarkTheme} />
-        } />
-        <Route path="/reset-password" element={
-          isLoggedIn ? <Navigate to="/profile" replace /> :
-          <ResetPassword isDarkTheme={isDarkTheme} />
-        } />
-        <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/profile" element={
-          <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
-            <Profile 
+      <ErrorBoundary isDarkTheme={isDarkTheme}>
+        <Routes>
+          <Route path="/" element={<Home isDarkTheme={isDarkTheme} isLoggedIn={isLoggedIn} />} />
+          <Route path="/register" element={
+            isLoggedIn ? <Navigate to="/profile" replace /> :
+            <Register 
               isDarkTheme={isDarkTheme}
               isLoggedIn={isLoggedIn}
-              toggleDarkTheme={toggleTheme}
-              onLogout={handleLogout}
+              onLoginSuccess={handleLoginSuccess}
             />
-          </ProtectedNonAdminRoute>
-        }/> 
-        <Route path="/edit-profile" element={
-          <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
-            <EditProfile 
+          } />
+          <Route path="/register/professional" element={
+            isLoggedIn ? <Navigate to="/profile" replace /> :
+            <ProfessionalRegister 
               isDarkTheme={isDarkTheme}
               isLoggedIn={isLoggedIn}
             />
-          </ProtectedNonAdminRoute>
-        }/>
-        <Route path="/admin/professionals" element={
-          <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
-            <AdminPendingProfessionals 
+          } />
+          <Route path="/login" element={
+            isLoggedIn ? <Navigate to="/profile" replace /> :
+            <Login 
               isDarkTheme={isDarkTheme}
+              onLoginSuccess={handleLoginSuccess}
             />
-          </ProtectedAdminRoute>
-        }/>
-        <Route path="/admin/professionals/:id" element={
-          <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
-            <AdminProfessionalDetails 
-              isDarkTheme={isDarkTheme}
-            />
-          </ProtectedAdminRoute>
-        }/>
-        <Route path="/admin/pending-professionals" element={
-          <Navigate to="/admin/professionals" replace />
-        }/>
-      </Routes>
+          } />
+          <Route path="/forgot-password" element={
+            isLoggedIn ? <Navigate to="/profile" replace /> :
+            <ForgotPassword isDarkTheme={isDarkTheme} />
+          } />
+          <Route path="/reset-password" element={
+            isLoggedIn ? <Navigate to="/profile" replace /> :
+            <ResetPassword isDarkTheme={isDarkTheme} />
+          } />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/profile" element={
+            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <Profile 
+                isDarkTheme={isDarkTheme}
+                isLoggedIn={isLoggedIn}
+                toggleDarkTheme={toggleTheme}
+                onLogout={handleLogout}
+              />
+            </ProtectedNonAdminRoute>
+          }/> 
+          <Route path="/edit-profile" element={
+            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <EditProfile 
+                isDarkTheme={isDarkTheme}
+                isLoggedIn={isLoggedIn}
+              />
+            </ProtectedNonAdminRoute>
+          }/>
+          <Route path="/admin/professionals" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminPendingProfessionals 
+                isDarkTheme={isDarkTheme}
+              />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/professionals/:id" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminProfessionalDetails 
+                isDarkTheme={isDarkTheme}
+              />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/pending-professionals" element={
+            <Navigate to="/admin/professionals" replace />
+          }/>
+          <Route path="*" element={<Page404 isDarkTheme={isDarkTheme} />} />
+        </Routes>
+      </ErrorBoundary>
       <Footer isDarkTheme={isDarkTheme} isLoggedIn={isLoggedIn} />
     </>
   )
