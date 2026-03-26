@@ -20,6 +20,7 @@ import Page500 from './components/common/Page500'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import authService from './services/authService'
 import './App.css'
+import ProfessionalDashboard from './components/professional/ProfessionalDashboard'
 
 // Composant pour la page d'accueil
 const Home = ({ isDarkTheme, isLoggedIn }) => {
@@ -240,6 +241,15 @@ function App() {
           }/>
           <Route path="/admin/pending-professionals" element={
             <Navigate to="/admin/professionals" replace />
+          }/>
+          <Route path="/professional/dashboard" element={<ProfessionalDashboard />} />
+          <Route path="/professional-dashboard" element={
+            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <ProfessionalDashboard 
+                isDarkTheme={isDarkTheme}
+                isLoggedIn={isLoggedIn}
+              />
+            </ProtectedNonAdminRoute>
           }/>
           <Route path="*" element={<Page404 isDarkTheme={isDarkTheme} />} />
         </Routes>

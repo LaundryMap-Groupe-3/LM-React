@@ -43,7 +43,11 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
 
       const user = await authService.getCurrentUser();
       if (user) {
-        navigate('/');
+        if (user.type === 'professional') {
+          navigate('/professional-dashboard');
+        } else {
+          navigate('/');
+        }
       }
     },
     onError: () => {
@@ -106,8 +110,11 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
       // Get user info and redirect
       const user = await authService.getCurrentUser();
       if (user) {
-        // Redirect to home page
-        navigate('/');
+        if (user.type === 'professional') {
+          navigate('/professional-dashboard');
+        } else {
+          navigate('/');
+        }
       }
     } catch (error) {
       let errorMessage = t('errors.invalid_email_password');
