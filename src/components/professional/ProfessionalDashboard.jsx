@@ -121,13 +121,14 @@ const ProfessionalDashboard = () => {
                 <span className="text-[12px] text-[#4B5563] mt-1">Laveries en attente</span>
               </div>
             </div>
+
             {/* Laveries totales */}
             <div className="shadow bg-white rounded-[10px] p-4 flex items-center">
               <div className='bg-[#1B4965] rounded-[4px] w-[30px] h-[30px] flex items-center justify-center mr-4'>
                 <img src={TotalIcon} alt="Total Icon" className="mx-auto w-[21px] h-[21px]" />
               </div>
               <div className='flex flex-col items-start'>
-                <span className="text-[14px] font-bold">{stats.total}</span>
+                <span className="text-[14px] font-bold">{stats.all}</span>
                 <span className="text-[12px] text-[#4B5563] mt-1">Laveries totales</span>
               </div>
             </div>
@@ -165,23 +166,23 @@ const ProfessionalDashboard = () => {
                         <span className="font-bold text-[#1B4965] text-lg truncate max-w-[60%]">{laundry.establishmentName}</span>
                         <span
                           className={`flex items-center text-[7px] font-semibold rounded px-2 py-1
-                            ${laundry.status === 'APPROVED' ? 'text-[#008236] w-[66px] h-[20px] border border-[#0E9620]/20 rounded-[6px] bg-[#DCFCE7]'
-                            : laundry.status === 'PENDING' ? 'bg-[#F59E0B]/9 w-[79px] h-[20px] text-[#F59E0B] rounded-[6px] border border-[#F59E0B]/14'
+                            ${laundry.status === 'approved' ? 'text-[#008236] w-[66px] h-[20px] border border-[#0E9620]/20 rounded-[6px] bg-[#DCFCE7]'
+                            : laundry.status === 'pending' ? 'bg-[#F59E0B]/9 w-[79px] h-[20px] text-[#F59E0B] rounded-[6px] border border-[#F59E0B]/14'
                             : 'bg-red-100 text-red-700 border border-[#E11D48] rounded-[6px]'}
                           `}
                         >
-                          {laundry.status === 'APPROVED' && (
+                          {laundry.status === 'approved' && (
                             <img src={ApprovedIcon} alt="Validée" className="w-[11px] h-[11px] mr-1" />
                           )}
-                          {laundry.status === 'PENDING' && (
+                          {laundry.status === 'pending' && (
                             <img src={PendingIconColor} alt="En attente" className="w-[11px] h-[11px] mr-1" />
                           )}
-                          {laundry.status === 'REFUSED' && (
+                          {laundry.status === 'rejected' && (
                             <img src={RefusedIcon} alt="Refusée" className="w-[11px] h-[11px] mr-1" />
                           )}
-                          {laundry.status === 'APPROVED'
+                          {laundry.status === 'approved'
                             ? 'VALIDÉE'
-                            : laundry.status === 'PENDING'
+                            : laundry.status === 'pending'
                             ? 'EN ATTENTE'
                             : 'REFUSÉE'}
                         </span>
@@ -194,32 +195,36 @@ const ProfessionalDashboard = () => {
                             {laundry.postalCode ? `, ${laundry.postalCode}` : ''}
                             {laundry.city ? ` ${laundry.city}` : ''}
                           </span>
-                          {laundry.status === 'APPROVED' && (
+                          {laundry.status === 'approved' && (
                             <span className='text-[9px] font-semibold text-[#FFD700]'><img src={StarIcon} alt="Star Icon" className="w-[17px] h-[17px] inline-block mr-2" />{stats.averageNote}/5 ({stats.total} avis)</span>
                           )}
-                          {laundry.status === 'PENDING' && (
+                          {laundry.status === 'pending' && (
                             <div className="w-full pl-[10px] flex bg-[#F59E0B]/20 border-l-2 border-[#F59E0B] rounded-[6px] h-[24px] my-2">
                               <span className="text-[10px] gap-[5px] flex items-center text-[#F59E42] font-semibold mt-1"><img src={InfoIcon} alt="Info Icon" className="w-[20px] h-[20px] inline-block" />En cours de validation par nos équipes</span>
                             </div>
                           )}
-                          {laundry.status === 'REFUSED' && (
+                          {laundry.status === 'rejected' && (
                             <div className="w-full pl-[10px] bg-red-100 border-l-2 border-[#E11D48] rounded-[6px] h-[24px] my-2">
                               <span className="text-[10px] gap-[5px] flex items-center text-[#E11D48] font-semibold mt-1"><img src={WarningIcon} alt="Avertissement" className="w-[17px] h-[17px] inline-block" />Laverie refusée</span>
                             </div>
                           )}
                         </div>
-                        <div className='flex gap-[27px] flex-nowrap flex-row w-full mt-[25px]'>
+                        <div className='flex gap-[25px] flex-nowrap flex-row w-full mt-[25px]'>
                           <div className="flex flex-col mt-1 min-w-0">
-                            {laundry.status === 'APPROVED' ? (
-                              <>
-                                <span className="text-[9px] text-[#6B7280] font-medium">Créée le : {laundry.createdAt ? new Date(laundry.createdAt).toLocaleDateString('fr-FR') : '--'}</span>
-                                <span className="text-[9px] text-[#6B7280] font-medium">Modifiée le : {laundry.updatedAt ? new Date(laundry.updatedAt).toLocaleDateString('fr-FR') : '--'}</span>
-                              </>
-                            ) : (
-                              <>
-                                <span className="text-[10px] text-[#6B7280] font-medium">Soumise le : {laundry.createdAt ? new Date(laundry.createdAt).toLocaleDateString('fr-FR') : '--'}</span>
-                              </>
-                            )}
+                              {laundry.status === 'approved' ? (
+                                <>
+                                  <span className="text-[9px] text-[#6B7280] font-medium">Créée le : {laundry.createdAt ? new Date(laundry.createdAt).toLocaleDateString('fr-FR') : '--'}</span>
+                                  <span className="text-[9px] text-[#6B7280] font-medium">Modifiée le : {laundry.updatedAt ? new Date(laundry.updatedAt).toLocaleDateString('fr-FR') : '--'}</span>
+                                </>
+                              ) : laundry.status === 'rejected' ? (
+                                <>
+                                  <span className="text-[10px] text-[#6B7280] font-medium">Refusée le : {laundry.createdAt ? new Date(laundry.createdAt).toLocaleDateString('fr-FR') : '--'}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="text-[10px] text-[#6B7280] font-medium">Soumise le : {laundry.createdAt ? new Date(laundry.createdAt).toLocaleDateString('fr-FR') : '--'}</span>
+                                </>
+                              )}
                           </div>
                           <div className="flex flex-row flex-nowrap gap-1 px-1 pb-2 mt-auto min-w-0">
                             <button
