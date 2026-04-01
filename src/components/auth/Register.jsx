@@ -6,6 +6,8 @@ import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import { translateErrorKey, formatValidationErrors } from '../../utils/translateErrorKey';
 import { useGoogleLogin } from '@react-oauth/google';
+import EyeIcon from '../../assets/images/icons/Eye.svg';
+import InvisibleIcon from '../../assets/images/icons/Invisible.svg';
 
 const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
   const navigate = useNavigate();
@@ -14,6 +16,8 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Validation messages
   const validationMessages = {
@@ -247,21 +251,37 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
             <label htmlFor="password" className="block text-left text-sm text-gray-700 mb-1">
               {t('auth.password')}<span className="text-red-500">*</span>
             </label>
-            <input
-              type="password"
-              id="password"
-              {...register('password', {
-                required: validationMessages.passwordRequired,
-                minLength: {
-                  value: 8,
-                  message: validationMessages.passwordTooShort,
-                },
-              })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.password ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                {...register('password', {
+                  required: validationMessages.passwordRequired,
+                  minLength: {
+                    value: 8,
+                    message: validationMessages.passwordTooShort,
+                  },
+                })}
+                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                  errors.password ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                aria-label={showPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
+                aria-pressed={showPassword}
+              >
+                <img
+                  src={showPassword ? InvisibleIcon : EyeIcon}
+                  alt=""
+                  className="w-[17px] h-[17px]"
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
             {errors.password && (
               <span className="text-red-500 text-xs mt-1">{errors.password.message}</span>
             )}
@@ -272,24 +292,40 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
             <label htmlFor="confirmPassword" className="block text-left text-sm text-gray-700 mb-1">
               {t('auth.confirm_password')} <span className="text-red-500">*</span>
             </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              {...register('confirmPassword', {
-                required: validationMessages.passwordConfirmationRequired,
-              })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                id="confirmPassword"
+                {...register('confirmPassword', {
+                  required: validationMessages.passwordConfirmationRequired,
+                })}
+                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                  errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                aria-label={showConfirmPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
+                aria-pressed={showConfirmPassword}
+              >
+                <img
+                  src={showConfirmPassword ? InvisibleIcon : EyeIcon}
+                  alt=""
+                  className="w-[17px] h-[17px]"
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
             {errors.confirmPassword && (
               <span className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</span>
             )}
           </div>
 
           {/* Checkbox CGU */}
-          <div className="flex items-start gap-3">
+          <div className="flex items-center gap-3 text-left">
             <input
               type="checkbox"
               id="acceptCGU"
@@ -299,7 +335,7 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
               className="mt-1 h-4 w-4 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500"
             />
             <div>
-              <label htmlFor="acceptCGU" className="text-sm text-gray-700">
+              <label htmlFor="acceptCGU" className="block text-[13px] text-gray-700 text-left">
                 {t('auth.accept_cgu')}
                 <a href="#" className="text-blue-600 hover:text-blue-500 underline">
                   {t('auth.cgu_link')}
