@@ -24,6 +24,11 @@ const ProfessionalDashboard = () => {
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({ averageNote: '--', total: '--', pending: '--' });
   const [laundries, setLaundries] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 6;
+
+  const totalPages = Math.ceil(laundries.length / pageSize);
+  const paginatedLaundries = laundries.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   // Charger les laveries et statistiques du professionnel
   useEffect(() => {
@@ -61,6 +66,23 @@ const ProfessionalDashboard = () => {
     };
     fetchUser();
   }, []);
+
+  useEffect(() => {
+    if (totalPages === 0) {
+      setCurrentPage(1);
+      return;
+    }
+
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
 
   return (
     <div className="p-[12px] md:p-12 lg:px-32 lg:py-16 overflow-x-hidden max-w-full md:max-w-6xl mx-auto">
@@ -157,7 +179,7 @@ const ProfessionalDashboard = () => {
                 <span className="text-[#3B82F6] text-sm">{t('dashboard.no_laundry_found', 'Aucune laverie trouvée.')}</span>
               ) : (
                 <div className="flex flex-col gap-4 w-full min-w-0 md:gap-6">
-                  {laundries.map((laundry, idx) => (
+                  {paginatedLaundries.map((laundry, idx) => (
                     <div
                       key={laundry.id || idx}
                       className="bg-white border border-[#E5E7EB] rounded-[10px] shadow flex flex-col gap-2 w-full h-auto min-w-0 max-w-full overflow-x-auto md:p-4"
@@ -271,6 +293,50 @@ const ProfessionalDashboard = () => {
                       </div>
                     </div>
                   ))}
+
+                  {totalPages > 1 && (
+                    <div className="mt-4 flex justify-center">
+                      <div className="flex items-center gap-[10px]">
+                        <button
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className={`w-9 h-9 flex rounded-lg items-center justify-center text-lg font-medium ${
+                            currentPage === 1
+                              ? 'border border-[#CBD5E1] text-black cursor-not-allowed bg-gray-50'
+                              : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
+                          }`}
+                        >
+                          &lt;
+                        </button>
+
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                          <button
+                            key={page}
+                            onClick={() => handlePageChange(page)}
+                            className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-medium ${
+                              currentPage === page
+                                ? 'bg-[#3B82F6] text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+
+                        <button
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg font-medium ${
+                            currentPage === totalPages
+                              ? 'border border-[#CBD5E1] text-gray-400 cursor-not-allowed bg-gray-50'
+                              : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
+                          }`}
+                        >
+                          &gt;
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
