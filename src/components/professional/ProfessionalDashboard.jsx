@@ -182,16 +182,18 @@ const ProfessionalDashboard = () => {
                   {paginatedLaundries.map((laundry, idx) => (
                     <div
                       key={laundry.id || idx}
-                      className="bg-white border border-[#E5E7EB] rounded-[10px] shadow flex flex-col gap-2 w-full h-auto min-w-0 max-w-full overflow-x-auto md:p-4"
+                      className="bg-white border border-[#E5E7EB] rounded-[12px] shadow-sm flex flex-col gap-4 w-full min-w-0 p-2 md:p-5"
                     >
-                      {/* Nom et statut en haut */}
-                      <div className="flex flex-row items-center justify-between p-[9px] md:p-0 md:pl-2 min-w-0">
-                        <span className="font-bold text-[#1B4965] text-lg truncate max-w-[60%]">{laundry.establishmentName}</span>
+                      {/* Header: nom + statut */}
+                      <div className="flex items-start justify-between gap-3 min-w-0">
+                        <span className="font-bold text-[#1B4965] text-base md:text-lg leading-tight truncate max-w-[65%]">
+                          {laundry.establishmentName}
+                        </span>
                         <span
-                          className={`flex items-center text-[7px] font-semibold rounded px-2 py-1
-                            ${laundry.status === 'approved' ? 'text-[#008236] w-[66px] h-[20px] border border-[#0E9620]/20 rounded-[6px] bg-[#DCFCE7]'
-                            : laundry.status === 'pending' ? 'bg-[#F59E0B]/9 w-[79px] h-[20px] text-[#F59E0B] rounded-[6px] border border-[#F59E0B]/14'
-                            : 'bg-red-100 text-red-700 rounded-[6px]'}
+                          className={`inline-flex items-center justify-center text-[10px] font-semibold rounded-[8px] px-2 py-1 min-h-[28px] min-w-[96px]
+                            ${laundry.status === 'approved' ? 'text-[#008236] border border-[#0E9620]/20 bg-[#DCFCE7]'
+                            : laundry.status === 'pending' ? 'text-[#F59E0B] border border-[#F59E0B]/20 bg-[#FFF7ED]'
+                            : 'text-red-700 border border-red-200 bg-red-100'}
                           `}
                         >
                           {laundry.status === 'approved' && (
@@ -210,69 +212,76 @@ const ProfessionalDashboard = () => {
                             : t('dashboard.status.rejected', 'REFUSÉE')}
                         </span>
                       </div>
-                      {/* Séparateur mobile */}
-                      <div className="w-full border-t border-[#E5E7EB] my-2 md:hidden"></div>
-                      {/* Le reste en dessous */}
-                      <div className="p-[7px] md:p-0 flex flex-col justify-between min-w-0">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0">
-                          <span className="text-[9px] font-semibold"><img src={AddressIcon} alt="Address Icon" className="w-[17px] h-[17px] inline-block mr-2" />
+
+                      <div className="w-auto -mx-2 md:-mx-5 border-t border-[#E5E7EB]"></div>
+
+                      {/* Corps de carte */}
+                      <div className="flex flex-col gap-3 min-w-0">
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                          <span className="text-xs md:text-sm font-medium text-[#0F172A]">
+                            <img src={AddressIcon} alt="Address Icon" className="w-4 h-4 inline-block mr-2" />
                             {laundry.address}
                             {laundry.postalCode ? `, ${laundry.postalCode}` : ''}
                             {laundry.city ? ` ${laundry.city}` : ''}
                           </span>
                           {laundry.status === 'approved' && (
-                            <span className="text-[9px] font-semibold text-[#FFD700]"><img src={StarIcon} alt="Star Icon" className="w-[17px] h-[17px] inline-block mr-2" />{stats.averageNote}/5 ({stats.total} {t('dashboard.reviews', 'avis')})</span>
+                            <span className="text-xs md:text-sm font-semibold text-[#FFD700]">
+                              <img src={StarIcon} alt="Star Icon" className="w-4 h-4 inline-block mr-2" />
+                              {stats.averageNote}/5 ({stats.total} {t('dashboard.reviews', 'avis')})
+                            </span>
                           )}
                         </div>
-                        {/* Motif (pending/rejected) sous l'adresse pour desktop */}
+
                         {(laundry.status === 'pending' || laundry.status === 'rejected') && (
-                          <div className={`w-full pl-[10px] ${laundry.status === 'pending' ? 'bg-[#F59E0B]/20 border-l-2 border-[#F59E0B]' : 'bg-red-100 border-l-2 border-[#E11D48]'} rounded-[6px] h-[24px] my-2 flex items-center`}>
-                            <span className={`text-[10px] gap-[5px] flex items-center font-semibold mt-1 ${laundry.status === 'pending' ? 'text-[#F59E42]' : 'text-[#E11D48]'}`}>
-                              <img src={laundry.status === 'pending' ? InfoIcon : WarningIcon} alt={laundry.status === 'pending' ? 'Info Icon' : t('dashboard.warning', 'Avertissement')} className="w-[17px] h-[17px] inline-block" />
+                          <div className={`w-full px-3 py-2 ${laundry.status === 'pending' ? 'bg-[#F59E0B]/20 border-l-2 border-[#F59E0B]' : 'bg-red-100 border-l-2 border-[#E11D48]'} rounded-[6px] flex items-center`}>
+                            <span className={`text-xs gap-2 flex items-center font-semibold ${laundry.status === 'pending' ? 'text-[#F59E42]' : 'text-[#E11D48]'}`}>
+                              <img src={laundry.status === 'pending' ? InfoIcon : WarningIcon} alt={laundry.status === 'pending' ? 'Info Icon' : t('dashboard.warning', 'Avertissement')} className="w-4 h-4 inline-block" />
                               {laundry.status === 'pending'
                                 ? t('dashboard.pending_validation', 'En cours de validation par nos équipes')
                                 : t('dashboard.laundry_refused', 'Laverie refusée')}
                             </span>
                           </div>
                         )}
-                        <div className="flex gap-[25px] flex-nowrap flex-row w-full mt-[25px] md:mt-4">
-                          <div className="flex flex-col mt-1 min-w-0 md:w-1/2">
+
+                        <div className="flex flex-col gap-3 pt-1">
+                          <div className="flex flex-col min-w-0 gap-1">
                             {laundry.status === 'approved' ? (
                               <>
-                                <span className="text-[9px] text-[#6B7280] font-medium">{t('dashboard.created_at', 'Créée le :')} {laundry.createdAt ? new Date(laundry.createdAt).toLocaleDateString('fr-FR') : '--'}</span>
-                                <span className="text-[9px] text-[#6B7280] font-medium">{t('dashboard.updated_at', 'Modifiée le :')} {laundry.updatedAt ? new Date(laundry.updatedAt).toLocaleDateString('fr-FR') : '--'}</span>
+                                <span className="text-xs text-[#6B7280] font-medium">{t('dashboard.created_at', 'Créée le :')} {laundry.createdAt ? new Date(laundry.createdAt).toLocaleDateString('fr-FR') : '--'}</span>
+                                <span className="text-xs text-[#6B7280] font-medium">{t('dashboard.updated_at', 'Modifiée le :')} {laundry.updatedAt ? new Date(laundry.updatedAt).toLocaleDateString('fr-FR') : '--'}</span>
                               </>
                             ) : laundry.status === 'rejected' ? (
                               <>
-                                <span className="text-[10px] text-[#6B7280] font-medium">{t('dashboard.rejected_at', 'Refusée le :')} {laundry.createdAt ? new Date(laundry.createdAt).toLocaleDateString('fr-FR') : '--'}</span>
+                                <span className="text-xs text-[#6B7280] font-medium">{t('dashboard.rejected_at', 'Refusée le :')} {laundry.createdAt ? new Date(laundry.createdAt).toLocaleDateString('fr-FR') : '--'}</span>
                               </>
                             ) : (
                               <>
-                                <span className="text-[10px] text-[#6B7280] font-medium">{t('dashboard.submitted_at', 'Soumise le :')} {laundry.createdAt ? new Date(laundry.createdAt).toLocaleDateString('fr-FR') : '--'}</span>
+                                <span className="text-xs text-[#6B7280] font-medium">{t('dashboard.submitted_at', 'Soumise le :')} {laundry.createdAt ? new Date(laundry.createdAt).toLocaleDateString('fr-FR') : '--'}</span>
                               </>
                             )}
                           </div>
-                          <div className="flex flex-row flex-nowrap gap-1 px-1 pb-2 mt-auto min-w-0 md:w-1/2 md:justify-end">
+
+                          <div className="flex flex-row gap-2 w-full">
                             <button
-                              className="flex items-center gap-1 px-1 py-1 w-[70px] h-[20px] bg-[#3B82F6] text-white text-[9px] font-medium rounded-[5px] whitespace-nowrap"
+                              className="flex-1 flex items-center justify-center gap-1 px-2 h-8 bg-[#3B82F6] text-white text-xs font-medium rounded-[6px] whitespace-nowrap"
                               title={t('dashboard.edit', 'Modifier')}
                               type="button"
                               onClick={() => window.location.href = `/modifier-laverie/${laundry.id}`}
                             >
-                              <img src={EditIcon} alt={t('dashboard.edit', 'Modifier')} className="w-[12px] h-[12px]" />
+                              <img src={EditIcon} alt={t('dashboard.edit', 'Modifier')} className="w-3 h-3" />
                               {t('dashboard.edit', 'Modifier')}
                             </button>
                             <button
-                              className="flex items-center gap-1 px-1 py-1 w-[75px] h-[20px] bg-[#4B5563] text-white text-[7px] font-medium rounded-[5px] whitespace-nowrap"
+                              className="flex-1 flex items-center justify-center gap-1 px-2 h-8 bg-[#4B5563] text-white text-xs font-medium rounded-[6px] whitespace-nowrap"
                               title={t('dashboard.view_sheet', 'Voir la fiche')}
                               type="button"
                               onClick={() => window.location.href = `/fiche-laverie/${laundry.id}`}
                             >
-                              <img src={EyeIcon} alt={t('dashboard.view_sheet', 'Voir la fiche')} className="w-[12px] h-[12px]" />
+                              <img src={EyeIcon} alt={t('dashboard.view_sheet', 'Voir la fiche')} className="w-3 h-3" />
                               {t('dashboard.view_sheet', 'Voir la fiche')}
                             </button>
                             <button
-                              className="flex items-center justify-center w-[20px] h-[20px] gap-1 bg-[#EF4444] rounded-[5px]"
+                              className="flex items-center justify-center w-8 h-8 bg-[#EF4444] text-white text-xs font-medium rounded-[6px]"
                               title={t('dashboard.delete', 'Supprimer')}
                               type="button"
                               onClick={async () => {
@@ -286,7 +295,7 @@ const ProfessionalDashboard = () => {
                                 }
                               }}
                             >
-                              <img src={TrashIcon} alt={t('dashboard.delete', 'Supprimer')} className="w-[12px] h-[12px]" />
+                              <img src={TrashIcon} alt={t('dashboard.delete', 'Supprimer')} className="w-3 h-3" />
                             </button>
                           </div>
                         </div>
