@@ -72,6 +72,8 @@
     "forgot_password": "Forgot password?",
     "register_user": "User Registration",
     "register_professional": "Professional Registration",
+    "register_professional_title": "Create a professional account",
+    "register_professional_cta": "Create my account",
     "create_account": "Create Account",
     "sign_up_with": "Sign Up With:",
     "login_with": "Login With:",

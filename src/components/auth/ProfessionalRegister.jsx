@@ -5,6 +5,8 @@ import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import { translateErrorKey, formatValidationErrors } from '../../utils/translateErrorKey';
+import EyeIcon from '../../assets/images/icons/Eye.svg';
+import InvisibleIcon from '../../assets/images/icons/Invisible.svg';
 
 const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
   const navigate = useNavigate();
@@ -13,6 +15,8 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Validation messages
   const validationMessages = {
@@ -56,7 +60,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
       street: '',
       postalCode: '',
       city: '',
-      country: 'France',
+      country: '',
       acceptCGU: false,
     },
   });
@@ -106,10 +110,10 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-8 px-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl p-4 sm:p-6 md:p-8">
         <h1 className="text-center text-[#3B82F6] font-semibold text-2xl mb-4 sm:mb-6 font-sans">
-          {t('auth.register_professional')}
+          {t('auth.register_professional_title', 'Créer un compte professionnel')}
         </h1>
 
         {/* Error Alert */}
@@ -282,7 +286,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
                   message: validationMessages.postalCodeInvalid,
                 },
               })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+              className={`w-full h-[44px] px-3 border text-[#9CA3AF] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.postalCode ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder={t('auth.placeholder_postal_code')}
@@ -303,7 +307,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               {...register('city', {
                 required: validationMessages.cityRequired,
               })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+              className={`w-full h-[44px] px-3 border text-[#9CA3AF] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.city ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder={t('auth.placeholder_city')}
@@ -324,7 +328,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               {...register('country', {
                 required: validationMessages.countryRequired,
               })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+              className={`w-full h-[44px] px-3 text-[#9CA3AF] border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.country ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder={t('auth.placeholder_country')}
@@ -369,21 +373,35 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
             <label htmlFor="password" className="block text-left text-sm text-gray-700 mb-1">
               {t('auth.password')}<span className="text-red-500">*</span>
             </label>
-            <input
-              type="password"
-              id="password"
-              {...register('password', {
-                required: validationMessages.passwordRequired,
-                minLength: {
-                  value: 8,
-                  message: validationMessages.passwordTooShort,
-                },
-              })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.password ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                {...register('password', {
+                  required: validationMessages.passwordRequired,
+                  minLength: {
+                    value: 8,
+                    message: validationMessages.passwordTooShort,
+                  },
+                })}
+                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                  errors.password ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-3 flex items-center"
+                aria-label={showPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
+              >
+                <img
+                  src={showPassword ? InvisibleIcon : EyeIcon}
+                  alt={showPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
+                  className="w-[17px] h-[17px]"
+                />
+              </button>
+            </div>
             {errors.password && (
               <span className="text-red-500 text-xs mt-1">{errors.password.message}</span>
             )}
@@ -394,24 +412,38 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
             <label htmlFor="confirmPassword" className="block text-left text-sm text-gray-700 mb-1">
               {t('auth.confirm_password')} <span className="text-red-500">*</span>
             </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              {...register('confirmPassword', {
-                required: validationMessages.passwordConfirmationRequired,
-              })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                id="confirmPassword"
+                {...register('confirmPassword', {
+                  required: validationMessages.passwordConfirmationRequired,
+                })}
+                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                  errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-3 flex items-center"
+                aria-label={showConfirmPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
+              >
+                <img
+                  src={showConfirmPassword ? InvisibleIcon : EyeIcon}
+                  alt={showConfirmPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
+                  className="w-[17px] h-[17px]"
+                />
+              </button>
+            </div>
             {errors.confirmPassword && (
               <span className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</span>
             )}
           </div>
 
           {/* Checkbox CGU */}
-          <div className="flex items-start gap-3">
+          <div className="flex items-center gap-3 text-left">
             <input
               type="checkbox"
               id="acceptCGU"
@@ -421,7 +453,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               className="mt-1 h-4 w-4 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500"
             />
             <div>
-              <label htmlFor="acceptCGU" className="text-sm text-gray-700">
+              <label htmlFor="acceptCGU" className="block text-[13px] text-gray-700 text-left">
                 {t('auth.accept_cgu')}
                 <a href="#" className="text-blue-600 hover:text-blue-500 underline">
                   {t('auth.cgu_link')}
@@ -444,7 +476,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
                 : 'bg-[#3B82F6] hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
             }`}
           >
-            {loading ? t('auth.register_loading') : t('auth.register_professional')}
+            {loading ? t('auth.register_loading') : t('auth.register_professional_cta', 'Créer mon compte')}
           </button>
         </form>
 
