@@ -33,6 +33,7 @@
   },
   "auth": {
     "login": "Se connecter",
+    "login_title": "Connexion",
     "register": "S'inscrire",
     "email": "Email",
     "password": "Mot de passe",
@@ -41,8 +42,10 @@
     "forgot_password": "Mot de passe oublié?",
     "register_user": "Inscription utilisateur",
     "register_professional": "Inscription professionnelle",
+    "register_professional_label": "Inscription professionnel",
     "register_professional_title": "Créer un compte professionnel",
     "register_professional_cta": "Créer mon compte",
+    "signup_benefits_text": "Pour bénéficier de fonctionnalités supplémentaires.",
     "create_account": "Créer un compte",
     "sign_up_with": "S'inscrire avec :",
     "sign_up_with_google_error": "Une erreur est survenu lors de l'inscription avec google",

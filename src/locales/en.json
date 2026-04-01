@@ -64,6 +64,7 @@
   },
   "auth": {
     "login": "Login",
+    "login_title": "Login",
     "register": "Sign Up",
     "email": "Email",
     "password": "Password",
@@ -72,8 +73,10 @@
     "forgot_password": "Forgot password?",
     "register_user": "User Registration",
     "register_professional": "Professional Registration",
+    "register_professional_label": "Professional registration",
     "register_professional_title": "Create a professional account",
     "register_professional_cta": "Create my account",
+    "signup_benefits_text": "To access additional features.",
     "create_account": "Create Account",
     "sign_up_with": "Sign Up With:",
     "login_with": "Login With:",
