@@ -235,7 +235,7 @@ const ProfessionalDashboard = () => {
                             </span>
                           </div>
                         )}
-                        <div className="flex gap-[50px] flex-nowrap flex-row w-full mt-[25px] md:mt-4">
+                        <div className="flex gap-[25px] flex-nowrap flex-row w-full mt-[25px] md:mt-4">
                           <div className="flex flex-col mt-1 min-w-0 md:w-1/2">
                             {laundry.status === 'approved' ? (
                               <>

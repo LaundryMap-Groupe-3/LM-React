@@ -29,6 +29,10 @@
     "inscription": "Inscription",
     "no_account": "Vous n'avez pas de compte?",
     "have_account": "Vous avez déjà un compte?",
+    "admin_space": "Espace administrateur",
+    "professional_space": "Espace professionnel",
+    "my_space": "Mon espace",
+    "dashboard_menu": "Tableau de bord",
     "pending_professionals": "Professionnels en attente"
   },
   "auth": {

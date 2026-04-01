@@ -60,6 +60,10 @@
     "inscription": "Registration",
     "no_account": "Don't have an account?",
     "have_account": "Already have an account?",
+    "admin_space": "Admin space",
+    "professional_space": "Professional space",
+    "my_space": "My space",
+    "dashboard_menu": "Dashboard",
     "pending_professionals": "Pending Professionals"
   },
   "auth": {
