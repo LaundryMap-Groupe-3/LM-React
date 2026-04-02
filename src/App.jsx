@@ -242,7 +242,7 @@ function App() {
           <Route path="/admin/pending-professionals" element={
             <Navigate to="/admin/professionals" replace />
           }/>
-          <Route path="/professional/dashboard" element={<ProfessionalDashboard />} />
+          <Route path="/professional/dashboard" element={<ProfessionalDashboard isDarkTheme={isDarkTheme} />} />
           <Route path="/professional-dashboard" element={
             <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <ProfessionalDashboard 
