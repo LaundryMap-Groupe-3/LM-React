@@ -212,18 +212,40 @@ function App() {
               <Profile 
                 isDarkTheme={isDarkTheme}
                 isLoggedIn={isLoggedIn}
+                userType={userType}
                 toggleDarkTheme={toggleTheme}
                 onLogout={handleLogout}
               />
             </ProtectedNonAdminRoute>
           }/> 
+          <Route path="/admin/profile" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <Profile 
+                isDarkTheme={isDarkTheme}
+                isLoggedIn={isLoggedIn}
+                userType={userType}
+                toggleDarkTheme={toggleTheme}
+                onLogout={handleLogout}
+              />
+            </ProtectedAdminRoute>
+          }/>
           <Route path="/edit-profile" element={
             <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <EditProfile 
                 isDarkTheme={isDarkTheme}
                 isLoggedIn={isLoggedIn}
+                userType={userType}
               />
             </ProtectedNonAdminRoute>
+          }/>
+          <Route path="/admin/edit-profile" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <EditProfile 
+                isDarkTheme={isDarkTheme}
+                isLoggedIn={isLoggedIn}
+                userType={userType}
+              />
+            </ProtectedAdminRoute>
           }/>
           <Route path="/admin/professionals" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>

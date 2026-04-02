@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
+import authService from '../../services/authService';
 import userService from '../../services/userService';
 import Toast from '../common/Toast.jsx';
 import Save from '../../assets/images/icons/Save.svg';
 import Back from '../../assets/images/icons/Back.svg';
 import Shield from '../../assets/images/icons/Shield.svg';
 
-const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
+const EditProfile = ({ isDarkTheme, isLoggedIn, userType }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   usePageTitle('page_titles.edit_profile', t);
@@ -17,6 +18,7 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
+  const [currentUserType, setCurrentUserType] = useState(userType || null);
 
   const {
     register: registerProfile,
@@ -37,6 +39,11 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
   useEffect(() => {
     const loadProfile = async () => {
       try {
+        const currentUser = await authService.getCurrentUser();
+        if (currentUser?.type) {
+          setCurrentUserType(currentUser.type);
+        }
+
         const profile = await userService.getProfile();
         resetProfile({
           firstName: profile.firstName || '',
@@ -90,7 +97,7 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
   };
 
   const handleCancel = () => {
-    navigate('/profile');
+    navigate(currentUserType === 'admin' ? '/admin/profile' : '/profile');
   };
   return (
     <div className={`min-h-screen flex items-start justify-center p-4 sm:p-6 md:p-8 lg:p-12 ${isDarkTheme ? 'bg-gray-900' : 'bg-white'}`}>

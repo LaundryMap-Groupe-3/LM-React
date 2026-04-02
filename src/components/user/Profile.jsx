@@ -12,7 +12,7 @@ import userService from '../../services/userService';
 import ConfirmDialog from '../common/ConfirmDialog.jsx';
 import Toast from '../common/Toast.jsx';
 
-const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout }) => {
+const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout, userType }) => {
   const navigate = useNavigate();
   const { t, changeLanguage: changeI18nLanguage } = useTranslation();
   const { preferences, languages, isDarkTheme: preferenceDarkTheme, updatePreferences } = usePreferences();
@@ -88,7 +88,7 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout }) => {
   }, [preferences]);
 
   const handleEditProfile = () => {
-    navigate('/edit-profile');
+    navigate(userType === 'admin' ? '/admin/edit-profile' : '/edit-profile');
   };
 
   const handleDeleteAccount = async () => {

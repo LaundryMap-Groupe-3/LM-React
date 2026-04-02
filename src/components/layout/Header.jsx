@@ -28,6 +28,14 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
     return t('navigation.my_space');
   };
 
+  const getMenuIconClassName = (isActive) => {
+    if (isDarkTheme) {
+      return isActive ? 'invert' : 'brightness-0 invert group-hover:brightness-100';
+    }
+
+    return isActive ? 'invert' : 'brightness-0 group-hover:brightness-100';
+  };
+
   return (
     <header className={`${isDarkTheme ? 'bg-[#1E293B] border-b border-[#334155]' : 'bg-white border-b border-[#E5E7EB]'}`}>
       <div className="container mx-auto px-4 py-4 md:py-6">
@@ -87,7 +95,7 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
               
               {/* Navigation dans la sidebar */}
               <nav className="flex flex-col p-4 space-y-2">
-                <div className={`flex items-center justify-between pb-4 border-b ${isDarkTheme ? 'border-[#334155]' : 'border-[#E5E7EB]'}`}>
+                <div className="flex items-center justify-between pb-4">
                   <h3 className="font-semibold text-[14px] text-[#3B82F6]">
                     {isLoggedIn ? getConnectedSpaceLabel() : t('navigation.main_pages')}
                   </h3>
@@ -95,30 +103,36 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
                 </div>
                 <div className="flex flex-col space-y-2 text-left">
                     <Link to="/" onClick={toggleMenu} className={`px-3 text-[12px] ${isActivePage('/') ? 'bg-[#3B82F6] text-white' : (isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white')} rounded-[5px] transition-colors font-medium flex items-center h-[38px] group`}>
-                        <img src={IconAccueil} alt={t('navigation.home')} className={`w-4 h-4 mr-2 filter transition-all ${isActivePage('/') ? 'invert' : 'brightness-0 group-hover:brightness-100'}`} />
+                        <img src={IconAccueil} alt={t('navigation.home')} className={`w-4 h-4 mr-2 filter transition-all ${getMenuIconClassName(isActivePage('/'))}`} />
                         {t('navigation.home')}
                     </Link>
                     {!isLoggedIn && (
                       <Link to="/login" onClick={toggleMenu} className={`px-3 text-[12px] ${isActivePage('/login') ? 'bg-[#3B82F6] text-white' : (isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white')} rounded-[5px] transition-colors font-medium flex items-center h-[38px] group`}>
-                            <img src={IconConnexion} alt={t('auth.login')} className={`w-4 h-4 mr-2 filter transition-all ${isActivePage('/login') ? 'brightness-100' : 'brightness-0 group-hover:brightness-100'}`} />
+                            <img src={IconConnexion} alt={t('auth.login')} className={`w-4 h-4 mr-2 filter transition-all ${isDarkTheme ? (isActivePage('/login') ? 'brightness-100' : 'brightness-100') : (isActivePage('/login') ? 'brightness-100' : 'brightness-0 group-hover:brightness-100')}`} />
                             {t('auth.login')}
                       </Link>
                     )}
                     {isLoggedIn && userType !== 'admin' && (
                         <Link to="/profile" onClick={toggleMenu} className={`px-3 text-[12px] ${isActivePage('/profile') ? 'bg-[#3B82F6] text-white' : (isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white')} rounded-[5px] transition-colors font-medium flex items-center h-[38px] group`}>
-                            <img src={IconUtilisateur} alt={t('navigation.profile')} className={`w-4 h-4 mr-2 filter transition-all ${isActivePage('/profile') ? 'invert' : 'brightness-0 group-hover:brightness-100'}`} />
+                            <img src={IconUtilisateur} alt={t('navigation.profile')} className={`w-4 h-4 mr-2 filter transition-all ${getMenuIconClassName(isActivePage('/profile'))}`} />
                             {t('navigation.profile')}
                         </Link>
                     )}
+                    {isLoggedIn && userType === 'admin' && (
+                      <Link to="/admin/profile" onClick={toggleMenu} className={`px-3 text-[12px] ${isActivePage('/admin/profile') ? 'bg-[#3B82F6] text-white' : (isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white')} rounded-[5px] transition-colors font-medium flex items-center h-[38px] group`}>
+                        <img src={IconUtilisateur} alt={t('navigation.profile')} className={`w-4 h-4 mr-2 filter transition-all ${getMenuIconClassName(isActivePage('/admin/profile'))}`} />
+                        {t('navigation.profile')}
+                      </Link>
+                    )}
                     {isLoggedIn && userType === 'professional' && (
                       <Link to="/professional-dashboard" onClick={toggleMenu} className={`px-3 text-[12px] ${isActivePage('/professional-dashboard') ? 'bg-[#3B82F6] text-white' : (isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white')} rounded-[5px] transition-colors font-medium flex items-center h-[38px] group`}>
-                        <img src={IconSpeedometer} alt={t('navigation.dashboard_menu')} className={`w-4 h-4 mr-2 filter transition-all ${isActivePage('/professional-dashboard') ? 'invert' : 'brightness-0 group-hover:brightness-100'}`} />
+                        <img src={IconSpeedometer} alt={t('navigation.dashboard_menu')} className={`w-4 h-4 mr-2 filter transition-all ${getMenuIconClassName(isActivePage('/professional-dashboard'))}`} />
                         {t('navigation.dashboard_menu')}
                       </Link>
                     )}
                     {isLoggedIn && userType === 'admin' && (
-                        <Link to="/admin/pending-professionals" onClick={toggleMenu} className={`px-3 text-[12px] ${isActivePage('/admin/pending-professionals') ? 'bg-[#3B82F6] text-white' : (isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white')} rounded-[5px] transition-colors font-medium flex items-center h-[38px] group`}>
-                        <img src={IconSpeedometer} alt={t('navigation.dashboard_menu')} className={`w-4 h-4 mr-2 filter transition-all ${isActivePage('/admin/pending-professionals') ? 'invert' : 'brightness-0 group-hover:brightness-100'}`} />
+                      <Link to="/admin/dashboard" onClick={toggleMenu} className={`px-3 text-[12px] ${isActivePage('/admin/dashboard') ? 'bg-[#3B82F6] text-white' : (isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white')} rounded-[5px] transition-colors font-medium flex items-center h-[38px] group`}>
+                      <img src={IconSpeedometer} alt={t('navigation.dashboard_menu')} className={`w-4 h-4 mr-2 filter transition-all ${getMenuIconClassName(isActivePage('/admin/dashboard'))}`} />
                         {t('navigation.dashboard_menu')}
                         </Link>
                     )}
