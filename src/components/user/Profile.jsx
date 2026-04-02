@@ -14,9 +14,11 @@ import Toast from '../common/Toast.jsx';
 
 const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout }) => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
-  const { preferences, languages, toggleTheme, changeLanguage, toggleNotifications, isDarkTheme: preferenceDarkTheme, updatePreferences } = usePreferences();
+  const { t, changeLanguage: changeI18nLanguage } = useTranslation();
+  const { preferences, languages, isDarkTheme: preferenceDarkTheme, updatePreferences } = usePreferences();
   usePageTitle('page_titles.profile', t);
+
+  const effectiveDarkTheme = preferenceDarkTheme ?? isDarkTheme;
 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -123,6 +125,18 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout }) => {
   const handlePreferenceChange = (field, value) => {
     const newForm = { ...preferencesForm, [field]: value };
     setPreferencesForm(newForm);
+
+    // Apply language/theme immediately in the UI, autosave persists it shortly after.
+    if (field === 'language') {
+      changeI18nLanguage(value);
+    }
+
+    if (field === 'theme' && typeof toggleDarkTheme === 'function') {
+      const shouldBeDark = value === 'dark';
+      if (shouldBeDark !== effectiveDarkTheme) {
+        toggleDarkTheme();
+      }
+    }
     
     // Check if changed from original preferences
     const hasChanged = 
@@ -179,15 +193,15 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout }) => {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDarkTheme ? 'bg-gray-900' : 'bg-white'}`}>
-        <p className={isDarkTheme ? 'text-gray-100' : 'text-gray-900'}>{t('common.loading')}</p>
+      <div className={`min-h-screen flex items-center justify-center ${effectiveDarkTheme ? 'bg-gray-900' : 'bg-white'}`}>
+        <p className={effectiveDarkTheme ? 'text-gray-100' : 'text-gray-900'}>{t('common.loading')}</p>
       </div>
     );
   }
 
 
   return (
-    <div className={`min-h-screen flex items-start justify-center p-4 sm:p-6 md:p-8 lg:p-12 ${isDarkTheme ? 'bg-gray-900' : 'bg-white'}`}>
+    <div className={`min-h-screen flex items-start justify-center p-4 sm:p-6 md:p-8 lg:p-12 ${effectiveDarkTheme ? 'bg-gray-900' : 'bg-white'}`}>
       <Toast 
         message={toastMessage} 
         type={toastType} 
@@ -205,11 +219,11 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout }) => {
         }}
         confirmText={t('confirm.delete_account_confirm')}
         cancelText={t('confirm.delete_account_cancel')}
-        isDarkTheme={isDarkTheme}
+        isDarkTheme={effectiveDarkTheme}
         isLoading={isDeleting}
       >
         <div className="mb-4">
-          <label className={`block text-sm font-medium mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
+          <label className={`block text-sm font-medium mb-2 ${effectiveDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
             {t('confirm.delete_account_password')}
           </label>
           <input
@@ -219,7 +233,7 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout }) => {
             disabled={isDeleting}
             placeholder={t('auth.password')}
             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 ${
-              isDarkTheme
+              effectiveDarkTheme
                 ? 'bg-gray-700 border-gray-600 text-gray-100'
                 : 'bg-white border-gray-300'
             }`}
@@ -231,7 +245,7 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout }) => {
         
         {/* Personal Information Section */}
         <div className={`rounded-lg border p-4 sm:p-6 md:p-8 w-full flex flex-col items-start ${
-          isDarkTheme 
+          effectiveDarkTheme 
             ? 'border-gray-600 bg-gray-800' 
             : 'border-[#E5E7EB] bg-white'
         }`}>
@@ -249,30 +263,30 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout }) => {
           <div className="flex flex-col items-start mt-4">
             <div className="mt-4">
               <p className={`text-sm text-left ${
-                isDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'
+                effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'
               }`}>{t('profile.full_name')}</p>
               <p className={`font-medium text-left text-[14px] ${
-                isDarkTheme ? 'text-gray-100' : 'text-[#111827]'
+                effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'
               }`}>
                 {profile ? `${profile.firstName || ''} ${profile.lastName || ''}` : '-'}
               </p>
             </div>
             <div className="mt-4">
               <p className={`text-sm text-left ${
-                isDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'
+                effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'
               }`}>{t('auth.email')}</p>
               <p className={`font-medium text-left text-[14px] ${
-                isDarkTheme ? 'text-gray-100' : 'text-[#111827]'
+                effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'
               }`}>
                 {profile?.email || '-'}
               </p>
             </div>
             <div className="mt-4">
               <p className={`text-sm text-left ${
-                isDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'
+                effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'
               }`}>{t('profile.member_since')}</p>
               <p className={`font-medium text-left text-[14px] ${
-                isDarkTheme ? 'text-gray-100' : 'text-[#111827]'
+                effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'
               }`}>
                 {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString('fr-FR') : '-'}
               </p>
@@ -282,7 +296,7 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout }) => {
         
         {/* Preferences Section */}
         <div className={`rounded-lg border p-4 sm:p-6 md:p-8 w-full flex flex-col items-start justify-center ${
-          isDarkTheme 
+          effectiveDarkTheme 
             ? 'border-gray-600 bg-gray-800' 
             : 'border-[#E5E7EB] bg-white'
         }`}>
@@ -294,10 +308,10 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout }) => {
             <div className="flex items-start justify-between w-full gap-[26px]">
               <div className="flex flex-col flex-1">
                 <h2 className={`text-sm font-medium text-left mb-2 ${
-                  isDarkTheme ? 'text-gray-300' : 'text-[#374151]'
+                  effectiveDarkTheme ? 'text-gray-300' : 'text-[#374151]'
                 }`}>{t('profile.language')}</h2>
                 <p className={`font-regular text-left text-xs ${
-                  isDarkTheme ? 'text-[#ffffff]' : 'text-[#374151]'
+                  effectiveDarkTheme ? 'text-[#ffffff]' : 'text-[#374151]'
                 }`}>{t('profile.choose_language')}</p>
               </div>
               <div className="relative shrink-0">
@@ -306,7 +320,7 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout }) => {
                   onChange={(e) => handlePreferenceChange('language', e.target.value)}
                   disabled={!languages.length}
                   className={`w-[140px] sm:w-[140px] h-9 text-center text-xs sm:text-sm border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    isDarkTheme 
+                    effectiveDarkTheme 
                       ? 'bg-gray-700 border-gray-600 text-gray-100' 
                       : 'bg-white border-gray-300 text-[#111827]'
                   }`}
@@ -324,12 +338,12 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout }) => {
             <div className="flex justify-between items-center w-full gap-[83px]">
               <div className="flex flex-col flex-1 pr-4">
                 <h2 className={`text-sm font-medium text-left mb-2 ${
-                  isDarkTheme ? 'text-gray-300' : 'text-[#374151]'
+                  effectiveDarkTheme ? 'text-gray-300' : 'text-[#374151]'
                 }`}>
                   {t('profile.theme')} {preferencesForm.theme === 'dark' ? t('profile.dark_theme') : t('profile.light_theme')}
                 </h2>
                 <p className={`text-xs text-left ${
-                  isDarkTheme ? 'text-[#ffffff]' : 'text-[#374151]'
+                  effectiveDarkTheme ? 'text-[#ffffff]' : 'text-[#374151]'
                 }`}>
                   {preferencesForm.theme === 'dark' ? t('profile.theme_dark_desc') : t('profile.theme_light_desc')}
                 </p>
@@ -354,10 +368,10 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout }) => {
             <div className="flex justify-between items-center w-full gap-[79px]">
               <div className="flex flex-col flex-1 pr-4">
                 <h2 className={`text-sm font-medium text-left mb-2 ${
-                  isDarkTheme ? 'text-gray-300' : 'text-[#374151]'
+                  effectiveDarkTheme ? 'text-gray-300' : 'text-[#374151]'
                 }`}>{t('profile.notifications')}</h2>
                 <p className={`text-xs text-left ${
-                  isDarkTheme ? 'text-[#ffffff]' : 'text-[#374151]'
+                  effectiveDarkTheme ? 'text-[#ffffff]' : 'text-[#374151]'
                 }`}>{t('profile.notifications_desc')}</p>
               </div>
               <div className="flex items-center shrink-0 ml-auto">
@@ -381,13 +395,13 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout }) => {
               {isSavingPreferences && (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                  <span className={`text-xs ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <span className={`text-xs ${effectiveDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>
                     {t('common.saving')}
                   </span>
                 </div>
               )}
               {!isSavingPreferences && lastSaveTime && (
-                <span className={`text-xs ${isDarkTheme ? 'text-green-400' : 'text-green-600'}`}>
+                <span className={`text-xs ${effectiveDarkTheme ? 'text-green-400' : 'text-green-600'}`}>
                   ✓ {t('common.saved')}
                 </span>
               )}
