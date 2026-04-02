@@ -15,7 +15,6 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
   usePageTitle('page_titles.register', t);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -79,7 +78,6 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
   const onSubmit = async (data) => {
     setLoading(true);
     setApiError(null);
-    setSuccessMessage(null);
 
     try {
       // Validate password confirmation
@@ -99,7 +97,9 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
       // Call registration API
       const response = await authService.register(data);
 
-        setSuccessMessage(t('auth.registration_success'));
+      navigate('/login', {
+        state: { successMessage: t('auth.registration_success') },
+      });
     } catch (error) {
       if (error.body?.error) {
         setApiError(translateErrorKey(error.body.error, t));
@@ -125,13 +125,6 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
         {apiError && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm whitespace-pre-line">
             {apiError}
-          </div>
-        )}
-
-        {/* Success Alert */}
-        {successMessage && (
-          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md text-sm">
-            {successMessage}
           </div>
         )}
 
@@ -348,7 +341,6 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
             </div>
           </div>
 
-          {/* Bouton de soumission */}
           <button
             type="submit"
             disabled={loading}

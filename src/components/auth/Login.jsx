@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
@@ -15,6 +15,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const Login = ({ isDarkTheme, onLoginSuccess }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
   usePageTitle('page_titles.login', t);
   const [loading, setLoading] = useState(false);
@@ -24,6 +25,7 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMessage, setResendMessage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
+  const registrationSuccessMessage = location.state?.successMessage;
 
   // Validation messages
   const validationMessages = {
@@ -191,6 +193,12 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
         }`}>
           {t('auth.login_title', 'Connexion')}
         </h1>
+
+        {registrationSuccessMessage && (
+          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md text-sm whitespace-pre-line">
+            {registrationSuccessMessage}
+          </div>
+        )}
 
         {/* Error Alert */}
         {apiError && !resendMessage && (

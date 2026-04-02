@@ -14,7 +14,6 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
   usePageTitle('page_titles.register_professional', t);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -70,7 +69,6 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
   const onSubmit = async (data) => {
     setLoading(true);
     setApiError(null);
-    setSuccessMessage(null);
 
     try {
       // Validate password confirmation
@@ -90,7 +88,9 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
       // Call professional registration API
       const response = await authService.registerProfessional(data);
 
-      setSuccessMessage(t('auth.professional_registration_success'));
+      navigate('/login', {
+        state: { successMessage: t('auth.professional_registration_success') },
+      });
     } catch (error) {
       console.error('Professional registration error:', error);
       
@@ -120,13 +120,6 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
         {apiError && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm whitespace-pre-line">
             {apiError}
-          </div>
-        )}
-
-        {/* Success Alert */}
-        {successMessage && (
-          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md text-sm">
-            {successMessage}
           </div>
         )}
 
@@ -466,7 +459,6 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
             </div>
           </div>
 
-          {/* Bouton de soumission */}
           <button
             type="submit"
             disabled={loading}
