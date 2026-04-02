@@ -40,8 +40,8 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
             <div className="ml-3 text-[18px] font-semibold text-[#3B82F6]">LaundryMap</div>
           </div>
           
-          {/* Navigation Desktop - cachée sur mobile */}
-          <nav className="hidden md:flex items-center space-x-8">
+          {/* Navigation Desktop désactivée: menu mobile utilisé sur tous les écrans */}
+          <nav className="hidden items-center space-x-8">
             <Link to="/" className={`${isActivePage('/') ? 'text-white bg-[#3B82F6]' : (isDarkTheme ? 'text-[#E2E8F0] hover:text-white hover:bg-[#3B82F6]' : 'text-gray-700 hover:text-white hover:bg-[#3B82F6]')} transition-colors font-medium px-4 h-[38px] flex items-center rounded-[5px]`}>{t('navigation.home')}</Link>
             {!isLoggedIn && (
               <a href="/login" className={`transition-colors font-medium px-4 h-[38px] flex items-center rounded-[5px] ${isDarkTheme ? 'text-[#E2E8F0] hover:text-white hover:bg-[#3B82F6]' : 'text-gray-700 hover:text-white hover:bg-[#3B82F6]'}`}>{t('auth.login')}</a>
@@ -63,15 +63,15 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
             )}
           </nav>
 
-          {/* Language Switcher - Desktop */}
-          <div className="hidden md:block">
+          {/* Language Switcher - Desktop désactivé: présent dans le menu latéral */}
+          <div className="hidden">
             <LanguageSwitcher />
           </div>
           
           {/* Menu Hamburger */}
           <button 
             onClick={toggleMenu}
-            className="md:hidden flex flex-col space-y-1 p-2 hover:bg-gray-100 rounded-md transition-colors"
+            className="flex flex-col space-y-1 p-2 hover:bg-gray-100 rounded-md transition-colors"
             aria-label="Menu"
           >
             <div className={`w-6 h-0.5 ${isDarkTheme ? 'bg-[#E2E8F0]' : 'bg-[#374151]'} rounded-full transition-transform duration-300 ${isMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></div>
@@ -85,12 +85,12 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
           <>
             {/* Overlay semi-transparent */}
             <div 
-              className="fixed inset-0 bg-black opacity-33 z-40 md:hidden"
+              className="fixed inset-0 bg-black opacity-33 z-40"
               onClick={toggleMenu}
             ></div>
             
             {/* Sidebar */}
-            <div className={`fixed top-0 left-0 h-full w-70 rounded-[0_12px_0_12px] ${isDarkTheme ? 'bg-[#1E293B]' : 'bg-white'} shadow-lg z-50 md:hidden transform transition-transform duration-300 ease-in-out ${
+            <div className={`fixed top-0 left-0 h-full w-70 rounded-[0_12px_0_12px] ${isDarkTheme ? 'bg-[#1E293B]' : 'bg-white'} shadow-lg z-50 transform transition-transform duration-300 ease-in-out ${
               isMenuOpen ? 'translate-x-0' : '-translate-x-full'
             }`}>
               <div className={`p-4 border-b ${isDarkTheme ? 'border-[#334155]' : 'border-[#E5E7EB]'}`}>
