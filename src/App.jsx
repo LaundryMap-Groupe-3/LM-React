@@ -150,9 +150,10 @@ function App() {
 
   const handleLogout = () => {
     authService.logout();
+    localStorage.setItem('theme', 'light');
     setIsLoggedIn(false);
     setUserType(null);
-    // Reset to browser preferences on logout
+    // Reset UI preferences after logout
     window.location.reload();
   };
 
