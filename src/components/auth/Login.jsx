@@ -6,7 +6,7 @@ import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import { translateErrorKey, formatValidationErrors } from '../../utils/translateErrorKey';
 import { useGoogleLogin } from '@react-oauth/google';
-import UserBlackIcon from '../../assets/images/icons/User-black.svg';
+import UserBlackIcon from '../../assets/images/icons/add-User-black.svg';
 import AdministratorBlackIcon from '../../assets/images/icons/Administrator-black.svg';
 import EyeIcon from '../../assets/images/icons/Eye.svg';
 import InvisibleIcon from '../../assets/images/icons/Invisible.svg';

@@ -6,7 +6,6 @@ import IconAccueil from '../../assets/images/icons/Home-black.svg';
 import IconConnexion from '../../assets/images/icons/Login-white.svg';
 import IconSpeedometer from '../../assets/images/icons/Speedometer.svg';
 import IconUtilisateur from '../../assets/images/icons/User-black.svg';
-import IconAdmistrateur from '../../assets/images/icons/Administrator-black.svg';
 import LanguageSwitcher from './LanguageSwitcher';
 
 const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogout, userType }) => {

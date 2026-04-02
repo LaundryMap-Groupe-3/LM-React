@@ -193,7 +193,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                           {laundry.establishmentName}
                         </span>
                         <span
-                          className={`inline-flex items-center justify-center text-[10px] md:text-[12px] font-semibold rounded-[8px] px-2 py-1 min-h-[28px] min-w-[96px]
+                          className={`inline-flex items-center justify-center uppercase text-[7px] md:text-[12px] font-semibold rounded-[6px] px-2 py-1 h-[20px]
                             ${laundry.status === 'approved' ? 'text-[#008236] border border-[#0E9620]/20 bg-[#DCFCE7]'
                             : laundry.status === 'pending' ? 'text-[#F59E0B] border border-[#F59E0B]/20 bg-[#FFF7ED]'
                             : 'text-red-700 border border-red-200 bg-red-100'}
