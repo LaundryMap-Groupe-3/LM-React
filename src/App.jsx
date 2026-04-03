@@ -12,6 +12,7 @@ import ResetPassword from './components/auth/ResetPassword'
 import Profile from './components/user/Profile'
 import EditProfile from './components/user/EditProfile'
 import AdminPendingProfessionals from './components/admin/AdminPendingProfessionals'
+import AdminPendingLaundries from './components/admin/AdminPendingLaundries'
 import AdminProfessionalDetails from './components/admin/AdminProfessionalDetails'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
@@ -255,6 +256,13 @@ function App() {
               />
             </ProtectedAdminRoute>
           }/>
+          <Route path="/admin/laundries" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminPendingLaundries 
+                isDarkTheme={isDarkTheme}
+              />
+            </ProtectedAdminRoute>
+          }/>
           <Route path="/admin/professionals/:id" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <AdminProfessionalDetails 
@@ -264,6 +272,9 @@ function App() {
           }/>
           <Route path="/admin/pending-professionals" element={
             <Navigate to="/admin/professionals" replace />
+          }/>
+          <Route path="/admin/pending-laundries" element={
+            <Navigate to="/admin/laundries" replace />
           }/>
           <Route path="/professional/dashboard" element={<ProfessionalDashboard isDarkTheme={isDarkTheme} />} />
           <Route path="/professional-dashboard" element={

@@ -27,6 +27,54 @@ const adminService = {
     return await response.json();
   },
 
+  async getPendingLaundriesCount() {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/laundries/pending/count`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch pending laundries count');
+    }
+
+    return await response.json();
+  },
+
+  async getPendingLaundries(page = 1, limit = 10) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/laundries/pending?page=${page}&limit=${limit}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch pending laundries');
+    }
+
+    return await response.json();
+  },
+
   async getProfessionalDetails(professionalId) {
     const response = await fetch(
       `${API_BASE_URL}/api/admin/professionals/${professionalId}`,

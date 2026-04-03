@@ -1,26 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import adminService from '../../services/adminService';
-import ClockIcon from '../../assets/images/icons/Clock-blue.svg';
-import ExternalLinkIcon from '../../assets/images/icons/External-Link-white.svg';
 import Toast from '../common/Toast';
+import ClockIcon from '../../assets/images/icons/Clock-blue.svg';
 import { Clock } from 'lucide-react';
 
-const AdminPendingProfessionals = ({ isDarkTheme }) => {
+const AdminPendingLaundries = ({ isDarkTheme }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  usePageTitle('page_titles.admin_pending_professionals', t);
-  
-  const [professionals, setProfessionals] = useState([]);
+  usePageTitle('page_titles.admin_pending_laundries', t);
+
+  const [laundries, setLaundries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(6);
   const [totalPages, setTotalPages] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
-  const [pendingLaundriesCount, setPendingLaundriesCount] = useState(0);
+  const [pendingProfessionalsCount, setPendingProfessionalsCount] = useState(0);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
   const [user, setUser] = useState(null);
@@ -34,30 +33,32 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
         setLoading(false);
         return;
       }
+
       setUser(currentUser);
-      fetchPendingLaundriesCount();
-      fetchProfessionals(1);
+      fetchPendingProfessionalsCount();
+      fetchLaundries(1);
     };
+
     checkAdmin();
   }, [t]);
 
-  const fetchPendingLaundriesCount = async () => {
+  const fetchPendingProfessionalsCount = async () => {
     try {
-      const response = await adminService.getPendingLaundriesCount();
-      setPendingLaundriesCount(response.count ?? 0);
+      const response = await adminService.getPendingProfessionals(1, 1);
+      setPendingProfessionalsCount(response.pagination?.total ?? 0);
     } catch (error) {
       setToastMessage(error.message || t('errors.fetch_error'));
       setToastType('error');
     }
   };
 
-  const fetchProfessionals = async (page) => {
+  const fetchLaundries = async (page) => {
     try {
       setLoading(true);
-      const response = await adminService.getPendingProfessionals(page, pageSize);
-      setProfessionals(response.data || []);
-      setTotalCount(response.pagination.total);
-      setTotalPages(response.pagination.pages);
+      const response = await adminService.getPendingLaundries(page, pageSize);
+      setLaundries(response.data || []);
+      setTotalCount(response.pagination?.total ?? 0);
+      setTotalPages(response.pagination?.pages ?? 0);
       setCurrentPage(page);
     } catch (error) {
       setToastMessage(error.message || t('errors.fetch_error'));
@@ -69,7 +70,7 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
-      fetchProfessionals(page);
+      fetchLaundries(page);
     }
   };
 
@@ -102,8 +103,7 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
   return (
     <div className="min-h-screen max-w-7xl mx-auto md:pl-auto pl-4 md:pr-auto pr-4 bg-white">
       <Toast message={toastMessage} type={toastType} />
-      
-      {/* Header */}
+
       <div className="flex items-center justify-between py-6">
         <div>
           <h1 className="text-[20px] text-[#3B82F6] font-bold text-left">
@@ -115,7 +115,6 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="flex flex-row items-center gap-2 shadow-md bg-white rounded-lg px-4 py-2 mb-8">
         <NavLink
           to="/admin/professionals"
@@ -125,7 +124,7 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
         >
           {t('admin.professional_accounts')}
           <span className="bg-white/20 text-white text-xs px-2 py-1 h-6 min-w-6 rounded-full flex items-center justify-center">
-            {totalCount}
+            {pendingProfessionalsCount}
           </span>
         </NavLink>
         <NavLink
@@ -136,46 +135,43 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
         >
           {t('admin.laundries')}
           <span className="bg-[#F59E0B] text-white text-xs px-2 py-1 h-6 min-w-6 rounded-full flex items-center justify-center">
-            {pendingLaundriesCount}
+            {totalCount}
           </span>
         </NavLink>
       </div>
 
-      {/* Content */}
       <div className="max-w-7xl mx-auto px-0 py-4">
         <h1 className="text-left text-[13px] font-bold text-gray-900 mb-6 flex items-center gap-2">
           <img src={ClockIcon} alt="Pending" className="w-[20px] h-[20px] text-gray-400" />
-          {t('admin.pending_accounts_title')}
+          {t('admin.pending_laundries_title', 'Laveries en attente')}
         </h1>
 
-        {loading && professionals.length === 0 ? (
+        {loading && laundries.length === 0 ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3B82F6]"></div>
           </div>
-        ) : professionals.length === 0 ? (
+        ) : laundries.length === 0 ? (
           <div className="rounded-lg shadow-md p-12 text-center bg-white">
             <h3 className="text-2xl font-semibold mb-4 text-gray-900">
-              {t('admin.no_pending_professionals')}
+              {t('admin.no_pending_laundries', 'Aucune laverie en attente')}
             </h3>
             <p className="text-lg text-gray-600">
-              {t('admin.all_accounts_processed')}
+              {t('admin.all_laundries_processed', 'Toutes les laveries ont été traitées.')}
             </p>
           </div>
         ) : (
           <>
-            {/* Grid of Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {professionals.map((professional) => (
+              {laundries.map((laundry) => (
                 <div
-                  key={professional.id}
+                  key={laundry.id}
                   className="rounded-lg shadow-md border-l-4 border-[#F59E0B] text-left overflow-hidden bg-white hover:shadow-lg transition-shadow duration-300"
                 >
-                  {/* Card Content */}
                   <div className="p-4">
                     <div className="flex flex-col gap-4 mb-4">
                       <div className="flex items-start justify-between">
                         <h3 className="text-[16px] font-bold text-[#111827] flex-1">
-                          {professional.user.firstName} {professional.user.lastName}
+                          {laundry.establishmentName}
                         </h3>
                         <span className="px-2 py-1 border border-[#F59E0B]/14 bg-[#FEF3C7] text-[#92400E] text-[9px] font-semibold rounded-md flex items-center justify-center whitespace-nowrap uppercase">
                           {t('admin.pending')}
@@ -184,33 +180,32 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
 
                       <div className="space-y-2">
                         <p className="text-[13px] font-regular text-[#6B7280]">
-                          <span className="font-semibold">{professional.user.email}</span>
+                          <span className="font-semibold">
+                            {laundry.professional?.companyName || `${laundry.professional?.firstName || ''} ${laundry.professional?.lastName || ''}`.trim()}
+                          </span>
                         </p>
 
                         <p className="text-[13px] text-[#6B7280]">
-                          <span>SIRET: <span className="font-semibold text-[#111827]">{professional.siret}</span></span>
+                          <span>
+                            {laundry.address?.street}, {laundry.address?.postalCode} {laundry.address?.city}
+                          </span>
                         </p>
-
-                        {professional.address && (
-                          <p className="text-[13px] text-[#6B7280]">
-                            <span>
-                              {professional.address.street}, {professional.address.postalCode} {professional.address.city}
-                            </span>
-                          </p>
-                        )}
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between gap-4 pt-4">
                       <div className="text-left">
                         <p className="text-[11px] font-regular text-[#9CA3AF]">
-                          {t('admin.request_date')} {formatDate(professional.user.createdAt)}
+                          {t('admin.request_date')} {formatDate(laundry.createdAt)}
                         </p>
                       </div>
 
-                      <button className="bg-[#3B82F6] text-white px-3 py-1.5 rounded text-[11px] font-medium hover:bg-[#2563EB] transition-colors whitespace-nowrap" onClick={() => navigate(`/admin/professionals/${professional.id}`)}>
-                        <img src={ExternalLinkIcon} alt="View" className="w-4 h-4 inline-block mr-1" />
-                        {t('admin.manage_request')}
+                      <button
+                        className="bg-[#3B82F6] text-white px-3 py-1.5 rounded text-[11px] font-medium hover:bg-[#2563EB] transition-colors whitespace-nowrap"
+                        onClick={() => navigate('/admin/professionals')}
+                      >
+                        <Clock size={14} className="inline-block mr-1" />
+                        {t('admin.manage_request', 'Voir les comptes')}
                       </button>
                     </div>
                   </div>
@@ -218,7 +213,6 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
               ))}
             </div>
 
-            {/* Pagination */}
             {totalPages > 1 && (
               <div className="mt-8 flex justify-center">
                 <div className="flex items-center space-x-1">
@@ -269,4 +263,4 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
   );
 };
 
-export default AdminPendingProfessionals;
+export default AdminPendingLaundries;
