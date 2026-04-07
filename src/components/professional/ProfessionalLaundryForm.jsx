@@ -77,13 +77,13 @@ const defaultValues = {
 };
 
 const openingHoursDays = [
-  { key: 'monday', label: 'Lundi' },
-  { key: 'tuesday', label: 'Mardi' },
-  { key: 'wednesday', label: 'Mercredi' },
-  { key: 'thursday', label: 'Jeudi' },
-  { key: 'friday', label: 'Vendredi' },
-  { key: 'saturday', label: 'Samedi' },
-  { key: 'sunday', label: 'Dimanche' },
+  { key: 'monday', labelKey: 'professional.laundry_form.monday', fallbackLabel: 'Lundi' },
+  { key: 'tuesday', labelKey: 'professional.laundry_form.tuesday', fallbackLabel: 'Mardi' },
+  { key: 'wednesday', labelKey: 'professional.laundry_form.wednesday', fallbackLabel: 'Mercredi' },
+  { key: 'thursday', labelKey: 'professional.laundry_form.thursday', fallbackLabel: 'Jeudi' },
+  { key: 'friday', labelKey: 'professional.laundry_form.friday', fallbackLabel: 'Vendredi' },
+  { key: 'saturday', labelKey: 'professional.laundry_form.saturday', fallbackLabel: 'Samedi' },
+  { key: 'sunday', labelKey: 'professional.laundry_form.sunday', fallbackLabel: 'Dimanche' },
 ];
 
 const initialClosedDays = openingHoursDays.reduce((accumulator, day) => {
@@ -333,7 +333,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                     return (
                       <Fragment key={day.key}>
                         <tr key={`${day.key}-header`} className={`border-b ${isDarkTheme ? 'border-gray-700' : 'border-[#D1D5DB]'}`}>
-                          <td className="px-4 py-4 pr-[135px] align-top font-regular">{day.label}</td>
+                          <td className="px-4 py-4 pr-[135px] align-top font-regular">{t(day.labelKey, day.fallbackLabel)}</td>
                           <td className="px-4 py-4 align-top text-right">
                             <button
                               type="button"
