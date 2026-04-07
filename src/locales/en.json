@@ -193,7 +193,7 @@
   },
   "professional": {
     "laundry_form": {
-      "form_local_only": "This page is in local mode and does not trigger any backend call.",
+      "form_local_only": "After submission, your laundry will be pending validation.",
       "create_laundry_title": "Add a laundry",
       "create_laundry_subtitle": "Fill in your business details",
       "laundry_identity": "Identity",
@@ -235,7 +235,7 @@
       "dryers_capacity_8kg": "8 kg dryers",
       "dryers_capacity_10kg": "10 kg dryers",
       "dryers_capacity_12kg_plus": "12 kg+ dryers",
-      "services_title": "Services",
+      "services_title": "Services available",
       "service_folding_area": "Available bench",
       "service_detergent_dispenser": "Detergent dispenser",
       "service_card_payment": "Television",
@@ -250,7 +250,8 @@
       "machine_count_placeholder": "Eg: 12",
       "address": "Address",
       "address_visibility": "Address visibility",
-      "address_visibility_helper": "My laundry has WI-LINE machines"
+      "address_visibility_helper": "My laundry has WI-LINE machines",
+      "wi_line_connectivity": "WI-LINE Connectivity (Optional)"
     }
   },
   "profile": {

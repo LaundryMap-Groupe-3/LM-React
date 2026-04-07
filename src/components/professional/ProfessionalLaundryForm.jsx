@@ -101,6 +101,8 @@ const pricingByCapacity = [
     key: '6kg',
     labelKey: 'professional.laundry_form.capacity_6kg',
     fallbackLabel: '6 kg',
+    dryingLabelKey: 'professional.laundry_form.dryers_capacity_6kg',
+    dryingFallbackLabel: 'Dryers 6 kg',
     washingField: 'washingPrice6kg',
     dryingField: 'dryingPrice6kg',
   },
@@ -108,6 +110,8 @@ const pricingByCapacity = [
     key: '8kg',
     labelKey: 'professional.laundry_form.capacity_8kg',
     fallbackLabel: '8 kg',
+    dryingLabelKey: 'professional.laundry_form.dryers_capacity_8kg',
+    dryingFallbackLabel: 'Dryers 8 kg',
     washingField: 'washingPrice8kg',
     dryingField: 'dryingPrice8kg',
   },
@@ -115,6 +119,8 @@ const pricingByCapacity = [
     key: '10kg',
     labelKey: 'professional.laundry_form.capacity_10kg',
     fallbackLabel: '10 kg',
+    dryingLabelKey: 'professional.laundry_form.dryers_capacity_10kg',
+    dryingFallbackLabel: 'Dryers 10 kg',
     washingField: 'washingPrice10kg',
     dryingField: 'dryingPrice10kg',
   },
@@ -122,6 +128,8 @@ const pricingByCapacity = [
     key: '12kgPlus',
     labelKey: 'professional.laundry_form.capacity_12kg_plus',
     fallbackLabel: '12 kg+',
+    dryingLabelKey: 'professional.laundry_form.dryers_capacity_12kg_plus',
+    dryingFallbackLabel: 'Dryers 12 kg+',
     washingField: 'washingPrice12kgPlus',
     dryingField: 'dryingPrice12kgPlus',
   },
@@ -333,15 +341,17 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                     return (
                       <Fragment key={day.key}>
                         <tr key={`${day.key}-header`} className={`border-b ${isDarkTheme ? 'border-gray-700' : 'border-[#D1D5DB]'}`}>
-                          <td className="px-4 py-4 pr-[135px] align-top font-regular">{t(day.labelKey, day.fallbackLabel)}</td>
-                          <td className="px-4 py-4 align-top text-right">
-                            <button
-                              type="button"
-                              onClick={() => setClosedDays((current) => ({ ...current, [day.key]: !current[day.key] }))}
-                              className={`text-[12px] w-[58px] h-[18px] rounded-[5px] flex items-center justify-center ${isClosed ? 'bg-[#F97316] text-white hover:bg-[#EA580C]' : 'border border-[#9CA3AF]'}`}
-                            >
-                              {t('common.closed', 'Fermé')}
-                            </button>
+                          <td colSpan={2} className="px-4 py-4 align-top">
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="font-regular">{t(day.labelKey, day.fallbackLabel)}</span>
+                              <button
+                                type="button"
+                                onClick={() => setClosedDays((current) => ({ ...current, [day.key]: !current[day.key] }))}
+                                className={`text-[12px] w-[58px] h-[18px] rounded-[5px] flex items-center justify-center ${isClosed ? 'bg-[#F97316] text-white hover:bg-[#EA580C]' : 'border border-[#9CA3AF]'}`}
+                              >
+                                {t('common.closed', 'Fermé')}
+                              </button>
+                            </div>
                           </td>
                         </tr>
                         <tr key={`${day.key}-form`} className={`border-b last:border-b-0 ${isDarkTheme ? 'border-gray-700' : 'border-slate-200'}`}>
@@ -764,7 +774,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                         htmlFor={capacity.dryingField}
                         className={`mb-2 block text-left text-[12px] font-regular ${isDarkTheme ? 'text-[#374151]' : 'text-[#374151]'}`}
                       >
-                        {t(capacity.labelKey, capacity.fallbackLabel)}
+                        {t(capacity.dryingLabelKey, capacity.dryingFallbackLabel)}
                       </label>
                       <input
                         id={capacity.dryingField}
@@ -859,7 +869,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
             </div>
             {currentStep === totalSteps && (
               <p className={`text-right text-[10px] ${isDarkTheme ? 'text-gray-300' : 'text-slate-600'}`}>
-                {t('professional.laundry_form.form_local_only', 'Après soumission, votre laverie sera en attente de validation')}
+                {t('professional.laundry_form.form_local_only', 'Après soumission, votre laverie sera en attente de validation.')}
               </p>
             )}
           </div>
