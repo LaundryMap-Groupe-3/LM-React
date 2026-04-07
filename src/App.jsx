@@ -22,6 +22,8 @@ import ErrorBoundary from './components/common/ErrorBoundary'
 import authService from './services/authService'
 import './App.css'
 import ProfessionalDashboard from './components/professional/ProfessionalDashboard'
+import ProfessionalLaundryForm from './components/professional/ProfessionalLaundryForm'
+import ProfessionalLaundryDetails from './components/professional/ProfessionalLaundryDetails'
 
 // Composant pour la page d'accueil
 const Home = ({ isDarkTheme, isLoggedIn }) => {
@@ -276,13 +278,32 @@ function App() {
           <Route path="/admin/pending-laundries" element={
             <Navigate to="/admin/laundries" replace />
           }/>
-          <Route path="/professional/dashboard" element={<ProfessionalDashboard isDarkTheme={isDarkTheme} />} />
+          <Route path="/professional/dashboard" element={
+            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <ProfessionalDashboard isDarkTheme={isDarkTheme} />
+            </ProtectedNonAdminRoute>
+          } />
           <Route path="/professional-dashboard" element={
             <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <ProfessionalDashboard 
                 isDarkTheme={isDarkTheme}
                 isLoggedIn={isLoggedIn}
               />
+            </ProtectedNonAdminRoute>
+          }/>
+          <Route path="/creer-laverie" element={
+            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <ProfessionalLaundryForm isDarkTheme={isDarkTheme} />
+            </ProtectedNonAdminRoute>
+          }/>
+          <Route path="/modifier-laverie/:id" element={
+            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <ProfessionalLaundryForm isDarkTheme={isDarkTheme} />
+            </ProtectedNonAdminRoute>
+          }/>
+          <Route path="/fiche-laverie/:id" element={
+            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <ProfessionalLaundryDetails isDarkTheme={isDarkTheme} />
             </ProtectedNonAdminRoute>
           }/>
           <Route path="*" element={<Page404 isDarkTheme={isDarkTheme} />} />

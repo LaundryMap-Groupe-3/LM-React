@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import usePageTitle from '../../hooks/usePageTitle';
 import { useTranslation } from '../../context/I18nContext';
 import { usePreferences } from '../../context/PreferencesContext';
@@ -22,6 +23,7 @@ import TrashIcon from '../../assets/images/icons/Trash-white.svg';
 const ProfessionalDashboard = ({ isDarkTheme }) => {
   const { t } = useTranslation();
   const { isDarkTheme: preferenceDarkTheme } = usePreferences();
+  const navigate = useNavigate();
   usePageTitle('page_titles.professional_dashboard', t);
   const effectiveDarkTheme = preferenceDarkTheme ?? isDarkTheme;
   const [user, setUser] = useState(null);
@@ -37,9 +39,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
   useEffect(() => {
     const fetchProfessionalData = async () => {
       try {
-        // On suppose que le service professionalService existe
-        const professionalService = await import('../../services/professionalService');
-        const response = await professionalService.default.getLaundriesStats();
+        const response = await professionalService.getLaundriesStats();
         console.log('Réponse API /api/professional/laundries', response);
         setLaundries(response.laundries || []);
         setStats(response.stats || { averageNote: '--', total: '--', pending: '--' });
@@ -56,11 +56,9 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        // On suppose que le service authService existe comme dans Profile.jsx
         const authService = await import('../../services/authService');
         const userService = await import('../../services/userService');
         const currentUser = await authService.default.getCurrentUser();
-        // On récupère le profil complet pour avoir la dernière connexion si besoin
         const userProfile = await userService.default.getProfile();
         setUser({ ...currentUser, ...userProfile });
       } catch (error) {
@@ -123,7 +121,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                 <img src={Star} alt="Note Icon" className="mx-auto w-[21px] h-[21px]" />
               </div>
               <div className="flex flex-col items-start">
-                <span className="text-[10px] md:text-[14px] font-semibold">{stats.averageNote}/5 ({stats.total} {t('dashboard.reviews', 'avis')})</span>
+                <span className="text-[10px] md:text-[14px] font-semibold">{stats.averageNote ?? '--'}/5 ({stats.reviewCount ?? 0} {t('dashboard.reviews', 'avis')})</span>
                 <span className={`text-[9px] md:text-[12px] ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#4B5563]'}`}>{t('dashboard.average_note', 'Note moyenne')}</span>
               </div>
             </div>
@@ -167,7 +165,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
               type="button"
               className="flex items-center gap-2 rounded-full bg-[#10B981] w-[30px] h-[30px] justify-center hover:bg-[#059669] transition-colors"
               title={t('dashboard.create_laundry', 'Créer une laverie')}
-              onClick={() => window.location.href = '/creer-laverie'}
+              onClick={() => navigate('/creer-laverie')}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" fill="none">
                 <line x1="10.5" y1="5" x2="10.5" y2="16" stroke="#fbfbfb" strokeWidth="2" strokeLinecap="round"/>
@@ -230,7 +228,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                           {laundry.status === 'approved' && (
                             <span className="text-xs md:text-base font-semibold text-[#FFD700]">
                               <img src={StarIcon} alt="Star Icon" className="w-4 h-4 inline-block mr-2" />
-                              {stats.averageNote}/5 ({stats.total} {t('dashboard.reviews', 'avis')})
+                              {stats.averageNote ?? '--'}/5 ({stats.reviewCount ?? 0} {t('dashboard.reviews', 'avis')})
                             </span>
                           )}
                         </div>
@@ -269,7 +267,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                               className="flex-1 flex items-center justify-center gap-1 px-2 h-8 md:h-10 bg-[#3B82F6] text-white text-xs md:text-sm font-medium rounded-[6px] whitespace-nowrap"
                               title={t('dashboard.edit', 'Modifier')}
                               type="button"
-                              onClick={() => window.location.href = `/modifier-laverie/${laundry.id}`}
+                              onClick={() => navigate(`/modifier-laverie/${laundry.id}`)}
                             >
                               <img src={EditIcon} alt={t('dashboard.edit', 'Modifier')} className="w-3 h-3 md:w-4 md:h-4" />
                               {t('dashboard.edit', 'Modifier')}
@@ -278,7 +276,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                               className="flex-1 flex items-center justify-center gap-1 px-2 h-8 md:h-10 bg-[#4B5563] text-white text-xs md:text-sm font-medium rounded-[6px] whitespace-nowrap"
                               title={t('dashboard.view_sheet', 'Voir la fiche')}
                               type="button"
-                              onClick={() => window.location.href = `/fiche-laverie/${laundry.id}`}
+                              onClick={() => navigate(`/fiche-laverie/${laundry.id}`)}
                             >
                               <img src={EyeIcon} alt={t('dashboard.view_sheet', 'Voir la fiche')} className="w-3 h-3 md:w-4 md:h-4" />
                               {t('dashboard.view_sheet', 'Voir la fiche')}
