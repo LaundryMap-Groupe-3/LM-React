@@ -11,19 +11,18 @@ import UploadIcon from '../../assets/images/icons/Upload.svg';
 import InfoGrayIcon from '../../assets/images/icons/Info-gray.svg';
 import OpenSignIcon from '../../assets/images/icons/Open-Sign.svg';
 import ServicesIcon from '../../assets/images/icons/Services.svg';
-import LocationIcon from '../../assets/images/icons/Location.svg';
 import BenchIcon from '../../assets/images/icons/Bench.svg';
 import SoapBubbleIcon from '../../assets/images/icons/Soap Bubble.svg';
 import TVIcon from '../../assets/images/icons/TV.svg';
-import StackOfCoinsIcon from '../../assets/images/icons/Stack of Coins.svg';
+import StackOfCoinsIcon from '../../assets/images/icons/stackOfCoins.svg';
 import ParkingIcon from '../../assets/images/icons/Parking.svg';
 import WifiIcon from '../../assets/images/icons/Wi-Fi Logo.svg';
 import WifiBlueIcon from '../../assets/images/icons/Wi-Fi-blue.svg';
 import EuroIcon from '../../assets/images/icons/Euro.svg';
 import SaveIcon from '../../assets/images/icons/Save.svg';
-import PaymentCardIcon from '../../assets/images/icons/Magnetic Card.svg';
+import PaymentCardIcon from '../../assets/images/icons/magneticCard.svg';
 import PayIcon from '../../assets/images/icons/Pay.svg';
-import MobilePaymentIcon from '../../assets/images/icons/iPhone SE.svg';
+import MobilePaymentIcon from '../../assets/images/icons/iPhoneSE.svg';
 
 const defaultValues = {
   establishmentName: '',
