@@ -193,6 +193,8 @@
       "form_local_only": "Après soumission, votre laverie sera en attente de validation.",
       "create_laundry_title": "Ajouter une laverie",
       "create_laundry_subtitle": "Renseignez les informations de votre établissement",
+      "edit_laundry_title": "Modifier une laverie",
+      "edit_laundry_subtitle": "Mettez à jour les informations de votre établissement",
       "laundry_identity": "Informations Générales",
       "laundry_name": "Nom de la laverie",
       "laundry_name_placeholder": "Ex. Laundry Center République",
@@ -313,6 +315,7 @@
     "admin_professional_details": "Administration - Validation du professionnel",
     "professional_dashboard": "Tableau de bord professionnel - LaundryMap",
     "create_laundry": "Ajouter une laverie - LaundryMap",
+    "edit_laundry": "Modifier une laverie - LaundryMap",
     "404": "404 - Page non trouvée",
     "500": "500 - Erreur serveur"
   },

@@ -196,6 +196,8 @@
       "form_local_only": "After submission, your laundry will be pending validation.",
       "create_laundry_title": "Add a laundry",
       "create_laundry_subtitle": "Fill in your business details",
+      "edit_laundry_title": "Edit a laundry",
+      "edit_laundry_subtitle": "Update your business details",
       "laundry_identity": "Identity",
       "laundry_name": "Laundry name",
       "laundry_name_placeholder": "e.g. Laundry Center Republique",
@@ -315,6 +317,7 @@
     "admin_pending_professionals": "Pending Professionals - Administration",
     "admin_professional_details": "Administration - Professional Validation",
     "create_laundry": "Add a laundry - LaundryMap",
+    "edit_laundry": "Edit a laundry - LaundryMap",
     "404": "404 - Page Not Found",
     "500": "500 - Server Error"
   },

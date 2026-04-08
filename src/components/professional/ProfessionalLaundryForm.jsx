@@ -1,8 +1,9 @@
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
+import professionalService from '../../services/professionalService';
 import LeftArrowIcon from '../../assets/images/icons/Left-Arrow.svg';
 import ArrowIcon from '../../assets/images/icons/Arrow-white.svg';
 import PhoneIcon from '../../assets/images/icons/Phone.svg';
@@ -136,9 +137,11 @@ const pricingByCapacity = [
 ];
 
 const ProfessionalLaundryForm = ({ isDarkTheme }) => {
+  const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  usePageTitle('page_titles.create_laundry', t);
+  const isEditMode = Boolean(id);
+  usePageTitle(isEditMode ? 'page_titles.edit_laundry' : 'page_titles.create_laundry', t);
 
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
@@ -146,12 +149,14 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
   const [closedDays, setClosedDays] = useState(initialClosedDays);
   const [additionalSlotsByDay, setAdditionalSlotsByDay] = useState(initialAdditionalSlots);
   const [customServicesCount, setCustomServicesCount] = useState(0);
+  const [loadingLaundry, setLoadingLaundry] = useState(false);
 
   const {
     register,
     handleSubmit,
     trigger,
     watch,
+    reset,
     formState: { errors },
   } = useForm({
     mode: 'onBlur',
@@ -159,6 +164,86 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
   });
   const selectedLogo = watch('logo');
   const showPreciseAddress = watch('showPreciseAddress');
+
+  const mapLaundryToFormValues = (laundry) => ({
+    ...defaultValues,
+    establishmentName: laundry?.establishmentName ?? '',
+    contactPhone: laundry?.contactPhone ?? '',
+    description: laundry?.description ?? '',
+    street: laundry?.address?.street ?? '',
+    postalCode: laundry?.address?.postalCode?.toString?.() ?? '',
+    city: laundry?.address?.city ?? '',
+    country: laundry?.address?.country ?? '',
+    showPreciseAddress: Boolean(laundry?.showPreciseAddress),
+    washingMachines6kg: laundry?.washingMachines6kg ?? '',
+    washingMachines8kg: laundry?.washingMachines8kg ?? '',
+    washingMachines10kg: laundry?.washingMachines10kg ?? '',
+    washingMachines12kgPlus: laundry?.washingMachines12kgPlus ?? '',
+    dryers6kg: laundry?.dryers6kg ?? '',
+    dryers8kg: laundry?.dryers8kg ?? '',
+    dryers10kg: laundry?.dryers10kg ?? '',
+    dryers12kgPlus: laundry?.dryers12kgPlus ?? '',
+    services: {
+      ...defaultValues.services,
+      ...(laundry?.services ?? {}),
+    },
+    paymentMethods: {
+      ...defaultValues.paymentMethods,
+      ...(laundry?.paymentMethods ?? {}),
+    },
+    customServices: Array.isArray(laundry?.customServices) ? laundry.customServices : [],
+    openingHours: {
+      ...defaultValues.openingHours,
+      ...(laundry?.openingHours ?? {}),
+    },
+    washingPrice6kg: laundry?.washingPrice6kg ?? '',
+    washingPrice8kg: laundry?.washingPrice8kg ?? '',
+    washingPrice10kg: laundry?.washingPrice10kg ?? '',
+    washingPrice12kgPlus: laundry?.washingPrice12kgPlus ?? '',
+    dryingPrice6kg: laundry?.dryingPrice6kg ?? '',
+    dryingPrice8kg: laundry?.dryingPrice8kg ?? '',
+    dryingPrice10kg: laundry?.dryingPrice10kg ?? '',
+    dryingPrice12kgPlus: laundry?.dryingPrice12kgPlus ?? '',
+  });
+
+  useEffect(() => {
+    if (!isEditMode) {
+      reset(defaultValues);
+      return;
+    }
+
+    const loadLaundry = async () => {
+      setLoadingLaundry(true);
+
+      try {
+        const laundry = await professionalService.getLaundry(id);
+        reset(mapLaundryToFormValues(laundry));
+
+        const existingCustomServices = Array.isArray(laundry?.customServices) ? laundry.customServices.length : 0;
+        setCustomServicesCount(existingCustomServices);
+
+        const additionalSlots = openingHoursDays.reduce((accumulator, day) => {
+          const slots = laundry?.openingHoursExtra?.[day.key];
+          accumulator[day.key] = Array.isArray(slots) ? slots.length : 0;
+          return accumulator;
+        }, {});
+        setAdditionalSlotsByDay(additionalSlots);
+
+        const closed = openingHoursDays.reduce((accumulator, day) => {
+          const openingHours = laundry?.openingHours?.[day.key];
+          accumulator[day.key] = !openingHours?.open && !openingHours?.close;
+          return accumulator;
+        }, {});
+        setClosedDays(closed);
+      } catch (error) {
+        navigate('/professional-dashboard', { replace: true });
+      } finally {
+        setLoadingLaundry(false);
+      }
+    };
+
+    loadLaundry();
+  }, [id, isEditMode, navigate, reset]);
 
   const onSubmit = async () => {
     if (currentStep !== totalSteps) {
@@ -225,14 +310,24 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
 
             <div className='flex flex-col items-start'>
                 <h1 className={`text-[18px] font-semibold ${isDarkTheme ? 'text-[#3B82F6]' : 'text-[#3B82F6]'}`}>
-                    {t('professional.laundry_form.create_laundry_title', 'Ajouter une laverie')}
+                    {isEditMode
+                      ? t('professional.laundry_form.edit_laundry_title', 'Modifier une laverie')
+                      : t('professional.laundry_form.create_laundry_title', 'Ajouter une laverie')}
                 </h1>
                 <p className={`mt-2 text-[10px] ${isDarkTheme ? 'text-gray-300' : 'text-slate-600'}`}>
-                    {t('professional.laundry_form.create_laundry_subtitle', 'Renseignez les informations de votre établissement')}
+                    {isEditMode
+                      ? t('professional.laundry_form.edit_laundry_subtitle', 'Mettez à jour les informations de votre établissement')
+                      : t('professional.laundry_form.create_laundry_subtitle', 'Renseignez les informations de votre établissement')}
                 </p>
             </div>
         </div>
       <div className="mx-auto w-full flex flex-col">
+
+        {loadingLaundry && isEditMode && (
+          <div className="mb-4 rounded-xl border border-[#3B82F6]/20 bg-[#3B82F6]/10 px-4 py-3 text-sm text-[#3B82F6]">
+            {t('common.loading_text', 'Chargement...')}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6">
           {currentStep === 1 && (
