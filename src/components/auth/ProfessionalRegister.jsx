@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import Select from 'react-select';
+import countryList from 'react-select-country-list';
 import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import { translateErrorKey, formatValidationErrors } from '../../utils/translateErrorKey';
+import { getStrongPasswordRules } from '../../utils/passwordValidation';
 import EyeIcon from '../../assets/images/icons/Eye.svg';
 import InvisibleIcon from '../../assets/images/icons/Invisible.svg';
 
-const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
+const ProfessionalRegister = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   usePageTitle('page_titles.register_professional', t);
@@ -16,6 +19,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
   const [apiError, setApiError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const countryOptions = useMemo(() => countryList().getData(), []);
 
   // Validation messages
   const validationMessages = {
@@ -24,8 +28,6 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
     nameMaxLength: t('validation.name_max_length'),
     emailRequired: t('validation.email_required'),
     emailInvalid: t('validation.email_invalid'),
-    passwordRequired: t('validation.password_required'),
-    passwordTooShort: t('validation.password_too_short'),
     passwordConfirmationRequired: t('validation.password_confirmation_required'),
     acceptTerms: t('auth.accept_terms'),
     siretRequired: t('validation.siret_required'),
@@ -46,6 +48,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm({
     mode: 'onBlur',
@@ -65,8 +68,6 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
       acceptCGU: false,
     },
   });
-
-  const password = watch('password');
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -88,10 +89,10 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
       }
 
       // Call professional registration API
-      const response = await authService.registerProfessional(data);
+      await authService.registerProfessional(data);
 
       navigate('/login', {
-        state: { successMessage: t('auth.professional_registration_success') },
+        state: { successMessage: t('auth.registration_request_received') },
       });
     } catch (error) {
       console.error('Professional registration error:', error);
@@ -332,16 +333,37 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
             <label htmlFor="country" className="block text-left text-sm text-gray-700 mb-1">
               {t('auth.country')}<span className="text-red-500">*</span>
             </label>
+            <Select
+              inputId="country"
+              options={countryOptions}
+              value={countryOptions.find((option) => option.label === watch('country')) || null}
+              onChange={(option) => {
+                setValue('country', option?.label || '', { shouldValidate: true, shouldDirty: true });
+              }}
+              placeholder={t('auth.placeholder_country')}
+              className="text-sm"
+              classNamePrefix="country-select"
+              styles={{
+                control: (base, state) => ({
+                  ...base,
+                  minHeight: 44,
+                  borderColor: errors.country ? '#ef4444' : state.isFocused ? '#3b82f6' : '#d1d5db',
+                  boxShadow: state.isFocused ? '0 0 0 2px rgba(59, 130, 246, 0.25)' : 'none',
+                  '&:hover': {
+                    borderColor: state.isFocused ? '#3b82f6' : '#9ca3af',
+                  },
+                }),
+                menu: (base) => ({
+                  ...base,
+                  zIndex: 30,
+                }),
+              }}
+            />
             <input
-              type="text"
-              id="country"
+              type="hidden"
               {...register('country', {
                 required: validationMessages.countryRequired,
               })}
-              className={`w-full h-[44px] px-3 text-[#9CA3AF] border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.country ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder={t('auth.placeholder_country')}
             />
             {errors.country && (
               <span className="text-red-500 text-xs mt-1">{errors.country.message}</span>
@@ -387,13 +409,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               <input
                 type={showPassword ? 'text' : 'password'}
                 id="password"
-                {...register('password', {
-                  required: validationMessages.passwordRequired,
-                  minLength: {
-                    value: 8,
-                    message: validationMessages.passwordTooShort,
-                  },
-                })}
+                {...register('password', getStrongPasswordRules(t))}
                 className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                   errors.password ? 'border-red-500' : 'border-gray-300'
                 }`}

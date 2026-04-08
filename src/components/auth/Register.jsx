@@ -5,11 +5,12 @@ import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import { translateErrorKey, formatValidationErrors } from '../../utils/translateErrorKey';
+import { getStrongPasswordRules } from '../../utils/passwordValidation';
 import { useGoogleLogin } from '@react-oauth/google';
 import EyeIcon from '../../assets/images/icons/Eye.svg';
 import InvisibleIcon from '../../assets/images/icons/Invisible.svg';
 
-const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
+const Register = ({ onLoginSuccess }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   usePageTitle('page_titles.register', t);
@@ -25,8 +26,6 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
     nameMaxLength: t('validation.name_max_length'),
     emailRequired: t('validation.email_required'),
     emailInvalid: t('validation.email_invalid'),
-    passwordRequired: t('validation.password_required'),
-    passwordTooShort: t('validation.password_too_short'),
     passwordConfirmationRequired: t('validation.password_confirmation_required'),
     acceptTerms: t('auth.accept_terms'),
   };
@@ -35,7 +34,6 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm({
     mode: 'onBlur',
@@ -48,8 +46,6 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
       acceptCGU: false,
     },
   });
-
-  const password = watch('password');
 
   const siginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -96,10 +92,10 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
       }
 
       // Call registration API
-      const response = await authService.register(data);
+      await authService.register(data);
 
       navigate('/login', {
-        state: { successMessage: t('auth.registration_success') },
+        state: { successMessage: t('auth.registration_request_received') },
       });
     } catch (error) {
       if (error.body?.error) {
@@ -259,13 +255,7 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
               <input
                 type={showPassword ? 'text' : 'password'}
                 id="password"
-                {...register('password', {
-                  required: validationMessages.passwordRequired,
-                  minLength: {
-                    value: 8,
-                    message: validationMessages.passwordTooShort,
-                  },
-                })}
+                {...register('password', getStrongPasswordRules(t))}
                 className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                   errors.password ? 'border-red-500' : 'border-gray-300'
                 }`}
