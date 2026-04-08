@@ -21,6 +21,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
   const validationMessages = {
     lastNameRequired: t('validation.last_name_required'),
     firstNameRequired: t('validation.first_name_required'),
+    nameMaxLength: t('validation.name_max_length'),
     emailRequired: t('validation.email_required'),
     emailInvalid: t('validation.email_invalid'),
     passwordRequired: t('validation.password_required'),
@@ -37,6 +38,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
     phoneRequired: t('validation.phone_required'),
     phoneInvalid: t('validation.phone_invalid'),
     companyNameRequired: t('validation.company_name_required'),
+    companyNameMaxLength: t('validation.company_name_max_length'),
   };
 
   // Configuration React Hook Form
@@ -139,7 +141,12 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               id="name"
               {...register('name', {
                 required: validationMessages.lastNameRequired,
+                maxLength: {
+                  value: 50,
+                  message: validationMessages.nameMaxLength,
+                },
               })}
+              maxLength={50}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.name ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -160,7 +167,12 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               id="firstName"
               {...register('firstName', {
                 required: validationMessages.firstNameRequired,
+                maxLength: {
+                  value: 50,
+                  message: validationMessages.nameMaxLength,
+                },
               })}
+              maxLength={50}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.firstName ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -211,7 +223,12 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               id="companyName"
               {...register('companyName', {
                 required: validationMessages.companyNameRequired,
+                maxLength: {
+                  value: 50,
+                  message: validationMessages.companyNameMaxLength,
+                },
               })}
+              maxLength={50}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.companyName ? 'border-red-500' : 'border-gray-300'
               }`}

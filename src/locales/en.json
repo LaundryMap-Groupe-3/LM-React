@@ -387,6 +387,8 @@
     "phone_required": "Phone number is required",
     "phone_invalid": "Phone number is invalid",
     "company_name_required": "Company name is required",
+    "name_max_length": "Name cannot exceed 50 characters",
+    "company_name_max_length": "Company name cannot exceed 50 characters",
     "washing_machines_required": "Number of washing machines is required.",
     "language_not_found": "Language not found",
     "invalid_theme": "Invalid theme"
