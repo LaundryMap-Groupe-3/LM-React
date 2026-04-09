@@ -26,6 +26,34 @@ const laundryService = {
 
     return await response.json();
   },
+  async getNearbyLaundries({ latitude, longitude, radius = 20, limit = 50, query = '', city = '' } = {}) {
+    const queryString = toQueryString({
+      lat: latitude,
+      lng: longitude,
+      radius,
+      limit,
+      query,
+      city: city && city !== 'all' ? city : '',
+    })
+
+    const response = await fetch(`${API_BASE_URL}/api/laundries/nearby?${queryString}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw {
+        status: response.status,
+        body: data,
+      }
+    }
+
+    return data
+  },
 };
 
 export default laundryService;
