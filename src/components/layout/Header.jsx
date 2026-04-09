@@ -64,12 +64,12 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
           <>
             {/* Overlay semi-transparent */}
             <div 
-              className="fixed inset-0 bg-black opacity-33 z-40"
+              className="fixed inset-0 bg-black opacity-33 z-[1900]"
               onClick={toggleMenu}
             ></div>
             
             {/* Sidebar */}
-            <div className={`fixed top-0 left-0 h-full w-70 rounded-[0_12px_0_12px] ${isDarkTheme ? 'bg-[#1E293B]' : 'bg-white'} shadow-lg z-50 transform transition-transform duration-300 ease-in-out ${
+            <div className={`fixed top-0 left-0 h-full w-70 rounded-[0_12px_0_12px] ${isDarkTheme ? 'bg-[#1E293B]' : 'bg-white'} shadow-lg z-[2000] transform transition-transform duration-300 ease-in-out ${
               isMenuOpen ? 'translate-x-0' : '-translate-x-full'
             }`}>
               <div className={`p-4 border-b ${isDarkTheme ? 'border-[#334155]' : 'border-[#E5E7EB]'} flex items-center justify-between`}>
