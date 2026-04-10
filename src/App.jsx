@@ -291,17 +291,17 @@ function App() {
               />
             </ProtectedNonAdminRoute>
           }/>
-          <Route path="/creer-laverie" element={
+          <Route path="/create-laundry" element={
             <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <ProfessionalLaundryForm isDarkTheme={isDarkTheme} />
             </ProtectedNonAdminRoute>
           }/>
-          <Route path="/modifier-laverie/:id" element={
+          <Route path="/edit-laundry/:id" element={
             <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <ProfessionalLaundryForm isDarkTheme={isDarkTheme} />
             </ProtectedNonAdminRoute>
           }/>
-          <Route path="/fiche-laverie/:id" element={
+          <Route path="/laundry-details/:id" element={
             <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <ProfessionalLaundryDetails isDarkTheme={isDarkTheme} />
             </ProtectedNonAdminRoute>
