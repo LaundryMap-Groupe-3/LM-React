@@ -273,10 +273,6 @@ const ProfessionalLaundryDetails = ({ isDarkTheme }) => {
                 <dt className="font-medium text-slate-500">{t('auth.country')}</dt>
                 <dd className="mt-1 text-base">{laundry.address?.country || '--'}</dd>
               </div>
-              <div>
-                <dt className="font-medium text-slate-500">{t('dashboard.show_precise_address')}</dt>
-                <dd className="mt-1 text-base">{laundry.showPreciseAddress ? t('common.yes') : t('common.no')}</dd>
-              </div>
               {laundry.wiLineReference && (
                 <div>
                   <dt className="font-medium text-slate-500">{t('dashboard.wiline_reference')}</dt>
