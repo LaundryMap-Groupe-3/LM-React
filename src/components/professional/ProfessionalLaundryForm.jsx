@@ -12,18 +12,10 @@ import UploadIcon from '../../assets/images/icons/Upload.svg';
 import InfoGrayIcon from '../../assets/images/icons/Info-gray.svg';
 import OpenSignIcon from '../../assets/images/icons/Open-Sign.svg';
 import ServicesIcon from '../../assets/images/icons/Services.svg';
-import BenchIcon from '../../assets/images/icons/Bench.svg';
-import SoapBubbleIcon from '../../assets/images/icons/Soap Bubble.svg';
-import TVIcon from '../../assets/images/icons/TV.svg';
-import StackOfCoinsIcon from '../../assets/images/icons/stackOfCoins.svg';
-import ParkingIcon from '../../assets/images/icons/Parking.svg';
-import WifiIcon from '../../assets/images/icons/Wi-Fi Logo.svg';
 import WifiBlueIcon from '../../assets/images/icons/Wi-Fi-blue.svg';
 import EuroIcon from '../../assets/images/icons/Euro.svg';
 import SaveIcon from '../../assets/images/icons/Save.svg';
-import PaymentCardIcon from '../../assets/images/icons/magneticCard.svg';
-import PayIcon from '../../assets/images/icons/Pay.svg';
-import MobilePaymentIcon from '../../assets/images/icons/iPhoneSE.svg';
+import StackOfCoinsIcon from '../../assets/images/icons/stackOfCoins.svg';
 
 const defaultValues = {
   establishmentName: '',
@@ -38,21 +30,8 @@ const defaultValues = {
   dryers8kg: '',
   dryers10kg: '',
   dryers12kgPlus: '',
-  services: {
-    foldingArea: false,
-    detergentDispenser: false,
-    cardPayment: false,
-    cashPayment: false,
-    parking: false,
-    wifi: false,
-  },
-  paymentMethods: {
-    card: false,
-    cash: false,
-    contactless: false,
-    mobile: false,
-  },
-  customServices: [],
+  serviceIds: [],
+  paymentMethodIds: [],
   openingHours: {
     monday: { open: '', close: '' },
     tuesday: { open: '', close: '' },
@@ -146,10 +125,13 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [closedDays, setClosedDays] = useState(initialClosedDays);
   const [additionalSlotsByDay, setAdditionalSlotsByDay] = useState(initialAdditionalSlots);
-  const [customServicesCount, setCustomServicesCount] = useState(0);
   const [loadingLaundry, setLoadingLaundry] = useState(false);
+  const [loadingOptions, setLoadingOptions] = useState(true);
+  const [serviceOptions, setServiceOptions] = useState([]);
+  const [paymentMethodOptions, setPaymentMethodOptions] = useState([]);
 
   const {
     register,
@@ -157,6 +139,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     trigger,
     watch,
     reset,
+    setError,
     formState: { errors },
   } = useForm({
     mode: 'onBlur',
@@ -164,6 +147,24 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
   });
   const selectedLogo = watch('logo');
   const showPreciseAddress = watch('showPreciseAddress');
+
+  const toNumberOrZero = (value) => {
+    if (value === null || value === undefined || value === '') {
+      return 0;
+    }
+
+    const normalized = typeof value === 'string' ? value.replace(',', '.') : value;
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const normalizeSelectedIds = (value) => {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return [...new Set(value.map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0))];
+  };
 
   const mapLaundryToFormValues = (laundry) => ({
     ...defaultValues,
@@ -183,15 +184,8 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     dryers8kg: laundry?.dryers8kg ?? '',
     dryers10kg: laundry?.dryers10kg ?? '',
     dryers12kgPlus: laundry?.dryers12kgPlus ?? '',
-    services: {
-      ...defaultValues.services,
-      ...(laundry?.services ?? {}),
-    },
-    paymentMethods: {
-      ...defaultValues.paymentMethods,
-      ...(laundry?.paymentMethods ?? {}),
-    },
-    customServices: Array.isArray(laundry?.customServices) ? laundry.customServices : [],
+    serviceIds: Array.isArray(laundry?.serviceIds) ? laundry.serviceIds.map((serviceId) => String(serviceId)) : [],
+    paymentMethodIds: Array.isArray(laundry?.paymentMethodIds) ? laundry.paymentMethodIds.map((paymentId) => String(paymentId)) : [],
     openingHours: {
       ...defaultValues.openingHours,
       ...(laundry?.openingHours ?? {}),
@@ -207,6 +201,24 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
   });
 
   useEffect(() => {
+    const loadOptions = async () => {
+      setLoadingOptions(true);
+      try {
+        const options = await professionalService.getLaundryOptions();
+        setServiceOptions(Array.isArray(options?.services) ? options.services : []);
+        setPaymentMethodOptions(Array.isArray(options?.paymentMethods) ? options.paymentMethods : []);
+      } catch (error) {
+        setServiceOptions([]);
+        setPaymentMethodOptions([]);
+      } finally {
+        setLoadingOptions(false);
+      }
+    };
+
+    loadOptions();
+  }, []);
+
+  useEffect(() => {
     if (!isEditMode) {
       reset(defaultValues);
       return;
@@ -218,9 +230,6 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
       try {
         const laundry = await professionalService.getLaundry(id);
         reset(mapLaundryToFormValues(laundry));
-
-        const existingCustomServices = Array.isArray(laundry?.customServices) ? laundry.customServices.length : 0;
-        setCustomServicesCount(existingCustomServices);
 
         const additionalSlots = openingHoursDays.reduce((accumulator, day) => {
           const slots = laundry?.openingHoursExtra?.[day.key];
@@ -245,25 +254,89 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     loadLaundry();
   }, [id, isEditMode, navigate, reset]);
 
-  const onSubmit = async () => {
-    if (currentStep !== totalSteps) {
+  const onSubmit = async (values, event) => {
+    const submitter = event?.nativeEvent?.submitter;
+    const isFinalSave = submitter?.getAttribute('data-submit-intent') === 'final-save';
+
+    if (currentStep !== totalSteps || !isFinalSave) {
       return;
     }
 
     setSubmitting(true);
-    setSubmitting(false);
+    setSubmitError('');
+
+    const payload = {
+      establishmentName: values.establishmentName?.trim() || '',
+      contactPhone: values.contactPhone?.trim() || '',
+      description: values.description?.trim() || '',
+      showPreciseAddress: Boolean(values.showPreciseAddress),
+      address: {
+        street: values.street?.trim() || '',
+        postalCode: values.postalCode?.trim() || '',
+        city: values.city?.trim() || '',
+        country: values.country?.trim() || '',
+      },
+      serviceIds: normalizeSelectedIds(values.serviceIds),
+      paymentMethodIds: normalizeSelectedIds(values.paymentMethodIds),
+      openingHours: values.openingHours || defaultValues.openingHours,
+      openingHoursExtra: values.openingHoursExtra || {},
+      washingMachines6kg: toNumberOrZero(values.washingMachines6kg),
+      washingMachines8kg: toNumberOrZero(values.washingMachines8kg),
+      washingMachines10kg: toNumberOrZero(values.washingMachines10kg),
+      washingMachines12kgPlus: toNumberOrZero(values.washingMachines12kgPlus),
+      dryers6kg: toNumberOrZero(values.dryers6kg),
+      dryers8kg: toNumberOrZero(values.dryers8kg),
+      dryers10kg: toNumberOrZero(values.dryers10kg),
+      dryers12kgPlus: toNumberOrZero(values.dryers12kgPlus),
+      washingPrice6kg: toNumberOrZero(values.washingPrice6kg),
+      washingPrice8kg: toNumberOrZero(values.washingPrice8kg),
+      washingPrice10kg: toNumberOrZero(values.washingPrice10kg),
+      washingPrice12kgPlus: toNumberOrZero(values.washingPrice12kgPlus),
+      dryingPrice6kg: toNumberOrZero(values.dryingPrice6kg),
+      dryingPrice8kg: toNumberOrZero(values.dryingPrice8kg),
+      dryingPrice10kg: toNumberOrZero(values.dryingPrice10kg),
+      dryingPrice12kgPlus: toNumberOrZero(values.dryingPrice12kgPlus),
+    };
+
+    try {
+      if (isEditMode) {
+        await professionalService.updateLaundry(id, payload);
+      } else {
+        await professionalService.createLaundry(payload);
+      }
+
+      navigate('/professional-dashboard');
+    } catch (error) {
+      const apiErrors = error?.body?.errors;
+
+      if (apiErrors && typeof apiErrors === 'object') {
+        Object.entries(apiErrors).forEach(([field, message]) => {
+          setError(field, {
+            type: 'server',
+            message: t(message, message),
+          });
+        });
+      }
+
+      setSubmitError(t('errors.unexpected_error', 'Une erreur est survenue.'));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
     navigate('/professional-dashboard');
   };
 
-  const goToNextStep = async () => {
+  const goToNextStep = async (event) => {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
     const fieldsByStep = {
-      1: ['establishmentName', 'contactPhone', 'description'],
+      1: ['establishmentName', 'contactPhone', 'description', 'street', 'postalCode', 'city', 'country'],
       2: [],
       3: [],
-      4: ['country'],
+      4: [],
     };
 
     const isValid = fieldsByStep[currentStep].length > 0 ? await trigger(fieldsByStep[currentStep]) : true;
@@ -290,10 +363,6 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
       ...current,
       [dayKey]: Math.max(current[dayKey] - 1, 0),
     }));
-  };
-
-  const addCustomService = () => {
-    setCustomServicesCount((current) => current + 1);
   };
 
   return (
@@ -397,6 +466,77 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                   <img src={InfoGrayIcon} alt="" className="h-[13px] w-[13px]" />
                   <span>{t('professional.laundry_form.description_helper', 'Une bonne description améliore votre visibilité')}</span>
                 </p>
+              </div>
+
+              <div>
+                <label htmlFor="street" className={`mb-2 block text-[12px] font-regular ${isDarkTheme ? 'text-[#374151]' : 'text-[#374151]'}`}>
+                  {t('auth.street', 'Rue')}<span className="text-[#F97316]">*</span>
+                </label>
+                <input
+                  id="street"
+                  type="text"
+                  {...register('street', {
+                    required: t('validation.street_required', 'La rue est requise.'),
+                  })}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-900'} ${errors.street ? 'border-red-500' : ''}`}
+                  placeholder={t('auth.placeholder_street', 'Ex: 12 rue de Paris')}
+                />
+                {errors.street && <p className="mt-1 text-xs text-red-500">{errors.street.message}</p>}
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label htmlFor="postalCode" className={`mb-2 block text-[12px] font-regular ${isDarkTheme ? 'text-[#374151]' : 'text-[#374151]'}`}>
+                    {t('auth.postal_code', 'Code postal')}<span className="text-[#F97316]">*</span>
+                  </label>
+                  <input
+                    id="postalCode"
+                    type="text"
+                    inputMode="numeric"
+                    {...register('postalCode', {
+                      required: t('validation.postal_code_required', 'Le code postal est requis.'),
+                      pattern: {
+                        value: /^\d{5}$/,
+                        message: t('validation.postal_code_invalid', 'Le code postal doit contenir 5 chiffres.'),
+                      },
+                    })}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-900'} ${errors.postalCode ? 'border-red-500' : ''}`}
+                    placeholder="75000"
+                  />
+                  {errors.postalCode && <p className="mt-1 text-xs text-red-500">{errors.postalCode.message}</p>}
+                </div>
+
+                <div>
+                  <label htmlFor="city" className={`mb-2 block text-[12px] font-regular ${isDarkTheme ? 'text-[#374151]' : 'text-[#374151]'}`}>
+                    {t('auth.city', 'Ville')}<span className="text-[#F97316]">*</span>
+                  </label>
+                  <input
+                    id="city"
+                    type="text"
+                    {...register('city', {
+                      required: t('validation.city_required', 'La ville est requise.'),
+                    })}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-900'} ${errors.city ? 'border-red-500' : ''}`}
+                    placeholder={t('auth.placeholder_city', 'Paris')}
+                  />
+                  {errors.city && <p className="mt-1 text-xs text-red-500">{errors.city.message}</p>}
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="country" className={`mb-2 block text-[12px] font-regular ${isDarkTheme ? 'text-[#374151]' : 'text-[#374151]'}`}>
+                  {t('auth.country', 'Pays')}<span className="text-[#F97316]">*</span>
+                </label>
+                <input
+                  id="country"
+                  type="text"
+                  {...register('country', {
+                    required: t('validation.country_required', 'Le pays est requis.'),
+                  })}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-900'} ${errors.country ? 'border-red-500' : ''}`}
+                  placeholder={t('auth.placeholder_country', 'France')}
+                />
+                {errors.country && <p className="mt-1 text-xs text-red-500">{errors.country.message}</p>}
               </div>
 
               <div>
@@ -727,64 +867,31 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                 <h3 className={`mt-4 text-[14px] font-regular text-left ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
                   {t('professional.laundry_form.services_title', 'Services disponibles')}
                 </h3>
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    onClick={addCustomService}
-                    className={`flex h-[28px] w-[28px] items-center justify-center rounded-md border text-[18px] leading-none transition-colors ${isDarkTheme ? 'border-[#D1D5DB] bg-gray-700 text-[#D1D5DB] hover:bg-gray-600' : 'border-[#D1D5DB] bg-white text-[#D1D5DB] hover:bg-slate-50'}`}
-                    aria-label={t('professional.laundry_form.add_service', 'Ajouter un service')}
-                  >
-                    +
-                  </button>
-                </div>
               </div>
               <div className={`r p-4 ${isDarkTheme ? 'border-gray-600 bg-gray-800' : 'border-slate-300 bg-white'}`}>
                 <div className="mt-3 grid grid-cols-2 gap-3">
-                  <label className={`flex items-center gap-2 text-[8px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('services.foldingArea')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={BenchIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.service_folding_area', 'Banc disponible')}</span>
-                  </label>
-                  <label className={`flex items-center gap-2 text-[8px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('services.detergentDispenser')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={SoapBubbleIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.service_detergent_dispenser', 'Distributeur de lessive')}</span>
-                  </label>
-                  <label className={`flex items-center gap-2 text-[8px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('services.cardPayment')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={TVIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.service_card_payment', 'Télévision')}</span>
-                  </label>
-                  <label className={`flex items-center gap-2 text-[8px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('services.cashPayment')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={StackOfCoinsIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.service_cash_payment', 'Paiement en espèces')}</span>
-                  </label>
-                  <label className={`flex items-center gap-2 text-[8px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('services.parking')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={ParkingIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.service_parking', 'Parking')}</span>
-                  </label>
-                  <label className={`flex items-center gap-2 text-[8px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('services.wifi')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={WifiIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.service_wifi', 'Wi-Fi')}</span>
-                  </label>
-                </div>
-                {customServicesCount > 0 && (
-                  <div className="mt-4 space-y-3">
-                    {Array.from({ length: customServicesCount }).map((_, index) => (
-                      <div key={`custom-service-${index}`}>
+                  {loadingOptions ? (
+                    <p className={`col-span-2 text-xs ${isDarkTheme ? 'text-gray-300' : 'text-slate-500'}`}>
+                      {t('common.loading_text', 'Chargement...')}
+                    </p>
+                  ) : serviceOptions.length === 0 ? (
+                    <p className={`col-span-2 text-xs ${isDarkTheme ? 'text-gray-300' : 'text-slate-500'}`}>
+                      {t('professional.laundry_form.no_services_available', 'Aucun service disponible')}
+                    </p>
+                  ) : (
+                    serviceOptions.map((service, index) => (
+                      <label key={service.id} className={`flex items-center gap-2 text-[10px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
                         <input
-                          type="text"
-                          {...register(`customServices.${index}`)}
-                          className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-900'}`}
-                          placeholder={t('professional.laundry_form.custom_service_placeholder', 'Nom du service')}
+                          type="checkbox"
+                          value={String(service.id)}
+                          {...register('serviceIds')}
+                          className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]"
                         />
-                      </div>
-                    ))}
-                  </div>
-                )}
+                        <span>{service.name}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           </section>
@@ -902,26 +1009,27 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                   {t('professional.laundry_form.payment_methods_title', 'Modes de paiement acceptés')}
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <label className={`flex items-center gap-2 text-[12px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('paymentMethods.card')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={PaymentCardIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.payment_card', 'Carte bancaire')}</span>
-                  </label>
-                  <label className={`flex items-center gap-2 text-[12px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('paymentMethods.cash')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={StackOfCoinsIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.payment_cash', 'Espèces')}</span>
-                  </label>
-                  <label className={`flex items-center gap-2 text-[12px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('paymentMethods.contactless')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={PayIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.payment_contactless', 'Sans contact')}</span>
-                  </label>
-                  <label className={`flex items-center gap-2 text-[12px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('paymentMethods.mobile')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={MobilePaymentIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.payment_mobile', 'Paiement mobile')}</span>
-                  </label>
+                  {loadingOptions ? (
+                    <p className={`col-span-2 text-xs ${isDarkTheme ? 'text-gray-300' : 'text-slate-500'}`}>
+                      {t('common.loading_text', 'Chargement...')}
+                    </p>
+                  ) : paymentMethodOptions.length === 0 ? (
+                    <p className={`col-span-2 text-xs ${isDarkTheme ? 'text-gray-300' : 'text-slate-500'}`}>
+                      {t('professional.laundry_form.no_payment_methods_available', 'Aucun mode de paiement disponible')}
+                    </p>
+                  ) : (
+                    paymentMethodOptions.map((paymentMethod) => (
+                      <label key={paymentMethod.id} className={`flex items-center gap-2 text-[12px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
+                        <input
+                          type="checkbox"
+                          value={String(paymentMethod.id)}
+                          {...register('paymentMethodIds')}
+                          className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]"
+                        />
+                        <span>{paymentMethod.name}</span>
+                      </label>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -942,8 +1050,9 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
               )}
               {currentStep < totalSteps ? (
                 <button
+                  key="next-step"
                   type="button"
-                  onClick={goToNextStep}
+                  onClick={(event) => goToNextStep(event)}
                   disabled={submitting}
                   className="flex items-center justify-center rounded-[6px] w-[114px] h-[34px] bg-[#3B82F6] px-5 py-3 text-sm text-white transition-colors hover:bg-[#2563EB] disabled:opacity-50"
                 >
@@ -952,7 +1061,9 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                 </button>
               ) : (
                 <button
+                  key="final-save"
                   type="submit"
+                  data-submit-intent="final-save"
                   disabled={submitting}
                   className="flex items-center justify-center rounded-[6px] w-[114px] h-[34px] bg-[#3B82F6] px-5 py-3 text-sm text-white transition-colors hover:bg-[#2563EB] disabled:opacity-50 gap-1"
                 >
@@ -973,6 +1084,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
               </p>
             )}
           </div>
+          {submitError && <p className="text-right text-xs text-red-500">{submitError}</p>}
         </form>
       </div>
     </div>

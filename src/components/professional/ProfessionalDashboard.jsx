@@ -14,7 +14,7 @@ import StarIcon from '../../assets/images/icons/Star-yellow.svg';
 import InfoIcon from '../../assets/images/icons/Info.svg';
 import WarningIcon from '../../assets/images/icons/Warning.svg';
 import ApprovedIcon from '../../assets/images/icons/Check-Mark-green.svg';
-import PendingIconColor from '../../assets/images/icons/clock-orange.svg';
+import PendingIconColor from '../../assets/images/icons/Clock-orange.svg';
 import RefusedIcon from '../../assets/images/icons/Close-red.svg';
 import EditIcon from '../../assets/images/icons/Edit-white.svg';
 import EyeIcon from '../../assets/images/icons/External-Link-white.svg';
