@@ -222,8 +222,6 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                           <span className={`text-xs md:text-base font-medium ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#0F172A]'}`}>
                             <img src={AddressIcon} alt="Address Icon" className="w-4 h-4 inline-block mr-2" />
                             {laundry.address}
-                            {laundry.postalCode ? `, ${laundry.postalCode}` : ''}
-                            {laundry.city ? ` ${laundry.city}` : ''}
                           </span>
                           {laundry.status === 'approved' && (
                             <span className="text-xs md:text-base font-semibold text-[#FFD700]">

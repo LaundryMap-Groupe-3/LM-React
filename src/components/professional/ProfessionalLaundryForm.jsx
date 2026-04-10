@@ -22,6 +22,7 @@ const defaultValues = {
   contactPhone: '',
   description: '',
   logo: null,
+  mediaFiles: null,
   washingMachines6kg: '',
   washingMachines8kg: '',
   washingMachines10kg: '',
@@ -132,6 +133,9 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
   const [loadingOptions, setLoadingOptions] = useState(true);
   const [serviceOptions, setServiceOptions] = useState([]);
   const [paymentMethodOptions, setPaymentMethodOptions] = useState([]);
+  const [currentLogo, setCurrentLogo] = useState(null);
+  const [currentMedias, setCurrentMedias] = useState([]);
+  const [pendingMediaFiles, setPendingMediaFiles] = useState([]);
 
   const {
     register,
@@ -140,6 +144,8 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     watch,
     reset,
     setError,
+    clearErrors,
+    getValues,
     formState: { errors },
   } = useForm({
     mode: 'onBlur',
@@ -147,6 +153,34 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
   });
   const selectedLogo = watch('logo');
   const showPreciseAddress = watch('showPreciseAddress');
+
+  const appendMediaFiles = (fileList) => {
+    const files = Array.from(fileList || []).filter((file) => file instanceof File);
+    if (files.length === 0) {
+      return;
+    }
+
+    setPendingMediaFiles((current) => {
+      const existingSignatures = new Set(
+        current.map((file) => `${file.name}-${file.size}-${file.lastModified}`)
+      );
+
+      const newUniqueFiles = files.filter((file) => {
+        const signature = `${file.name}-${file.size}-${file.lastModified}`;
+        if (existingSignatures.has(signature)) {
+          return false;
+        }
+        existingSignatures.add(signature);
+        return true;
+      });
+
+      return [...current, ...newUniqueFiles];
+    });
+  };
+
+  const removePendingMediaFile = (indexToRemove) => {
+    setPendingMediaFiles((current) => current.filter((_, index) => index !== indexToRemove));
+  };
 
   const toNumberOrZero = (value) => {
     if (value === null || value === undefined || value === '') {
@@ -164,6 +198,106 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     }
 
     return [...new Set(value.map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0))];
+  };
+
+  const isValidHourFormat = (value) => /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value);
+
+  const validateOpeningHoursStep = () => {
+    clearErrors('openingHours');
+    clearErrors('openingHoursExtra');
+
+    const openingHours = getValues('openingHours') || {};
+    const openingHoursExtra = getValues('openingHoursExtra') || {};
+
+    let hasError = false;
+
+    for (const day of openingHoursDays) {
+      const dayKey = day.key;
+      const slots = [];
+
+      const primary = openingHours[dayKey] || { open: '', close: '' };
+      const primaryOpen = (primary.open || '').trim();
+      const primaryClose = (primary.close || '').trim();
+
+      if (primaryOpen !== '' || primaryClose !== '') {
+        if (primaryOpen === '' || primaryClose === '') {
+          setError(`openingHours.${dayKey}.open`, {
+            type: 'manual',
+            message: t('validation.opening_hours_slot_incomplete', 'Veuillez renseigner une heure d\'ouverture et de fermeture.'),
+          });
+          hasError = true;
+        } else if (!isValidHourFormat(primaryOpen) || !isValidHourFormat(primaryClose)) {
+          setError(`openingHours.${dayKey}.open`, {
+            type: 'manual',
+            message: t('validation.opening_hours_invalid_format', 'Format d\'horaire invalide.'),
+          });
+          hasError = true;
+        } else if (primaryOpen >= primaryClose) {
+          setError(`openingHours.${dayKey}.open`, {
+            type: 'manual',
+            message: t('validation.opening_hours_order_invalid', 'L\'heure d\'ouverture doit être antérieure à l\'heure de fermeture.'),
+          });
+          hasError = true;
+        } else {
+          slots.push({ open: primaryOpen, close: primaryClose });
+        }
+      }
+
+      const extras = Array.isArray(openingHoursExtra[dayKey]) ? openingHoursExtra[dayKey] : [];
+      extras.forEach((slot, index) => {
+        const open = (slot?.open || '').trim();
+        const close = (slot?.close || '').trim();
+
+        if (open === '' && close === '') {
+          return;
+        }
+
+        if (open === '' || close === '') {
+          setError(`openingHoursExtra.${dayKey}.${index}.open`, {
+            type: 'manual',
+            message: t('validation.opening_hours_slot_incomplete', 'Veuillez renseigner une heure d\'ouverture et de fermeture.'),
+          });
+          hasError = true;
+          return;
+        }
+
+        if (!isValidHourFormat(open) || !isValidHourFormat(close)) {
+          setError(`openingHoursExtra.${dayKey}.${index}.open`, {
+            type: 'manual',
+            message: t('validation.opening_hours_invalid_format', 'Format d\'horaire invalide.'),
+          });
+          hasError = true;
+          return;
+        }
+
+        if (open >= close) {
+          setError(`openingHoursExtra.${dayKey}.${index}.open`, {
+            type: 'manual',
+            message: t('validation.opening_hours_order_invalid', 'L\'heure d\'ouverture doit être antérieure à l\'heure de fermeture.'),
+          });
+          hasError = true;
+          return;
+        }
+
+        slots.push({ open, close });
+      });
+
+      if (slots.length > 1) {
+        const sorted = [...slots].sort((a, b) => a.open.localeCompare(b.open));
+        for (let i = 1; i < sorted.length; i += 1) {
+          if (sorted[i].open < sorted[i - 1].close) {
+            setError(`openingHours.${dayKey}.open`, {
+              type: 'manual',
+              message: t('validation.opening_hours_overlap', 'Deux créneaux horaires se chevauchent.'),
+            });
+            hasError = true;
+            break;
+          }
+        }
+      }
+    }
+
+    return !hasError;
   };
 
   const mapLaundryToFormValues = (laundry) => ({
@@ -221,6 +355,9 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
   useEffect(() => {
     if (!isEditMode) {
       reset(defaultValues);
+      setCurrentLogo(null);
+      setCurrentMedias([]);
+      setPendingMediaFiles([]);
       return;
     }
 
@@ -230,6 +367,9 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
       try {
         const laundry = await professionalService.getLaundry(id);
         reset(mapLaundryToFormValues(laundry));
+        setCurrentLogo(laundry?.logo ?? null);
+        setCurrentMedias(Array.isArray(laundry?.medias) ? laundry.medias : []);
+        setPendingMediaFiles([]);
 
         const additionalSlots = openingHoursDays.reduce((accumulator, day) => {
           const slots = laundry?.openingHoursExtra?.[day.key];
@@ -299,10 +439,20 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     };
 
     try {
-      if (isEditMode) {
-        await professionalService.updateLaundry(id, payload);
+      const savedLaundry = isEditMode
+        ? await professionalService.updateLaundry(id, payload)
+        : await professionalService.createLaundry(payload);
+
+      const selectedLogoFile = values?.logo?.[0];
+      if (selectedLogoFile instanceof File) {
+        await professionalService.uploadLaundryLogo(savedLaundry.id, selectedLogoFile);
       } else {
-        await professionalService.createLaundry(payload);
+        // keep existing logo untouched when no new file is selected
+      }
+
+      const mediaFiles = pendingMediaFiles;
+      if (mediaFiles.length > 0) {
+        await professionalService.uploadLaundryMedias(savedLaundry.id, mediaFiles);
       }
 
       navigate('/professional-dashboard');
@@ -344,6 +494,13 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
       return;
     }
 
+    if (currentStep === 2) {
+      const hasValidOpeningHours = validateOpeningHoursStep();
+      if (!hasValidOpeningHours) {
+        return;
+      }
+    }
+
     setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
   };
 
@@ -363,6 +520,22 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
       ...current,
       [dayKey]: Math.max(current[dayKey] - 1, 0),
     }));
+  };
+
+  const handleDeleteMedia = async (mediaId) => {
+    if (!isEditMode || !id || submitting) {
+      return;
+    }
+
+    try {
+      const updatedLaundry = await professionalService.deleteLaundryMedia(id, mediaId);
+      setCurrentMedias(Array.isArray(updatedLaundry?.medias) ? updatedLaundry.medias : []);
+      if (!updatedLaundry?.logo) {
+        setCurrentLogo(null);
+      }
+    } catch (error) {
+      setSubmitError(t('errors.generic_error', 'Une erreur est survenue. Veuillez réessayer.'));
+    }
   };
 
   return (
@@ -556,9 +729,88 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                   />
                   <img src={UploadIcon} alt="Upload" className="mr-3 h-[32px] w-[32px]" />
                   <span className={isDarkTheme ? 'text-gray-100' : 'text-slate-700'}>
-                    {selectedLogo?.[0]?.name || t('professional.laundry_form.logo_placeholder', 'Glisser ou cliquer pour uploader')}
+                    {selectedLogo?.[0]?.name
+                      || currentLogo?.originalName
+                      || t('professional.laundry_form.logo_placeholder', 'Glisser ou cliquer pour uploader')}
                   </span>
                 </label>
+                {currentLogo?.location && !selectedLogo?.[0]?.name && (
+                  <p className={`mt-1 text-xs ${isDarkTheme ? 'text-gray-300' : 'text-slate-500'}`}>
+                    {t('professional.laundry_form.current_logo', 'Logo actuel')}: {currentLogo.originalName}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="mediaFiles" className={`mb-2 block text-[12px] font-regular ${isDarkTheme ? 'text-[#374151]' : 'text-[#374151]'}`}>
+                  {t('professional.laundry_form.gallery_media', 'Photos de la laverie')}
+                </label>
+                <label
+                  htmlFor="mediaFiles"
+                  className={`flex flex-col w-full cursor-pointer items-center rounded-xl border border-dashed px-4 py-3 text-sm transition ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-900'}`}
+                >
+                  <input
+                    id="mediaFiles"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(event) => {
+                      appendMediaFiles(event.target.files);
+                      event.target.value = '';
+                    }}
+                    className="sr-only"
+                  />
+                  <img src={UploadIcon} alt="Upload" className="mr-3 h-[32px] w-[32px]" />
+                  <span className={isDarkTheme ? 'text-gray-100' : 'text-slate-700'}>
+                    {pendingMediaFiles.length > 0
+                      ? t('professional.laundry_form.gallery_files_selected', '{{count}} fichier(s) sélectionné(s)').replace('{{count}}', String(pendingMediaFiles.length))
+                      : t('professional.laundry_form.gallery_placeholder', 'Glisser ou cliquer pour ajouter plusieurs photos')}
+                  </span>
+                </label>
+
+                {pendingMediaFiles.length > 0 && (
+                  <div className="mt-3 grid grid-cols-1 gap-2">
+                    {pendingMediaFiles.map((file, index) => (
+                      <div
+                        key={`${file.name}-${file.size}-${file.lastModified}`}
+                        className={`flex items-center justify-between rounded-lg border px-3 py-2 ${isDarkTheme ? 'border-gray-600 bg-gray-800' : 'border-slate-200 bg-slate-50'}`}
+                      >
+                        <span className={`truncate text-xs ${isDarkTheme ? 'text-gray-200' : 'text-slate-700'}`}>
+                          {file.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removePendingMediaFile(index)}
+                          className="ml-2 text-xs text-red-500 hover:text-red-600"
+                        >
+                          {t('common.delete', 'Supprimer')}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {currentMedias.length > 0 && (
+                  <div className="mt-3 grid grid-cols-1 gap-2">
+                    {currentMedias.map((media) => (
+                      <div
+                        key={media.id}
+                        className={`flex items-center justify-between rounded-lg border px-3 py-2 ${isDarkTheme ? 'border-gray-600 bg-gray-800' : 'border-slate-200 bg-slate-50'}`}
+                      >
+                        <span className={`truncate text-xs ${isDarkTheme ? 'text-gray-200' : 'text-slate-700'}`}>
+                          {media.originalName}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteMedia(media.id)}
+                          className="ml-2 text-xs text-red-500 hover:text-red-600"
+                        >
+                          {t('common.delete', 'Supprimer')}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
              
             </div>
@@ -887,7 +1139,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                           {...register('serviceIds')}
                           className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]"
                         />
-                        <span>{service.name}</span>
+                        <span>{t(service.translationKey, service.name)}</span>
                       </label>
                     ))
                   )}
@@ -1026,7 +1278,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                           {...register('paymentMethodIds')}
                           className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]"
                         />
-                        <span>{paymentMethod.name}</span>
+                        <span>{t(paymentMethod.translationKey, paymentMethod.name)}</span>
                       </label>
                     ))
                   )}
