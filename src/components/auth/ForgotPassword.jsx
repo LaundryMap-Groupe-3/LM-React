@@ -55,14 +55,8 @@ const ForgotPassword = ({ isDarkTheme }) => {
         };
       }
 
-      // Only show success message if email was known
-      if (responseData.emailExists) {
-        setSuccessMessage(t('auth.password_reset_email_sent'));
-        setEmailSubmitted(true);
-      } else {
-        // Email not found - show generic message or error
-        setApiError(t('errors.email_not_found_generic'));
-      }
+      setSuccessMessage(t('auth.forgot_password_request_received'));
+      setEmailSubmitted(true);
     } catch (error) {
       let errorMessage = t('errors.generic_error');
 

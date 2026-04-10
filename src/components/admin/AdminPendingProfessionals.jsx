@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import adminService from '../../services/adminService';
+import ClockIcon from '../../assets/images/icons/Clock-blue.svg';
+import ExternalLinkIcon from '../../assets/images/icons/External-Link-white.svg';
 import Toast from '../common/Toast';
 import { Clock } from 'lucide-react';
 
@@ -18,6 +20,7 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
   const [pageSize] = useState(6);
   const [totalPages, setTotalPages] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [pendingLaundriesCount, setPendingLaundriesCount] = useState(0);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
   const [user, setUser] = useState(null);
@@ -32,10 +35,21 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
         return;
       }
       setUser(currentUser);
+      fetchPendingLaundriesCount();
       fetchProfessionals(1);
     };
     checkAdmin();
   }, [t]);
+
+  const fetchPendingLaundriesCount = async () => {
+    try {
+      const response = await adminService.getPendingLaundriesCount();
+      setPendingLaundriesCount(response.count ?? 0);
+    } catch (error) {
+      setToastMessage(error.message || t('errors.fetch_error'));
+      setToastType('error');
+    }
+  };
 
   const fetchProfessionals = async (page) => {
     try {
@@ -103,24 +117,34 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
 
       {/* Tabs */}
       <div className="flex flex-row items-center gap-2 shadow-md bg-white rounded-lg px-4 py-2 mb-8">
-        <button className="p-3 text-[13px] font-medium bg-[#3B82F6] rounded-[5px] flex-1 h-9 text-white flex items-center justify-center gap-2 whitespace-nowrap">
+        <NavLink
+          to="/admin/professionals"
+          className={({ isActive }) => `p-3 text-[13px] font-medium rounded-[5px] flex-1 h-9 flex items-center justify-center gap-2 whitespace-nowrap transition-colors ${
+            isActive ? 'bg-[#3B82F6] text-white' : 'text-gray-500 hover:text-gray-700 bg-transparent'
+          }`}
+        >
           {t('admin.professional_accounts')}
-          <span className="bg-white/20 text-white text-xs px-2 py-1 h-6 w-6 rounded-full flex items-center justify-center">
+          <span className="bg-white/20 text-white text-xs px-2 py-1 h-6 min-w-6 rounded-full flex items-center justify-center">
             {totalCount}
           </span>
-        </button>
-        <button className="p-3 text-[13px] font-medium text-gray-500 hover:text-gray-700 flex-1 flex items-center justify-center gap-2 whitespace-nowrap">
+        </NavLink>
+        <NavLink
+          to="/admin/laundries"
+          className={({ isActive }) => `p-3 text-[13px] font-medium rounded-[5px] flex-1 h-9 flex items-center justify-center gap-2 whitespace-nowrap transition-colors ${
+            isActive ? 'bg-[#3B82F6] text-white' : 'text-gray-500 hover:text-gray-700 bg-transparent'
+          }`}
+        >
           {t('admin.laundries')}
-          <span className="bg-[#F59E0B] text-white text-xs px-2 py-1 h-6 w-6 rounded-full flex items-center justify-center">
-            0
+          <span className="bg-[#F59E0B] text-white text-xs px-2 py-1 h-6 min-w-6 rounded-full flex items-center justify-center">
+            {pendingLaundriesCount}
           </span>
-        </button>
+        </NavLink>
       </div>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-0 py-4">
         <h1 className="text-left text-[13px] font-bold text-gray-900 mb-6 flex items-center gap-2">
-          <Clock size={20} className="text-gray-700" />
+          <img src={ClockIcon} alt="Pending" className="w-[20px] h-[20px] text-gray-400" />
           {t('admin.pending_accounts_title')}
         </h1>
 
@@ -177,7 +201,7 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between gap-4 pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between gap-4 pt-4">
                       <div className="text-left">
                         <p className="text-[11px] font-regular text-[#9CA3AF]">
                           {t('admin.request_date')} {formatDate(professional.user.createdAt)}
@@ -185,6 +209,7 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
                       </div>
 
                       <button className="bg-[#3B82F6] text-white px-3 py-1.5 rounded text-[11px] font-medium hover:bg-[#2563EB] transition-colors whitespace-nowrap" onClick={() => navigate(`/admin/professionals/${professional.id}`)}>
+                        <img src={ExternalLinkIcon} alt="View" className="w-4 h-4 inline-block mr-1" />
                         {t('admin.manage_request')}
                       </button>
                     </div>

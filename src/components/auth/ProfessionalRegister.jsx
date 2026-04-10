@@ -1,27 +1,33 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import Select from 'react-select';
+import countryList from 'react-select-country-list';
 import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import { translateErrorKey, formatValidationErrors } from '../../utils/translateErrorKey';
+import { getStrongPasswordRules } from '../../utils/passwordValidation';
+import EyeIcon from '../../assets/images/icons/Eye.svg';
+import InvisibleIcon from '../../assets/images/icons/Invisible.svg';
 
-const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
+const ProfessionalRegister = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   usePageTitle('page_titles.register_professional', t);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const countryOptions = useMemo(() => countryList().getData(), []);
 
   // Validation messages
   const validationMessages = {
     lastNameRequired: t('validation.last_name_required'),
     firstNameRequired: t('validation.first_name_required'),
+    nameMaxLength: t('validation.name_max_length'),
     emailRequired: t('validation.email_required'),
     emailInvalid: t('validation.email_invalid'),
-    passwordRequired: t('validation.password_required'),
-    passwordTooShort: t('validation.password_too_short'),
     passwordConfirmationRequired: t('validation.password_confirmation_required'),
     acceptTerms: t('auth.accept_terms'),
     siretRequired: t('validation.siret_required'),
@@ -34,6 +40,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
     phoneRequired: t('validation.phone_required'),
     phoneInvalid: t('validation.phone_invalid'),
     companyNameRequired: t('validation.company_name_required'),
+    companyNameMaxLength: t('validation.company_name_max_length'),
   };
 
   // Configuration React Hook Form
@@ -41,6 +48,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm({
     mode: 'onBlur',
@@ -56,17 +64,14 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
       street: '',
       postalCode: '',
       city: '',
-      country: 'France',
+      country: '',
       acceptCGU: false,
     },
   });
 
-  const password = watch('password');
-
   const onSubmit = async (data) => {
     setLoading(true);
     setApiError(null);
-    setSuccessMessage(null);
 
     try {
       // Validate password confirmation
@@ -84,9 +89,11 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
       }
 
       // Call professional registration API
-      const response = await authService.registerProfessional(data);
+      await authService.registerProfessional(data);
 
-      setSuccessMessage(t('auth.professional_registration_success'));
+      navigate('/login', {
+        state: { successMessage: t('auth.registration_request_received') },
+      });
     } catch (error) {
       console.error('Professional registration error:', error);
       
@@ -106,10 +113,10 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-8 px-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl p-4 sm:p-6 md:p-8">
         <h1 className="text-center text-[#3B82F6] font-semibold text-2xl mb-4 sm:mb-6 font-sans">
-          {t('auth.register_professional')}
+          {t('auth.register_professional_title', 'Créer un compte professionnel')}
         </h1>
 
         {/* Error Alert */}
@@ -119,18 +126,11 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
           </div>
         )}
 
-        {/* Success Alert */}
-        {successMessage && (
-          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md text-sm">
-            {successMessage}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
           {/* INFORMATIONS PERSONNELLES */}
-          <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
+          <h2 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
             {t('auth.personal_info')}
-          </h1>
+          </h2>
 
           {/* Nom */}
           <div>
@@ -142,7 +142,12 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               id="name"
               {...register('name', {
                 required: validationMessages.lastNameRequired,
+                maxLength: {
+                  value: 50,
+                  message: validationMessages.nameMaxLength,
+                },
               })}
+              maxLength={50}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.name ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -163,7 +168,12 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               id="firstName"
               {...register('firstName', {
                 required: validationMessages.firstNameRequired,
+                maxLength: {
+                  value: 50,
+                  message: validationMessages.nameMaxLength,
+                },
               })}
+              maxLength={50}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.firstName ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -175,9 +185,9 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
           </div>
 
           {/* INFORMATIONS PROFESSIONNELLES */}
-          <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6">
-            {t('auth.professional_info')}
-          </h1>
+          <h2 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6">
+            {t('auth.company_section_title')}
+          </h2>
 
           {/* SIRET */}
           <div>
@@ -214,7 +224,12 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               id="companyName"
               {...register('companyName', {
                 required: validationMessages.companyNameRequired,
+                maxLength: {
+                  value: 50,
+                  message: validationMessages.companyNameMaxLength,
+                },
               })}
+              maxLength={50}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.companyName ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -282,7 +297,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
                   message: validationMessages.postalCodeInvalid,
                 },
               })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+              className={`w-full h-[44px] px-3 border text-[#9CA3AF] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.postalCode ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder={t('auth.placeholder_postal_code')}
@@ -303,7 +318,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               {...register('city', {
                 required: validationMessages.cityRequired,
               })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+              className={`w-full h-[44px] px-3 border text-[#9CA3AF] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.city ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder={t('auth.placeholder_city')}
@@ -318,16 +333,37 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
             <label htmlFor="country" className="block text-left text-sm text-gray-700 mb-1">
               {t('auth.country')}<span className="text-red-500">*</span>
             </label>
+            <Select
+              inputId="country"
+              options={countryOptions}
+              value={countryOptions.find((option) => option.label === watch('country')) || null}
+              onChange={(option) => {
+                setValue('country', option?.label || '', { shouldValidate: true, shouldDirty: true });
+              }}
+              placeholder={t('auth.placeholder_country')}
+              className="text-sm"
+              classNamePrefix="country-select"
+              styles={{
+                control: (base, state) => ({
+                  ...base,
+                  minHeight: 44,
+                  borderColor: errors.country ? '#ef4444' : state.isFocused ? '#3b82f6' : '#d1d5db',
+                  boxShadow: state.isFocused ? '0 0 0 2px rgba(59, 130, 246, 0.25)' : 'none',
+                  '&:hover': {
+                    borderColor: state.isFocused ? '#3b82f6' : '#9ca3af',
+                  },
+                }),
+                menu: (base) => ({
+                  ...base,
+                  zIndex: 30,
+                }),
+              }}
+            />
             <input
-              type="text"
-              id="country"
+              type="hidden"
               {...register('country', {
                 required: validationMessages.countryRequired,
               })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.country ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder={t('auth.placeholder_country')}
             />
             {errors.country && (
               <span className="text-red-500 text-xs mt-1">{errors.country.message}</span>
@@ -335,9 +371,9 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
           </div>
 
           {/* INFORMATIONS DE CONNEXION */}
-          <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6">
+          <h2 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6">
             {t('auth.connection_info')}
-          </h1>
+          </h2>
 
           {/* Email */}
           <div>
@@ -369,21 +405,29 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
             <label htmlFor="password" className="block text-left text-sm text-gray-700 mb-1">
               {t('auth.password')}<span className="text-red-500">*</span>
             </label>
-            <input
-              type="password"
-              id="password"
-              {...register('password', {
-                required: validationMessages.passwordRequired,
-                minLength: {
-                  value: 8,
-                  message: validationMessages.passwordTooShort,
-                },
-              })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.password ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                {...register('password', getStrongPasswordRules(t))}
+                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                  errors.password ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-3 flex items-center"
+                aria-label={showPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
+              >
+                <img
+                  src={showPassword ? InvisibleIcon : EyeIcon}
+                  alt={showPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
+                  className="w-[17px] h-[17px]"
+                />
+              </button>
+            </div>
             {errors.password && (
               <span className="text-red-500 text-xs mt-1">{errors.password.message}</span>
             )}
@@ -394,24 +438,38 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
             <label htmlFor="confirmPassword" className="block text-left text-sm text-gray-700 mb-1">
               {t('auth.confirm_password')} <span className="text-red-500">*</span>
             </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              {...register('confirmPassword', {
-                required: validationMessages.passwordConfirmationRequired,
-              })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                id="confirmPassword"
+                {...register('confirmPassword', {
+                  required: validationMessages.passwordConfirmationRequired,
+                })}
+                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                  errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-3 flex items-center"
+                aria-label={showConfirmPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
+              >
+                <img
+                  src={showConfirmPassword ? InvisibleIcon : EyeIcon}
+                  alt={showConfirmPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
+                  className="w-[17px] h-[17px]"
+                />
+              </button>
+            </div>
             {errors.confirmPassword && (
               <span className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</span>
             )}
           </div>
 
           {/* Checkbox CGU */}
-          <div className="flex items-start gap-3">
+          <div className="flex items-center gap-3 text-left">
             <input
               type="checkbox"
               id="acceptCGU"
@@ -421,7 +479,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
               className="mt-1 h-4 w-4 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500"
             />
             <div>
-              <label htmlFor="acceptCGU" className="text-sm text-gray-700">
+              <label htmlFor="acceptCGU" className="block text-[13px] text-gray-700 text-left">
                 {t('auth.accept_cgu')}
                 <a href="#" className="text-blue-600 hover:text-blue-500 underline">
                   {t('auth.cgu_link')}
@@ -434,7 +492,6 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
             </div>
           </div>
 
-          {/* Bouton de soumission */}
           <button
             type="submit"
             disabled={loading}
@@ -444,7 +501,7 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
                 : 'bg-[#3B82F6] hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
             }`}
           >
-            {loading ? t('auth.register_loading') : t('auth.register_professional')}
+            {loading ? t('auth.register_loading') : t('auth.register_professional_cta', 'Créer mon compte')}
           </button>
         </form>
 

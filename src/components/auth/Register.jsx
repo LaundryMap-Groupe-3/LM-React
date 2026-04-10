@@ -5,24 +5,27 @@ import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import { translateErrorKey, formatValidationErrors } from '../../utils/translateErrorKey';
+import { getStrongPasswordRules } from '../../utils/passwordValidation';
 import { useGoogleLogin } from '@react-oauth/google';
+import EyeIcon from '../../assets/images/icons/Eye.svg';
+import InvisibleIcon from '../../assets/images/icons/Invisible.svg';
 
-const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
+const Register = ({ onLoginSuccess }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   usePageTitle('page_titles.register', t);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Validation messages
   const validationMessages = {
     lastNameRequired: t('validation.last_name_required'),
     firstNameRequired: t('validation.first_name_required'),
+    nameMaxLength: t('validation.name_max_length'),
     emailRequired: t('validation.email_required'),
     emailInvalid: t('validation.email_invalid'),
-    passwordRequired: t('validation.password_required'),
-    passwordTooShort: t('validation.password_too_short'),
     passwordConfirmationRequired: t('validation.password_confirmation_required'),
     acceptTerms: t('auth.accept_terms'),
   };
@@ -31,7 +34,6 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm({
     mode: 'onBlur',
@@ -44,8 +46,6 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
       acceptCGU: false,
     },
   });
-
-  const password = watch('password');
 
   const siginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -75,7 +75,6 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
   const onSubmit = async (data) => {
     setLoading(true);
     setApiError(null);
-    setSuccessMessage(null);
 
     try {
       // Validate password confirmation
@@ -93,9 +92,11 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
       }
 
       // Call registration API
-      const response = await authService.register(data);
+      await authService.register(data);
 
-        setSuccessMessage(t('auth.registration_success'));
+      navigate('/login', {
+        state: { successMessage: t('auth.registration_request_received') },
+      });
     } catch (error) {
       if (error.body?.error) {
         setApiError(translateErrorKey(error.body.error, t));
@@ -121,13 +122,6 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
         {apiError && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm whitespace-pre-line">
             {apiError}
-          </div>
-        )}
-
-        {/* Success Alert */}
-        {successMessage && (
-          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md text-sm">
-            {successMessage}
           </div>
         )}
 
@@ -181,7 +175,12 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
               id="name"
               {...register('name', {
                 required: validationMessages.lastNameRequired,
+                maxLength: {
+                  value: 50,
+                  message: validationMessages.nameMaxLength,
+                },
               })}
+              maxLength={50}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.name ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -202,7 +201,12 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
               id="firstName"
               {...register('firstName', {
                 required: validationMessages.firstNameRequired,
+                maxLength: {
+                  value: 50,
+                  message: validationMessages.nameMaxLength,
+                },
               })}
+              maxLength={50}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.firstName ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -247,21 +251,31 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
             <label htmlFor="password" className="block text-left text-sm text-gray-700 mb-1">
               {t('auth.password')}<span className="text-red-500">*</span>
             </label>
-            <input
-              type="password"
-              id="password"
-              {...register('password', {
-                required: validationMessages.passwordRequired,
-                minLength: {
-                  value: 8,
-                  message: validationMessages.passwordTooShort,
-                },
-              })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.password ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                {...register('password', getStrongPasswordRules(t))}
+                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                  errors.password ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                aria-label={showPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
+                aria-pressed={showPassword}
+              >
+                <img
+                  src={showPassword ? InvisibleIcon : EyeIcon}
+                  alt=""
+                  className="w-[17px] h-[17px]"
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
             {errors.password && (
               <span className="text-red-500 text-xs mt-1">{errors.password.message}</span>
             )}
@@ -272,24 +286,40 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
             <label htmlFor="confirmPassword" className="block text-left text-sm text-gray-700 mb-1">
               {t('auth.confirm_password')} <span className="text-red-500">*</span>
             </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              {...register('confirmPassword', {
-                required: validationMessages.passwordConfirmationRequired,
-              })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                id="confirmPassword"
+                {...register('confirmPassword', {
+                  required: validationMessages.passwordConfirmationRequired,
+                })}
+                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                  errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                aria-label={showConfirmPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
+                aria-pressed={showConfirmPassword}
+              >
+                <img
+                  src={showConfirmPassword ? InvisibleIcon : EyeIcon}
+                  alt=""
+                  className="w-[17px] h-[17px]"
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
             {errors.confirmPassword && (
               <span className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</span>
             )}
           </div>
 
           {/* Checkbox CGU */}
-          <div className="flex items-start gap-3">
+          <div className="flex items-center gap-3 text-left">
             <input
               type="checkbox"
               id="acceptCGU"
@@ -299,7 +329,7 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
               className="mt-1 h-4 w-4 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500"
             />
             <div>
-              <label htmlFor="acceptCGU" className="text-sm text-gray-700">
+              <label htmlFor="acceptCGU" className="block text-[13px] text-gray-700 text-left">
                 {t('auth.accept_cgu')}
                 <a href="#" className="text-blue-600 hover:text-blue-500 underline">
                   {t('auth.cgu_link')}
@@ -312,7 +342,6 @@ const Register = ({ isDarkTheme, isLoggedIn, onLoginSuccess }) => {
             </div>
           </div>
 
-          {/* Bouton de soumission */}
           <button
             type="submit"
             disabled={loading}

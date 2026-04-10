@@ -1,16 +1,21 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import { translateErrorKey, formatValidationErrors } from '../../utils/translateErrorKey';
 import { useGoogleLogin } from '@react-oauth/google';
+import UserBlackIcon from '../../assets/images/icons/add-User-black.svg';
+import AdministratorBlackIcon from '../../assets/images/icons/Administrator-black.svg';
+import EyeIcon from '../../assets/images/icons/Eye.svg';
+import InvisibleIcon from '../../assets/images/icons/Invisible.svg';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const Login = ({ isDarkTheme, onLoginSuccess }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
   usePageTitle('page_titles.login', t);
   const [loading, setLoading] = useState(false);
@@ -19,6 +24,8 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
   const [lastAttemptedEmail, setLastAttemptedEmail] = useState('');
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMessage, setResendMessage] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const registrationSuccessMessage = location.state?.successMessage;
 
   // Validation messages
   const validationMessages = {
@@ -43,7 +50,11 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
 
       const user = await authService.getCurrentUser();
       if (user) {
-        navigate('/');
+        if (user.type === 'professional') {
+          navigate('/professional-dashboard');
+        } else {
+          navigate('/');
+        }
       }
     },
     onError: () => {
@@ -106,8 +117,11 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
       // Get user info and redirect
       const user = await authService.getCurrentUser();
       if (user) {
-        // Redirect to home page
-        navigate('/');
+        if (user.type === 'professional') {
+          navigate('/professional-dashboard');
+        } else {
+          navigate('/');
+        }
       }
     } catch (error) {
       let errorMessage = t('errors.invalid_email_password');
@@ -177,8 +191,14 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
         <h1 className={`text-center font-semibold text-2xl mb-6 sm:mb-8 font-sans ${
           isDarkTheme ? 'text-[#3B82F6]' : 'text-[#3B82F6]'
         }`}>
-          {t('auth.login')}
+          {t('auth.login_title', 'Connexion')}
         </h1>
+
+        {registrationSuccessMessage && (
+          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md text-sm whitespace-pre-line">
+            {registrationSuccessMessage}
+          </div>
+        )}
 
         {/* Error Alert */}
         {apiError && !resendMessage && (
@@ -215,7 +235,7 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
 
         {/* Connexion avec Google */}
         <div className="flex items-center justify-center gap-[17px] mb-6">
-          <h2 className={`text-sm sm:text-base font-medium text-[14px] ${
+          <h2 className={`text-sm sm:text-base text-[#374151] font-extrabold text-[14px] ${
             isDarkTheme ? 'text-gray-300' : 'text-[#374151]'
           }`}>
             {t('auth.login_with')}
@@ -286,37 +306,44 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
             }`}>
               {t('auth.password')}<span className="text-red-500">*</span>
             </label>
-            <input
-              type="password"
-              id="password"
-              {...register('password', {
-                required: validationMessages.passwordRequired,
-              })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.password ? 'border-red-500' : isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-gray-300 bg-white text-gray-900'
-              }`}
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                {...register('password', {
+                  required: validationMessages.passwordRequired,
+                })}
+                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                  errors.password ? 'border-red-500' : isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-gray-300 bg-white text-gray-900'
+                }`}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                aria-label={showPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
+                aria-pressed={showPassword}
+              >
+                <img
+                  src={showPassword ? InvisibleIcon : EyeIcon}
+                  alt=""
+                  className="w-[17px] h-[17px]"
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
             {errors.password && (
               <span className="text-red-500 text-xs mt-1">{errors.password.message}</span>
             )}
           </div>
 
-          {/* Remember me and forgot password */}
-          <div className="flex items-center justify-between">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                className="w-4 h-4 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <span className={`text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
-                {t('auth.remember_me')}
-              </span>
-            </label>
+          {/* Forgot password */}
+          <div className="flex w-full flex-col gap-2">
             <button
               type="button"
               onClick={() => navigate('/forgot-password')}
-              className="text-[#3B82F6] hover:text-blue-700 font-medium text-sm"
+              className="self-end text-[#3B82F6] hover:text-blue-700 font-medium text-sm underline"
             >
               {t('auth.forgot_password')}
             </button>
@@ -336,16 +363,31 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
           </button>
         </form>
 
-        {/* Sign up link */}
-        <p className={`text-center mt-6 text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-600'}`}>
-          {t('navigation.no_account')}{' '}
-          <button
-            onClick={() => navigate('/register')}
-            className="text-[#3B82F6] hover:text-blue-700 font-medium underline"
-          >
-            {t('auth.create_account')}
-          </button>
-        </p>
+        {/* Sign up paths */}
+        <div className="mt-6 rounded-lg bg-[#C5DBFF] p-4 text-white">
+          <h2 className="text-left text-[#3B82F6] text-[14px] font-extrabold mb-3">
+            {t('auth.create_account', 'Créer un compte')}
+          </h2>
+          <p className="text-left text-[#374151] text-[11px] font-medium mb-4">
+            {t('auth.signup_benefits_text', 'Pour beneficier de fonctionnalites supplementaires.')}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2 justify-start">
+            <button
+              onClick={() => navigate('/register')}
+              className="w-full px-4 py-2 text-sm text-[#0F172A] font-semibold underline flex items-center justify-start gap-2"
+            >
+              <img src={UserBlackIcon} alt="" className="w-4 h-4" aria-hidden="true" />
+              {t('auth.register_user')}
+            </button>
+            <button
+              onClick={() => navigate('/register/professional')}
+              className="w-full px-4 py-2 text-sm text-[#0F172A] font-semibold underline flex items-center justify-start gap-2"
+            >
+              <img src={AdministratorBlackIcon} alt="" className="w-4 h-4" aria-hidden="true" />
+              {t('auth.register_professional_label', 'Inscription professionnel')}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

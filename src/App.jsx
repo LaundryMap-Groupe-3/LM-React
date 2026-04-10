@@ -12,6 +12,7 @@ import ResetPassword from './components/auth/ResetPassword'
 import Profile from './components/user/Profile'
 import EditProfile from './components/user/EditProfile'
 import AdminPendingProfessionals from './components/admin/AdminPendingProfessionals'
+import AdminPendingLaundries from './components/admin/AdminPendingLaundries'
 import AdminProfessionalDetails from './components/admin/AdminProfessionalDetails'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
@@ -20,6 +21,9 @@ import Page500 from './components/common/Page500'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import authService from './services/authService'
 import './App.css'
+import ProfessionalDashboard from './components/professional/ProfessionalDashboard'
+import ProfessionalLaundryForm from './components/professional/ProfessionalLaundryForm'
+import ProfessionalLaundryDetails from './components/professional/ProfessionalLaundryDetails'
 
 // Composant pour la page d'accueil
 const Home = ({ isDarkTheme, isLoggedIn }) => {
@@ -149,9 +153,10 @@ function App() {
 
   const handleLogout = () => {
     authService.logout();
+    localStorage.setItem('theme', 'light');
     setIsLoggedIn(false);
     setUserType(null);
-    // Reset to browser preferences on logout
+    // Reset UI preferences after logout
     window.location.reload();
   };
 
@@ -211,22 +216,51 @@ function App() {
               <Profile 
                 isDarkTheme={isDarkTheme}
                 isLoggedIn={isLoggedIn}
+                userType={userType}
                 toggleDarkTheme={toggleTheme}
                 onLogout={handleLogout}
               />
             </ProtectedNonAdminRoute>
           }/> 
+          <Route path="/admin/profile" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <Profile 
+                isDarkTheme={isDarkTheme}
+                isLoggedIn={isLoggedIn}
+                userType={userType}
+                toggleDarkTheme={toggleTheme}
+                onLogout={handleLogout}
+              />
+            </ProtectedAdminRoute>
+          }/>
           <Route path="/edit-profile" element={
             <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <EditProfile 
                 isDarkTheme={isDarkTheme}
                 isLoggedIn={isLoggedIn}
+                userType={userType}
               />
             </ProtectedNonAdminRoute>
+          }/>
+          <Route path="/admin/edit-profile" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <EditProfile 
+                isDarkTheme={isDarkTheme}
+                isLoggedIn={isLoggedIn}
+                userType={userType}
+              />
+            </ProtectedAdminRoute>
           }/>
           <Route path="/admin/professionals" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <AdminPendingProfessionals 
+                isDarkTheme={isDarkTheme}
+              />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/laundries" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminPendingLaundries 
                 isDarkTheme={isDarkTheme}
               />
             </ProtectedAdminRoute>
@@ -240,6 +274,37 @@ function App() {
           }/>
           <Route path="/admin/pending-professionals" element={
             <Navigate to="/admin/professionals" replace />
+          }/>
+          <Route path="/admin/pending-laundries" element={
+            <Navigate to="/admin/laundries" replace />
+          }/>
+          <Route path="/professional/dashboard" element={
+            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <ProfessionalDashboard isDarkTheme={isDarkTheme} />
+            </ProtectedNonAdminRoute>
+          } />
+          <Route path="/professional-dashboard" element={
+            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <ProfessionalDashboard 
+                isDarkTheme={isDarkTheme}
+                isLoggedIn={isLoggedIn}
+              />
+            </ProtectedNonAdminRoute>
+          }/>
+          <Route path="/create-laundry" element={
+            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <ProfessionalLaundryForm isDarkTheme={isDarkTheme} />
+            </ProtectedNonAdminRoute>
+          }/>
+          <Route path="/edit-laundry/:id" element={
+            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <ProfessionalLaundryForm isDarkTheme={isDarkTheme} />
+            </ProtectedNonAdminRoute>
+          }/>
+          <Route path="/laundry-details/:id" element={
+            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <ProfessionalLaundryDetails isDarkTheme={isDarkTheme} />
+            </ProtectedNonAdminRoute>
           }/>
           <Route path="*" element={<Page404 isDarkTheme={isDarkTheme} />} />
         </Routes>
