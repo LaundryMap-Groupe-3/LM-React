@@ -47,6 +47,7 @@ const defaultValues = {
   city: '',
   country: '',
   showPreciseAddress: false,
+  wiLineReference: '',
   washingPrice6kg: '',
   washingPrice8kg: '',
   washingPrice10kg: '',
@@ -136,6 +137,10 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
   const [currentLogo, setCurrentLogo] = useState(null);
   const [currentMedias, setCurrentMedias] = useState([]);
   const [pendingMediaFiles, setPendingMediaFiles] = useState([]);
+  const [wiLineLoading, setWiLineLoading] = useState(false);
+  const [wiLineError, setWiLineError] = useState('');
+  const [lastFetchedWiLineCode, setLastFetchedWiLineCode] = useState('');
+  const [wiLineAutoFillSuccess, setWiLineAutoFillSuccess] = useState(false);
 
   const {
     register,
@@ -143,6 +148,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     trigger,
     watch,
     reset,
+    setValue,
     setError,
     clearErrors,
     getValues,
@@ -153,6 +159,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
   });
   const selectedLogo = watch('logo');
   const showPreciseAddress = watch('showPreciseAddress');
+  const wiLineReference = watch('wiLineReference');
 
   const appendMediaFiles = (fileList) => {
     const files = Array.from(fileList || []).filter((file) => file instanceof File);
@@ -310,6 +317,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     city: laundry?.address?.city ?? '',
     country: laundry?.address?.country ?? '',
     showPreciseAddress: Boolean(laundry?.showPreciseAddress),
+    wiLineReference: laundry?.wiLineReference?.toString?.() ?? '',
     washingMachines6kg: laundry?.washingMachines6kg ?? '',
     washingMachines8kg: laundry?.washingMachines8kg ?? '',
     washingMachines10kg: laundry?.washingMachines10kg ?? '',
@@ -394,6 +402,97 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     loadLaundry();
   }, [id, isEditMode, navigate, reset]);
 
+  useEffect(() => {
+    if (!showPreciseAddress) {
+      setWiLineError('');
+      setWiLineLoading(false);
+      setWiLineAutoFillSuccess(false);
+      return;
+    }
+
+    const clientCode = (wiLineReference || '').trim();
+    if (clientCode === '') {
+      setWiLineError('');
+      setWiLineAutoFillSuccess(false);
+      return;
+    }
+
+    if (!/^\d+$/.test(clientCode)) {
+      setWiLineError(t('validation.wiline_client_code_invalid', 'Le code client WI-LINE doit contenir uniquement des chiffres.'));
+      setWiLineAutoFillSuccess(false);
+      return;
+    }
+
+    if (clientCode === lastFetchedWiLineCode) {
+      return;
+    }
+
+    let cancelled = false;
+    const timeoutId = setTimeout(async () => {
+      setWiLineLoading(true);
+      setWiLineError('');
+      setWiLineAutoFillSuccess(false);
+
+      try {
+        const result = await professionalService.fetchWiLineClientMachines(clientCode);
+        const autoFill = result?.autoFill || {};
+        const hasValidLaundry = Number.isInteger(Number(result?.laundry?.id)) && Number(result?.laundry?.id) > 0;
+        const fieldsToAutoFill = [
+          'washingMachines6kg',
+          'washingMachines8kg',
+          'washingMachines10kg',
+          'washingMachines12kgPlus',
+          'dryers6kg',
+          'dryers8kg',
+          'dryers10kg',
+          'dryers12kgPlus',
+          'washingPrice6kg',
+          'washingPrice8kg',
+          'washingPrice10kg',
+          'washingPrice12kgPlus',
+          'dryingPrice6kg',
+          'dryingPrice8kg',
+          'dryingPrice10kg',
+          'dryingPrice12kgPlus',
+        ];
+
+        if (cancelled) {
+          return;
+        }
+
+        fieldsToAutoFill.forEach((fieldName) => {
+          if (Object.prototype.hasOwnProperty.call(autoFill, fieldName)) {
+            setValue(fieldName, autoFill[fieldName] ?? '');
+          }
+        });
+
+        setLastFetchedWiLineCode(clientCode);
+        setWiLineAutoFillSuccess(hasValidLaundry);
+
+        if (!hasValidLaundry) {
+          setWiLineError(t('errors.wiline_client_not_found', 'Code client WI-LINE introuvable.'));
+        }
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        const backendErrorKey = error?.body?.error;
+        setWiLineError(t(backendErrorKey || 'errors.wiline_fetch_failed', 'Impossible de récupérer les machines WI-LINE.'));
+        setWiLineAutoFillSuccess(false);
+      } finally {
+        if (!cancelled) {
+          setWiLineLoading(false);
+        }
+      }
+    }, 600);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [showPreciseAddress, wiLineReference, lastFetchedWiLineCode, setValue, t]);
+
   const onSubmit = async (values, event) => {
     const submitter = event?.nativeEvent?.submitter;
     const isFinalSave = submitter?.getAttribute('data-submit-intent') === 'final-save';
@@ -410,6 +509,9 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
       contactPhone: values.contactPhone?.trim() || '',
       description: values.description?.trim() || '',
       showPreciseAddress: Boolean(values.showPreciseAddress),
+      wiLineReference: values.showPreciseAddress
+        ? (values.wiLineReference?.trim() || null)
+        : null,
       address: {
         street: values.street?.trim() || '',
         postalCode: values.postalCode?.trim() || '',
@@ -1181,6 +1283,51 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                   />
                 </label>
               </div>
+
+              {showPreciseAddress && (
+                <div>
+                  <label htmlFor="wiLineReference" className={`mb-2 block text-[12px] font-regular ${isDarkTheme ? 'text-[#374151]' : 'text-[#374151]'}`}>
+                    {t('professional.laundry_form.wiline_client_code', 'Code client WI-LINE')}<span className="text-[#F97316]">*</span>
+                  </label>
+                  <input
+                    id="wiLineReference"
+                    type="text"
+                    inputMode="numeric"
+                    {...register('wiLineReference', {
+                      validate: (value) => {
+                        if (!showPreciseAddress) {
+                          return true;
+                        }
+
+                        const trimmed = (value || '').trim();
+                        if (trimmed === '') {
+                          return t('validation.wiline_client_code_required', 'Le code client WI-LINE est requis.');
+                        }
+
+                        if (!/^\d+$/.test(trimmed)) {
+                          return t('validation.wiline_client_code_invalid', 'Le code client WI-LINE doit contenir uniquement des chiffres.');
+                        }
+
+                        return true;
+                      },
+                    })}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-900'} ${errors.wiLineReference ? 'border-red-500' : ''}`}
+                    placeholder={t('professional.laundry_form.wiline_client_code_placeholder', 'Ex: 1554')}
+                  />
+                  {errors.wiLineReference && <p className="mt-1 text-xs text-red-500">{errors.wiLineReference.message}</p>}
+                  {!errors.wiLineReference && wiLineError && <p className="mt-1 text-xs text-red-500">{wiLineError}</p>}
+                  {!errors.wiLineReference && !wiLineError && wiLineLoading && (
+                    <p className={`mt-1 text-xs ${isDarkTheme ? 'text-gray-300' : 'text-slate-600'}`}>
+                      {t('professional.laundry_form.wiline_loading', 'Récupération des machines WI-LINE...')}
+                    </p>
+                  )}
+                  {!errors.wiLineReference && !wiLineError && !wiLineLoading && wiLineAutoFillSuccess && lastFetchedWiLineCode === (wiLineReference || '').trim() && (wiLineReference || '').trim() !== '' && (
+                    <p className="mt-1 text-xs text-green-600">
+                      {t('professional.laundry_form.wiline_autofill_done', 'Machines WI-LINE récupérées et champs mis à jour.')}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
             <h2 className="mt-6 flex items-center text-left text-[17px] font-bold">
               <img src={EuroIcon} alt="" className="mr-2 inline-block h-[20px] w-[20px]" />

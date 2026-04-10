@@ -258,6 +258,10 @@
       "address": "Adresse",
       "address_visibility": "Visibilité de l'adresse",
       "address_visibility_helper": "Ma laverie possède des machines WI-LINE",
+      "wiline_client_code": "Code client WI-LINE",
+      "wiline_client_code_placeholder": "Ex: 1554",
+      "wiline_loading": "Récupération des machines WI-LINE...",
+      "wiline_autofill_done": "Machines WI-LINE récupérées et champs mis à jour.",
       "tarifications": "Tarifications",
       "washing_price": "Prix lavage (€)",
       "drying_price": "Prix séchage (€)",
@@ -379,7 +383,11 @@
     "preferences_update_error": "Erreur lors de la mise à jour des préférences",
     "admin_access_required": "Accès administrateur requis",
     "fetch_error": "Erreur lors du chargement des données",
-    "media_not_found": "Média introuvable"
+    "media_not_found": "Média introuvable",
+    "wiline_configuration_missing": "Configuration WI-LINE manquante côté serveur.",
+    "wiline_auth_failed": "Échec d'authentification WI-LINE.",
+    "wiline_client_not_found": "Code client WI-LINE introuvable.",
+    "wiline_fetch_failed": "Impossible de récupérer les machines WI-LINE."
   },
   "validation": {
     "email_required": "L'email est requis",
@@ -417,6 +425,8 @@
     "opening_hours_invalid_format": "Format d'horaire invalide.",
     "opening_hours_order_invalid": "L'heure d'ouverture doit être antérieure à l'heure de fermeture.",
     "opening_hours_overlap": "Deux créneaux horaires se chevauchent.",
+    "wiline_client_code_required": "Le code client WI-LINE est requis.",
+    "wiline_client_code_invalid": "Le code client WI-LINE doit contenir uniquement des chiffres.",
     "language_not_found": "Langue non trouvée",
     "invalid_theme": "Thème invalide"
   },
