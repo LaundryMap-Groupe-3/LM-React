@@ -1,11 +1,127 @@
-import ShopIcon from '../../assets/images/icons/Shop.svg'
+import { Heart } from 'lucide-react'
+import StarIcon from '../../assets/images/icons/Star-yellow.svg';
+import AddressIcon from '../../assets/images/icons/Map.svg';
+import EyeIcon from '../../assets/images/icons/Eye.svg';
+const parseOpeningHours = (openingHours) => {
+  if (!openingHours || typeof openingHours !== 'string') {
+    return null
+  }
 
-const LaundryCard = ({ laundry, isDarkTheme, isHighlighted = false, onMouseEnter, onMouseLeave, onClick }) => {
+  const match = openingHours.match(/(\d{2}):(\d{2})\s*-\s*(\d{2}):(\d{2})/)
+
+  if (!match) {
+    return null
+  }
+
+  const [, startHour, startMinute, endHour, endMinute] = match
+
+  return {
+    start: Number(startHour) * 60 + Number(startMinute),
+    end: Number(endHour) * 60 + Number(endMinute),
+  }
+}
+
+const isOpenNow = (openingHours) => {
+  const schedule = parseOpeningHours(openingHours)
+
+  if (!schedule) {
+    return null
+  }
+
+  const now = new Date()
+  const currentMinutes = now.getHours() * 60 + now.getMinutes()
+
+  if (schedule.start <= schedule.end) {
+    return currentMinutes >= schedule.start && currentMinutes <= schedule.end
+  }
+
+  return currentMinutes >= schedule.start || currentMinutes <= schedule.end
+}
+
+const resolveOpenState = (laundry) => {
+  if (typeof laundry?.isOpenNow === 'boolean') {
+    return laundry.isOpenNow
+  }
+
+  if (typeof laundry?.openNow === 'boolean') {
+    return laundry.openNow
+  }
+
+  if (typeof laundry?.isOpen === 'boolean') {
+    return laundry.isOpen
+  }
+
+  const fromHours = isOpenNow(laundry?.openingHours)
+  if (fromHours !== null) {
+    return fromHours
+  }
+
+  return false
+}
+
+const resolveDistanceKm = (laundry) => {
+  const directDistance = Number(
+    laundry?.distanceKm
+    ?? laundry?.distance_km
+    ?? laundry?.distance
+    ?? laundry?.proximity
+    ?? laundry?.distanceInKm,
+  )
+
+  if (Number.isFinite(directDistance)) {
+    return directDistance
+  }
+
+  const metersDistance = Number(laundry?.distanceMeters ?? laundry?.distance_m)
+  if (Number.isFinite(metersDistance)) {
+    return metersDistance / 1000
+  }
+
+  return null
+}
+
+const distanceInKm = (lat1, lng1, lat2, lng2) => {
+  const values = [lat1, lng1, lat2, lng2].map(Number)
+  if (values.some((value) => Number.isNaN(value))) {
+    return null
+  }
+
+  const [aLat, aLng, bLat, bLng] = values
+  const earthRadiusKm = 6371
+  const dLat = ((bLat - aLat) * Math.PI) / 180
+  const dLng = ((bLng - aLng) * Math.PI) / 180
+  const p1 = (aLat * Math.PI) / 180
+  const p2 = (bLat * Math.PI) / 180
+
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(p1) * Math.cos(p2) * Math.sin(dLng / 2) ** 2
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+  return earthRadiusKm * c
+}
+
+const LaundryCard = ({
+  laundry,
+  userPosition = null,
+  isDarkTheme,
+  isHighlighted = false,
+  isFavorite = false,
+  onToggleFavorite,
+  onMouseEnter,
+  onMouseLeave,
+  onClick,
+}) => {
   const imageUrl = laundry.imageUrl || laundry.image || laundry.photoUrl || laundry.photo || laundry.coverUrl || ''
   const ratingValue = Number(laundry.averageNote ?? laundry.rating)
   const rating = Number.isFinite(ratingValue) ? ratingValue : null
   const reviewCountValue = Number(laundry.reviewCount)
   const reviewCount = Number.isFinite(reviewCountValue) ? reviewCountValue : null
+  const apiDistanceKm = resolveDistanceKm(laundry)
+  const fallbackDistanceKm = userPosition
+    ? distanceInKm(userPosition.latitude, userPosition.longitude, laundry.latitude, laundry.longitude)
+    : null
+  const distanceKm = apiDistanceKm ?? fallbackDistanceKm
+  const isCurrentlyOpen = resolveOpenState(laundry)
 
   return (
     <article
@@ -22,55 +138,97 @@ const LaundryCard = ({ laundry, isDarkTheme, isHighlighted = false, onMouseEnter
           }
         }
       }}
-      className={`cursor-pointer rounded-[8px] border p-4 shadow-sm transition ${isHighlighted ? 'ring-2 ring-sky-500' : ''} ${isDarkTheme ? 'border-slate-800 bg-slate-900/70 text-slate-200' : 'border-slate-200 bg-white text-slate-700'}`}
+      className={`cursor-pointer rounded-[8px] border border-[#E5E7EB] p-4 shadow-sm transition ${isHighlighted ? 'ring-2 ring-sky-500' : ''} ${isDarkTheme ? 'text-slate-200' : 'text-slate-700'}`}
     >
-      <div className={`mb-3 overflow-hidden rounded-[8px] ${isDarkTheme ? 'bg-slate-800' : 'bg-slate-100'}`}>
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={`Photo de ${laundry.establishmentName}`}
-            className="h-28 w-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="flex h-28 w-full items-center justify-center">
-            <img src={ShopIcon} alt="Laverie" className="h-8 w-8 opacity-70" />
-          </div>
-        )}
-      </div>
 
-      <div className="flex items-start justify-between gap-3">
-        <h3 className={`text-sm font-semibold ${isDarkTheme ? 'text-slate-100' : 'text-slate-900'}`}>
-          {laundry.establishmentName}
-        </h3>
-        <div className="flex flex-col items-end gap-1">
-          {typeof laundry.distanceKm === 'number' && (
-            <span
-              className={`rounded-full px-2 py-1 text-xs font-semibold ${isDarkTheme ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-700'}`}
-            >
-              {laundry.distanceKm.toFixed(1)} km
-            </span>
+      <div className="space-y-2">
+        <div className='flex items-start justify-between gap-2'>
+          <h3 className={`text-sm font-semibold ${isDarkTheme ? 'text-slate-100' : 'text-slate-900'}`}>
+            {laundry.establishmentName}
+          </h3>
+
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex items-center gap-2">
+              <span
+                className={`inline-flex items-center gap-1 h-[18px] w-[68px] rounded-[5px] px-2 py-1 text-[11px] font-semibold ${isCurrentlyOpen
+                  ? (isDarkTheme ? 'border border-[#0E9620]/20 bg-[#0E9620]/15 text-[#0E9620]/90' : 'border border-[#0E9620]/20 bg-[#0E9620]/10 text-[#0E9620]')
+                  : (isDarkTheme ? 'bg-rose-900/40 text-rose-300' : 'bg-rose-100 text-rose-700')}`}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`h-2 w-2 rounded-full ${isCurrentlyOpen ? (isDarkTheme ? 'bg-[#0E9620]/85' : 'bg-[#0E9620]') : 'bg-rose-500'}`}
+                />
+                {isCurrentlyOpen ? 'Ouvert' : 'Ferme'}
+              </span>
+
+              <button
+                type="button"
+                aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                onClick={(event) => {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  if (onToggleFavorite) {
+                    onToggleFavorite()
+                  }
+                }}
+                className={`inline-flex h-6 w-6 items-center justify-center transition ${isFavorite ? 'text-rose-500' : (isDarkTheme ? 'text-rose-300 hover:text-rose-200' : 'text-rose-500 hover:text-rose-600')}`}
+              >
+                <Heart className={`h-3.5 w-3.5 ${isFavorite ? 'fill-current' : ''}`} />
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={`Photo de ${laundry.establishmentName}`}
+              className="mb-3 h-[69px] w-[78px] rounded-[8px] object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div
+              className={`mb-3 h-[69px] w-[78px] rounded-[8px] ${isDarkTheme ? 'bg-slate-800/70' : 'bg-slate-100'}`}
+              aria-hidden="true"
+            />
           )}
 
-          {rating !== null && (
-            <span
-              className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${isDarkTheme ? 'bg-slate-800 text-amber-300' : 'bg-amber-50 text-amber-700'}`}
-            >
-              <span aria-hidden="true" className="text-sm leading-none text-amber-500">★</span>
-              {rating.toFixed(1)}/5
-              {reviewCount !== null && (
-                <span className={isDarkTheme ? 'text-slate-300' : 'text-slate-500'}>
-                  ({reviewCount} avis)
+          <div className="mb-3 flex h-[69px] min-w-0 flex-1 flex-col justify-between">
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-[7px] flex items-center gap-1 font-semibold text-black">
+                <img src={AddressIcon} alt="Icône de localisation" className="inline-block h-[13px] w-[13px]" />
+                {laundry.address}, {laundry.city}
+              </p>
+              {rating !== null && (
+                <span
+                  className="inline-flex items-center gap-1 text-[7px] font-semibold text-[#FFD700]"
+                >
+                  <img src={StarIcon} alt="Étoile" className="h-[13px] w-[13px]" />
+                  {rating.toFixed(1)}/5
+                  {reviewCount !== null && (
+                    <span className="text-[#FFD700] text-[7px]">
+                      ({reviewCount} avis)
+                    </span>
+                  )}
                 </span>
               )}
-            </span>
-          )}
+              <span className="text-[7px] font-semibold text-black">
+                Distance: {distanceKm !== null ? `${distanceKm.toFixed(1)} km` : 'Distance inconnue'}
+              </span>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="button"
+                className="inline-flex h-[25px] w-[105px] items-center justify-center gap-[5px] rounded-[8px] bg-[#3B82F6] px-2 py-1 text-[7px] font-semibold text-white transition hover:bg-blue-700"
+              >
+                <img src={EyeIcon} alt="Voir" className="h-[9px] w-[9px]" />
+                Consulter la laverie
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-
-      <p className={`mt-2 text-sm ${isDarkTheme ? 'text-slate-300' : 'text-slate-600'}`}>
-        {laundry.address}, {laundry.city}
-      </p>
 
       {Array.isArray(laundry.services) && laundry.services.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2">

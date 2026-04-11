@@ -27,7 +27,7 @@ import LaundryExplorer from './components/common/LaundryExplorer'
 // Composant pour la page d'accueil
 const Home = ({ isDarkTheme }) => {
   return (
-    <div className={`min-h-screen ${isDarkTheme ? 'bg-[#0F172A] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+    <div className={`min-h-screen ${isDarkTheme ? 'bg-[#0F172A] text-slate-100' : ' text-slate-900'}`}>
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 md:px-8 lg:px-10 lg:py-8">
         <LaundryExplorer isDarkTheme={isDarkTheme} />
       </div>
