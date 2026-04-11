@@ -19,8 +19,8 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(6);
   const [totalPages, setTotalPages] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
   const [pendingLaundriesCount, setPendingLaundriesCount] = useState(0);
+  const [pendingProfessionalsCount, setPendingProfessionalsCount] = useState(0);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
   const [user, setUser] = useState(null);
@@ -56,7 +56,7 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
       setLoading(true);
       const response = await adminService.getPendingProfessionals(page, pageSize);
       setProfessionals(response.data || []);
-      setTotalCount(response.pagination.total);
+      setPendingProfessionalsCount(response.pagination.total);
       setTotalPages(response.pagination.pages);
       setCurrentPage(page);
     } catch (error) {
@@ -117,28 +117,18 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
 
       {/* Tabs */}
       <div className="flex flex-row items-center gap-2 shadow-md bg-white rounded-lg px-4 py-2 mb-8">
-        <NavLink
-          to="/admin/professionals"
-          className={({ isActive }) => `p-3 text-[13px] font-medium rounded-[5px] flex-1 h-9 flex items-center justify-center gap-2 whitespace-nowrap transition-colors ${
-            isActive ? 'bg-[#3B82F6] text-white' : 'text-gray-500 hover:text-gray-700 bg-transparent'
-          }`}
-        >
+        <a href="/admin/pending-professionals" className="p-3 text-[13px] font-medium bg-[#3B82F6] rounded-[5px] flex-1 h-9 text-white flex items-center justify-center gap-2 whitespace-nowrap">
           {t('admin.professional_accounts')}
-          <span className="bg-white/20 text-white text-xs px-2 py-1 h-6 min-w-6 rounded-full flex items-center justify-center">
-            {totalCount}
+          <span className="bg-white/20 text-white text-xs px-2 py-1 h-6 w-6 rounded-full flex items-center justify-center">
+            {pendingProfessionalsCount}
           </span>
-        </NavLink>
-        <NavLink
-          to="/admin/laundries"
-          className={({ isActive }) => `p-3 text-[13px] font-medium rounded-[5px] flex-1 h-9 flex items-center justify-center gap-2 whitespace-nowrap transition-colors ${
-            isActive ? 'bg-[#3B82F6] text-white' : 'text-gray-500 hover:text-gray-700 bg-transparent'
-          }`}
-        >
+        </a>
+        <a href="/admin/pending-laundries" className="p-3 text-[13px] font-medium text-gray-500 hover:text-gray-700 flex-1 flex items-center justify-center gap-2 whitespace-nowrap">
           {t('admin.laundries')}
-          <span className="bg-[#F59E0B] text-white text-xs px-2 py-1 h-6 min-w-6 rounded-full flex items-center justify-center">
+          <span className="bg-[#F59E0B] text-white text-xs px-2 py-1 h-6 w-6 rounded-full flex items-center justify-center">
             {pendingLaundriesCount}
           </span>
-        </NavLink>
+        </a>
       </div>
 
       {/* Content */}

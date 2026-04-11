@@ -15,6 +15,7 @@ import AdminProfile from './components/admin/AdminProfile'
 import AdminPendingProfessionals from './components/admin/AdminPendingProfessionals'
 import AdminPendingLaundries from './components/admin/AdminPendingLaundries'
 import AdminProfessionalDetails from './components/admin/AdminProfessionalDetails'
+import AdminPendingLaundries from './components/admin/AdminPendingLaundries'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import Page404 from './components/common/Page404'
@@ -311,6 +312,16 @@ function App() {
             <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <ProfessionalLaundryDetails isDarkTheme={isDarkTheme} />
             </ProtectedNonAdminRoute>
+          }/>
+          <Route path="/admin/laundries" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminPendingLaundries 
+                isDarkTheme={isDarkTheme}
+              />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/pending-laundries" element={
+            <Navigate to="/admin/laundries" replace />
           }/>
           <Route path="*" element={<Page404 isDarkTheme={isDarkTheme} />} />
         </Routes>

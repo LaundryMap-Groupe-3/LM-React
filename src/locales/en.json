@@ -85,7 +85,8 @@
     "professional_space": "Professional space",
     "my_space": "My space",
     "dashboard_menu": "Dashboard",
-    "pending_professionals": "Pending Professionals"
+    "pending_professionals": "Pending Professionals",
+    "pending_laundries": "Pending Laundries"
   },
   "auth": {
     "login": "Login",

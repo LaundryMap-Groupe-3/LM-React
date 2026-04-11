@@ -32,6 +32,30 @@ const adminService = {
       throw error;
     }
   },
+  async getPendingProfessionalsCount() {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/professionals/pending/count`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch pending professionals count');
+    }
+
+    const data = await response.json();
+    return data;
+  },
   async getPendingProfessionals(page = 1, limit = 10) {
     const response = await fetch(
       `${API_BASE_URL}/api/admin/professionals/pending?page=${page}&limit=${limit}`,
