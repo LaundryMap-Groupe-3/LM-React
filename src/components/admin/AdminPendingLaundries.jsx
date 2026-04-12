@@ -6,7 +6,6 @@ import authService from '../../services/authService';
 import adminService from '../../services/adminService';
 import Toast from '../common/Toast';
 import { Clock } from 'lucide-react';
-import laundryService from '../../services/laundryService';
 
 const AdminPendingLaundries = ({ isDarkTheme }) => {
   const { t } = useTranslation();
@@ -35,15 +34,26 @@ const AdminPendingLaundries = ({ isDarkTheme }) => {
       }
       setUser(currentUser);
       fetchLaundries(1);
+      fetchPendingLaundriesCount();
       fetchpendingProfessionalsCount();
     };
     checkAdmin();
   }, [t]);
 
+  const fetchPendingLaundriesCount = async () => {
+    try {
+      const response = await adminService.getPendingLaundriesCount();
+      setPendingLaundriesCount(response.count ?? 0);
+    } catch (error) {
+      setToastMessage(error.message || t('errors.fetch_error'));
+      setToastType('error');
+    }
+  };
+
   const fetchLaundries = async (page) => {
     try {
       setLoading(true);
-      const response = await laundryService.getPendingLaudries(page, pageSize);
+      const response = await adminService.getPendingLaundries(page, pageSize);
       setLaundries(response.data || []);
       setPendingLaundriesCount(response.pagination.total);
       setTotalPages(response.pagination.pages);
@@ -175,11 +185,15 @@ const AdminPendingLaundries = ({ isDarkTheme }) => {
 
                       <div className="space-y-2">
                         <p className="text-[13px] font-regular text-[#6B7280]">
-                          <span className="font-semibold">{laundry.professional.user.lastName} {laundry.professional.user.firstName}</span>
+                          <span className="font-semibold">
+                            {laundry.professional?.user
+                              ? `${laundry.professional.user.lastName} ${laundry.professional.user.firstName}`
+                              : `${laundry.professional?.lastName || ''} ${laundry.professional?.firstName || ''}`.trim() || '-'}
+                          </span>
                         </p>
 
                         <p className="text-[13px] font-regular text-[#6B7280]">
-                          <span className="font-semibold">{laundry.contactEmail}</span>
+                          <span className="font-semibold">{laundry.contactEmail || laundry.professional?.email || '-'}</span>
                         </p>
 
                         {laundry.address && (
