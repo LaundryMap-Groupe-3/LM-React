@@ -32,6 +32,30 @@ const adminService = {
       throw error;
     }
   },
+  async getPendingProfessionalsCount() {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/professionals/pending/count`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch pending professionals count');
+    }
+
+    const data = await response.json();
+    return data;
+  },
   async getPendingProfessionals(page = 1, limit = 10) {
     const response = await fetch(
       `${API_BASE_URL}/api/admin/professionals/pending?page=${page}&limit=${limit}`,
@@ -99,6 +123,79 @@ const adminService = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to fetch pending laundries');
+    }
+
+    return await response.json();
+  },
+
+  async getLaundryDetails(laundryId) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/laundries/${laundryId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch professional details');
+    }
+
+    return await response.json();
+  },
+  
+  async approveLaundry(laundryId) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/laundries/${laundryId}/approve`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to approve professional');
+    }
+
+    return await response.json();
+  },
+
+  async rejectLaundry(laundryId, reason) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/laundries/${laundryId}/reject`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+        body: JSON.stringify({ reason }),
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to reject professional');
     }
 
     return await response.json();
