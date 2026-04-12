@@ -270,6 +270,10 @@
       "address": "Address",
       "address_visibility": "Address visibility",
       "address_visibility_helper": "My laundry has WI-LINE machines",
+      "wiline_client_code": "WI-LINE client code",
+      "wiline_client_code_placeholder": "Eg: 1554",
+      "wiline_loading": "Fetching WI-LINE machines...",
+      "wiline_autofill_done": "WI-LINE machines fetched and fields updated.",
       "wi_line_connectivity": "WI-LINE Connectivity (Optional)"
     }
   },
@@ -381,7 +385,11 @@
     "preferences_update_error": "Error updating preferences",
     "admin_access_required": "Administrator access required",
     "fetch_error": "Error loading data",
-    "media_not_found": "Media not found"
+    "media_not_found": "Media not found",
+    "wiline_configuration_missing": "Missing WI-LINE server configuration.",
+    "wiline_auth_failed": "WI-LINE authentication failed.",
+    "wiline_client_not_found": "WI-LINE client code not found.",
+    "wiline_fetch_failed": "Unable to fetch WI-LINE machines."
   },
   "validation": {
     "email_required": "Email is required",
@@ -419,6 +427,8 @@
     "opening_hours_invalid_format": "Invalid time format.",
     "opening_hours_order_invalid": "Opening time must be earlier than closing time.",
     "opening_hours_overlap": "Two time slots overlap.",
+    "wiline_client_code_required": "WI-LINE client code is required.",
+    "wiline_client_code_invalid": "WI-LINE client code must contain digits only.",
     "language_not_found": "Language not found",
     "invalid_theme": "Invalid theme"
   },

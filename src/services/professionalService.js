@@ -115,6 +115,43 @@ const professionalService = {
   },
 
   /**
+   * Récupère les machines WI-LINE à partir d'un code client
+   */
+  fetchWiLineClientMachines: async (clientCode) => {
+    try {
+      const token = localStorage.getItem('jwt_token');
+      if (!token) {
+        throw { status: 401, body: { message: 'Token required' } };
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/professional/wiline/clients/${clientCode}/machines`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('jwt_token');
+          window.location.href = '/login';
+        }
+        throw {
+          status: response.status,
+          body: data,
+        };
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
    * Crée une nouvelle laverie
    */
   createLaundry: async (laundryData) => {
