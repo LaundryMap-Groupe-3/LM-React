@@ -166,7 +166,7 @@ const AdminPendingLaundries = ({ isDarkTheme }) => {
                     <div className="flex flex-col gap-4 mb-4">
                       <div className="flex items-start justify-between">
                         <h3 className="text-[16px] font-bold text-[#111827] flex-1">
-                          {laundry.name || t('admin.unknown_laundry')}
+                          {laundry.establishmentName || t('admin.unknown_laundry')}
                         </h3>
                         <span className="px-2 py-1 border border-[#F59E0B]/14 bg-[#FEF3C7] text-[#92400E] text-[9px] font-semibold rounded-md flex items-center justify-center whitespace-nowrap uppercase">
                           {t('admin.pending')}
@@ -175,11 +175,11 @@ const AdminPendingLaundries = ({ isDarkTheme }) => {
 
                       <div className="space-y-2">
                         <p className="text-[13px] font-regular text-[#6B7280]">
-                          <span className="font-semibold">{laundry.email}</span>
+                          <span className="font-semibold">{laundry.professional.user.lastName} {laundry.professional.user.firstName}</span>
                         </p>
 
-                        <p className="text-[13px] text-[#6B7280]">
-                          <span>SIRET: <span className="font-semibold text-[#111827]">{laundry.siret}</span></span>
+                        <p className="text-[13px] font-regular text-[#6B7280]">
+                          <span className="font-semibold">{laundry.contactEmail}</span>
                         </p>
 
                         {laundry.address && (
@@ -195,7 +195,7 @@ const AdminPendingLaundries = ({ isDarkTheme }) => {
                     <div className="flex items-center justify-between gap-4 pt-4 border-t border-gray-100">
                       <div className="text-left">
                         <p className="text-[11px] font-regular text-[#9CA3AF]">
-                          {t('admin.request_date')} {formatDate(laundry.user.createdAt)}
+                          {t('admin.request_date')} {formatDate(laundry.createdAt)}
                         </p>
                       </div>
 
