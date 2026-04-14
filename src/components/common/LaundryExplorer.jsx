@@ -45,13 +45,23 @@ const LaundryExplorer = ({ isDarkTheme }) => {
   }, [search, userPosition, limit]);
 
   const handleLocate = () => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setError("La géolocalisation n'est pas supportée par votre navigateur.");
+      return;
+    }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setUserPosition([pos.coords.latitude, pos.coords.longitude]);
+        setError(null);
       },
-      () => {
-        alert('Impossible de récupérer votre position.');
+      (err) => {
+        if (err.code === 1) {
+          setError("Vous avez refusé la géolocalisation. Veuillez l'autoriser pour utiliser cette fonctionnalité.");
+        } else if (err.code === 2) {
+          setError("Impossible de récupérer votre position (signal GPS ou réseau introuvable).");
+        } else {
+          setError("Erreur lors de la récupération de votre position.");
+        }
       }
     );
   };
