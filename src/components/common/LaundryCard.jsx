@@ -1,7 +1,8 @@
 import { Heart } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import StarIcon from '../../assets/images/icons/Star-yellow.svg';
 import AddressIcon from '../../assets/images/icons/Map.svg';
-import EyeIcon from '../../assets/images/icons/Eye.svg';
+import EyeIcon from '../../assets/images/icons/Eye-white.svg';
 const parseOpeningHours = (openingHours) => {
   if (!openingHours || typeof openingHours !== 'string') {
     return null
@@ -143,7 +144,7 @@ const LaundryCard = ({
 
       <div className="space-y-2">
         <div className='flex items-start justify-between gap-2'>
-          <h3 className={`text-sm font-semibold ${isDarkTheme ? 'text-slate-100' : 'text-slate-900'}`}>
+          <h3 className={`text-[11px] font-bold text-[#3B82F6]`}>
             {laundry.establishmentName}
           </h3>
 
@@ -158,7 +159,7 @@ const LaundryCard = ({
                   aria-hidden="true"
                   className={`h-2 w-2 rounded-full ${isCurrentlyOpen ? (isDarkTheme ? 'bg-[#0E9620]/85' : 'bg-[#0E9620]') : 'bg-rose-500'}`}
                 />
-                {isCurrentlyOpen ? 'Ouvert' : 'Ferme'}
+                {isCurrentlyOpen ? 'Ouvert' : 'Fermé'}
               </span>
 
               <button
@@ -218,13 +219,14 @@ const LaundryCard = ({
             </div>
 
             <div className="flex justify-end">
-              <button
-                type="button"
+              <Link
+                to={`/laundry/${laundry.id}`}
                 className="inline-flex h-[25px] w-[105px] items-center justify-center gap-[5px] rounded-[8px] bg-[#3B82F6] px-2 py-1 text-[7px] font-semibold text-white transition hover:bg-blue-700"
+                style={{ textDecoration: 'none' }}
               >
                 <img src={EyeIcon} alt="Voir" className="h-[9px] w-[9px]" />
                 Consulter la laverie
-              </button>
+              </Link>
             </div>
           </div>
         </div>
