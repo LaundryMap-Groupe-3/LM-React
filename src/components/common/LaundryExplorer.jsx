@@ -1,724 +1,201 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { CircleMarker, MapContainer, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
-import {
-  MapPin,
-  SlidersHorizontal,
-  X,
-} from 'lucide-react'
-import SearchIcon from '../../assets/images/icons/Search.svg'
-import AddressIcon from '../../assets/images/icons/Address.svg'
-import demoLaundries from '../../data/demoLaundries'
-import laundryService from '../../services/laundryService'
-import LaundryCard from './LaundryCard'
+import { useEffect, useState, useRef } from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import LaundryCard from './LaundryCard';
+import SearchIcon from '../../assets/images/icons/Search.svg';
+import Logo from '../../assets/images/logos/logo-laundrymap.svg';
+import laundryService from '../../services/laundryService';
 
-const filterDefaults = {
-  query: '',
-  city: 'all',
-  minRating: '',
-  openNow: false,
-  featured: false,
-}
-
-const INITIAL_VISIBLE_LAUNDRIES = 12
-const VISIBLE_LAUNDRIES_STEP = 12
-
-const normalizeText = (value = '') => value
-  .toLowerCase()
-  .normalize('NFD')
-  .replace(/[\u0300-\u036f]/g, '')
-
-const parseOpeningHours = (openingHours) => {
-  if (!openingHours) {
-    return null
-  }
-
-  const match = openingHours.match(/(\d{2}):(\d{2})\s*-\s*(\d{2}):(\d{2})/)
-
-  if (!match) {
-    return null
-  }
-
-  const [, startHour, startMinute, endHour, endMinute] = match
-
-  return {
-    start: Number(startHour) * 60 + Number(startMinute),
-    end: Number(endHour) * 60 + Number(endMinute),
-  }
-}
-
-const isOpenNow = (openingHours) => {
-  const schedule = parseOpeningHours(openingHours)
-
-  if (!schedule) {
-    return false
-  }
-
-  const now = new Date()
-  const currentMinutes = now.getHours() * 60 + now.getMinutes()
-
-  if (schedule.start <= schedule.end) {
-    return currentMinutes >= schedule.start && currentMinutes <= schedule.end
-  }
-
-  return currentMinutes >= schedule.start || currentMinutes <= schedule.end
-}
-
-const resolveOpenState = (laundry) => {
-  if (typeof laundry?.isOpenNow === 'boolean') {
-    return laundry.isOpenNow
-  }
-
-  return isOpenNow(laundry?.openingHours)
-}
-
-const FRANCE_CENTER = [46.2276, 2.2137]
-
-const distanceInKm = (lat1, lng1, lat2, lng2) => {
-  const values = [lat1, lng1, lat2, lng2].map(Number)
-  if (values.some((value) => Number.isNaN(value))) {
-    return null
-  }
-
-  const [aLat, aLng, bLat, bLng] = values
-  const earthRadiusKm = 6371
-  const dLat = ((bLat - aLat) * Math.PI) / 180
-  const dLng = ((bLng - aLng) * Math.PI) / 180
-  const p1 = (aLat * Math.PI) / 180
-  const p2 = (bLat * Math.PI) / 180
-
-  const a = Math.sin(dLat / 2) ** 2
-    + Math.cos(p1) * Math.cos(p2) * Math.sin(dLng / 2) ** 2
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-
-  return earthRadiusKm * c
-}
-
-const resolveCoordinates = (laundry) => {
-  const latitude = Number(
-    laundry?.latitude
-    ?? laundry?.lat
-    ?? laundry?.address?.latitude
-    ?? laundry?.location?.latitude
-    ?? laundry?.coordinates?.latitude
-    ?? laundry?.coordinates?.lat,
-  )
-  const longitude = Number(
-    laundry?.longitude
-    ?? laundry?.lng
-    ?? laundry?.address?.longitude
-    ?? laundry?.location?.longitude
-    ?? laundry?.coordinates?.longitude
-    ?? laundry?.coordinates?.lng,
-  )
-
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-    return null
-  }
-
-  return { latitude, longitude }
-}
-
-const MapAutoCenter = ({ laundries, userPosition }) => {
-  const map = useMap()
-
-  useEffect(() => {
-    const points = laundries.map((laundry) => [laundry.latitude, laundry.longitude])
-
-    if (userPosition) {
-      points.push([userPosition.latitude, userPosition.longitude])
-    }
-
-    if (points.length === 0) {
-      map.setView(FRANCE_CENTER, 6)
-      return
-    }
-
-    if (points.length === 1) {
-      map.setView(points[0], 13)
-      return
-    }
-
-    map.fitBounds(points, { padding: [40, 40] })
-  }, [laundries, map, userPosition])
-
-  return null
-}
-
-const MapInstanceBridge = ({ onReady }) => {
-  const map = useMap()
-
-  useEffect(() => {
-    onReady(map)
-  }, [map, onReady])
-
-  return null
-}
-
-const toViewportBounds = (bounds) => ({
-  north: bounds.getNorth(),
-  south: bounds.getSouth(),
-  east: bounds.getEast(),
-  west: bounds.getWest(),
-})
-
-const MapViewportBridge = ({ onBoundsChange }) => {
-  const map = useMapEvents({
-    moveend: () => onBoundsChange(toViewportBounds(map.getBounds())),
-    zoomend: () => onBoundsChange(toViewportBounds(map.getBounds())),
-  })
-
-  useEffect(() => {
-    onBoundsChange(toViewportBounds(map.getBounds()))
-  }, [map, onBoundsChange])
-
-  return null
-}
+const DEFAULT_POSITION = [48.8566, 2.3522]; // Paris par défaut
+const DEFAULT_ZOOM = 12;
 
 const LaundryExplorer = ({ isDarkTheme }) => {
-  const [favoriteLaundryIds, setFavoriteLaundryIds] = useState(() => {
-    try {
-      const stored = localStorage.getItem('favoriteLaundryIds')
-      const parsed = stored ? JSON.parse(stored) : []
-      return Array.isArray(parsed) ? parsed : []
-    } catch {
-      return []
-    }
-  })
-  const [showFilters, setShowFilters] = useState(false)
-  const [visibleLaundriesCount, setVisibleLaundriesCount] = useState(INITIAL_VISIBLE_LAUNDRIES)
-  const [appliedFilters, setAppliedFilters] = useState(filterDefaults)
-  const [userPosition, setUserPosition] = useState(null)
-  const [laundriesFromApi, setLaundriesFromApi] = useState([])
-  const [isLoadingLaundries, setIsLoadingLaundries] = useState(false)
-  const [apiError, setApiError] = useState('')
-  const [selectedLaundryId, setSelectedLaundryId] = useState(null)
-  const [hoveredLaundryId, setHoveredLaundryId] = useState(null)
-  const [mapInstance, setMapInstance] = useState(null)
-  const [mapBounds, setMapBounds] = useState(null)
-  const cardRefs = useRef({})
-  const hasAskedForGeolocation = useRef(false)
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    getValues,
-    formState: { isSubmitting },
-  } = useForm({
-    mode: 'onBlur',
-    defaultValues: filterDefaults,
-  })
-
-  const cities = useMemo(
-    () => [...new Set(laundriesFromApi.map((laundry) => laundry.city).filter(Boolean))],
-    [laundriesFromApi],
-  )
-
-  const fetchNearbyLaundries = useCallback(async (coords, filters) => {
-    setIsLoadingLaundries(true)
-    setApiError('')
-
-    try {
-      const response = await laundryService.getNearbyLaundries({
-        latitude: coords?.latitude,
-        longitude: coords?.longitude,
-        radius: 25,
-        limit: 100,
-        query: filters?.query || '',
-        city: filters?.city || 'all',
-      })
-
-      const laundries = Array.isArray(response.laundries) ? response.laundries : []
-      const normalized = laundries.map((laundry) => {
-        const coordsFromLaundry = resolveCoordinates(laundry)
-        const latitude = coordsFromLaundry?.latitude
-        const longitude = coordsFromLaundry?.longitude
-        const serverDistance = Number(laundry.distanceKm ?? laundry.distance ?? laundry.distance_km)
-        const hasServerDistance = Number.isFinite(serverDistance)
-
-        if (hasServerDistance || !coords) {
-          return {
-            ...laundry,
-            latitude,
-            longitude,
-          }
-        }
-
-        const fallbackDistance = distanceInKm(
-          coords.latitude,
-          coords.longitude,
-          latitude,
-          longitude,
-        )
-
-        if (!Number.isFinite(fallbackDistance)) {
-          return {
-            ...laundry,
-            latitude,
-            longitude,
-          }
-        }
-
-        return {
-          ...laundry,
-          latitude,
-          longitude,
-          distanceKm: fallbackDistance,
-        }
-      })
-
-      setLaundriesFromApi(normalized)
-    } catch (error) {
-      setApiError('API indisponible. Affichage des laveries de demonstration.')
-
-      const fallback = demoLaundries.map((laundry) => {
-        const coordsFromLaundry = resolveCoordinates(laundry)
-        const latitude = coordsFromLaundry?.latitude
-        const longitude = coordsFromLaundry?.longitude
-        const fallbackDistance = coords
-          ? distanceInKm(coords.latitude, coords.longitude, latitude, longitude)
-          : null
-
-        return {
-          ...laundry,
-          latitude,
-          longitude,
-          reviewCount: laundry.reviewCount ?? laundry.reviews ?? null,
-          distanceKm: Number.isFinite(fallbackDistance) ? fallbackDistance : laundry.distanceKm,
-        }
-      })
-
-      setLaundriesFromApi(fallback)
-    } finally {
-      setIsLoadingLaundries(false)
-    }
-  }, [])
-
-  const onSubmit = (data) => {
-    setAppliedFilters(data)
-    fetchNearbyLaundries(userPosition, data)
-  }
-
-  const filteredLaundries = useMemo(() => {
-    const query = normalizeText(appliedFilters.query)
-    const minimumRating = appliedFilters.minRating ? Number(appliedFilters.minRating) : 0
-
-    return laundriesFromApi.filter((laundry) => {
-      const searchableText = normalizeText(
-        [
-          laundry.establishmentName,
-          laundry.address,
-          laundry.postalCode,
-          laundry.city,
-          laundry.country,
-          laundry.description,
-          Array.isArray(laundry.services) ? laundry.services.join(' ') : '',
-        ].join(' '),
-      )
-
-      const rating = typeof laundry.rating === 'number' ? laundry.rating : 0
-      const matchesQuery = !query || searchableText.includes(query)
-      const matchesCity = appliedFilters.city === 'all' || laundry.city === appliedFilters.city
-      const matchesRating = !minimumRating || rating >= minimumRating
-      const openState = resolveOpenState(laundry)
-      const matchesOpenNow = !appliedFilters.openNow || openState === true
-      const matchesFeatured = !appliedFilters.featured || laundry.featured
-
-      return matchesQuery && matchesCity && matchesRating && matchesOpenNow && matchesFeatured
-    })
-  }, [appliedFilters, laundriesFromApi])
-
-  const laundriesVisibleOnMap = useMemo(() => {
-    if (!mapBounds) {
-      return filteredLaundries
-    }
-
-    return filteredLaundries.filter((laundry) => {
-      const latitude = Number(laundry.latitude)
-      const longitude = Number(laundry.longitude)
-
-      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-        return false
-      }
-
-      const isLatitudeVisible = latitude >= mapBounds.south && latitude <= mapBounds.north
-      const isLongitudeVisible = longitude >= mapBounds.west && longitude <= mapBounds.east
-
-      return isLatitudeVisible && isLongitudeVisible
-    })
-  }, [filteredLaundries, mapBounds])
-
-  const nearbyLaundries = useMemo(
-    () => laundriesVisibleOnMap.slice(0, visibleLaundriesCount),
-    [laundriesVisibleOnMap, visibleLaundriesCount],
-  )
-
-  const hasMoreLaundries = nearbyLaundries.length < laundriesVisibleOnMap.length
-  const hasSearchQuery = Boolean(appliedFilters.query?.trim())
-  const mapLaundries = useMemo(
-    () => filteredLaundries.filter((laundry) => resolveCoordinates(laundry)),
-    [filteredLaundries],
-  )
-
-  const registerCardRef = useCallback((laundryId, node) => {
-    if (node) {
-      cardRefs.current[laundryId] = node
-      return
-    }
-
-    delete cardRefs.current[laundryId]
-  }, [])
-
-  const focusLaundryOnMap = useCallback((laundry) => {
-    if (!mapInstance || !laundry) {
-      return
-    }
-
-    mapInstance.flyTo([laundry.latitude, laundry.longitude], 15, { duration: 0.6 })
-  }, [mapInstance])
-
-  const handleCardClick = useCallback((laundry) => {
-    setSelectedLaundryId(laundry.id)
-    focusLaundryOnMap(laundry)
-  }, [focusLaundryOnMap])
-
-  const handleMarkerClick = useCallback((laundry) => {
-    setSelectedLaundryId(laundry.id)
-    focusLaundryOnMap(laundry)
-
-    const cardNode = cardRefs.current[laundry.id]
-    if (cardNode) {
-      cardNode.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
-  }, [focusLaundryOnMap])
-
-  const toggleFavoriteLaundry = useCallback((laundryId) => {
-    setFavoriteLaundryIds((current) => {
-      if (current.includes(laundryId)) {
-        return current.filter((id) => id !== laundryId)
-      }
-
-      return [...current, laundryId]
-    })
-  }, [])
-
-  const handleReset = () => {
-    reset(filterDefaults)
-    setAppliedFilters(filterDefaults)
-    setVisibleLaundriesCount(INITIAL_VISIBLE_LAUNDRIES)
-    setShowFilters(false)
-    if (userPosition) {
-      fetchNearbyLaundries(userPosition, filterDefaults)
-    }
-  }
-
-  const handleShowMore = () => {
-    setVisibleLaundriesCount((current) => current + VISIBLE_LAUNDRIES_STEP)
-  }
-
-  const handleUseGeolocation = useCallback(() => {
-    if (!navigator.geolocation) {
-      setApiError('La geolocalisation n est pas supportee par ce navigateur.')
-      fetchNearbyLaundries(null, getValues())
-      return
-    }
-
-    navigator.geolocation.getCurrentPosition((position) => {
-      const latitude = position.coords.latitude.toFixed(4)
-      const longitude = position.coords.longitude.toFixed(4)
-      const coords = {
-        latitude: Number(latitude),
-        longitude: Number(longitude),
-      }
-
-      setUserPosition(coords)
-      fetchNearbyLaundries(coords, getValues())
-    }, (geoError) => {
-      if (geoError?.code === 1) {
-        setApiError('Geolocalisation refusee. Autorisez l acces a votre position pour voir les laveries proches.')
-      } else if (geoError?.code === 2) {
-        setApiError('Localisation introuvable. Verifiez votre GPS ou votre connexion, puis reessayez.')
-      } else if (geoError?.code === 3) {
-        setApiError('La localisation a expire. Reessayez dans quelques instants.')
-      } else {
-        setApiError('Impossible de recuperer votre position. Verifiez les permissions de localisation.')
-      }
-
-      fetchNearbyLaundries(null, getValues())
-    }, {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 0,
-    })
-  }, [fetchNearbyLaundries, getValues])
+  const [laundries, setLaundries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState('');
+  // const [showFilter, setShowFilter] = useState(false);
+  const [userPosition, setUserPosition] = useState(null);
+  const [limit, setLimit] = useState(10);
+  const [highlightedId, setHighlightedId] = useState(null);
+  const [focusedId, setFocusedId] = useState(null);
+  const mapRef = useRef();
 
   useEffect(() => {
-    if (hasAskedForGeolocation.current) {
-      return
-    }
+    const fetchLaundries = async () => {
+      setLoading(true);
+      try {
+        const params = { limit };
+        if (userPosition) {
+          params.latitude = userPosition[0];
+          params.longitude = userPosition[1];
+        }
+        if (search) {
+          params.query = search;
+        }
+        const data = await laundryService.getNearbyLaundries(params);
+        setLaundries(Array.isArray(data) ? data : (data.laundries || []));
+      } catch (err) {
+        setError('Erreur lors du chargement des laveries.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLaundries();
+  }, [search, userPosition, limit]);
 
-    hasAskedForGeolocation.current = true
-    fetchNearbyLaundries(null, filterDefaults)
-    handleUseGeolocation()
-  }, [fetchNearbyLaundries, handleUseGeolocation])
-
-  useEffect(() => {
-    if (!selectedLaundryId) {
-      return
-    }
-
-    const stillVisible = filteredLaundries.some((laundry) => laundry.id === selectedLaundryId)
-    if (!stillVisible) {
-      setSelectedLaundryId(null)
-    }
-  }, [filteredLaundries, selectedLaundryId])
-
-  useEffect(() => {
-    setVisibleLaundriesCount(INITIAL_VISIBLE_LAUNDRIES)
-  }, [appliedFilters])
-
-  useEffect(() => {
-    localStorage.setItem('favoriteLaundryIds', JSON.stringify(favoriteLaundryIds))
-  }, [favoriteLaundryIds])
+  const handleLocate = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserPosition([pos.coords.latitude, pos.coords.longitude]);
+      },
+      () => {
+        alert('Impossible de récupérer votre position.');
+      }
+    );
+  };
 
   return (
-    <section className={`relative overflow-hidden ${isDarkTheme ? 'bg-slate-950 text-slate-100' : 'bg-white text-slate-900'}`}>
-      <h1 className="text-center text-[24px] font-semibold text-[#3B82F6] px-4 py-6 text-3xl md:px-8 lg:px-10 lg:py-8">
-            Rechercher une laverie
-      </h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-3">
-              <label className="relative block">
-                <img
-                  src={SearchIcon}
-                  alt="Search"
-                  className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2"
-                />
-                <input
-                  type="search"
-                  {...register('query')}
-                  placeholder="Ville, adresse, quartier ou service"
-                  className={`h-12 w-full rounded-[8px] border pl-12 pr-4 text-sm outline-none transition focus:ring-2 focus:ring-sky-500/40 ${isDarkTheme ? 'border-[#D1D5DB] bg-slate-950/60 text-slate-100 placeholder:text-slate-500' : 'border-[#D1D5DB] bg-white text-slate-900 placeholder:text-slate-400'}`}
-                />
-              </label>
-
-              <button
-                type="button"
-                onClick={handleUseGeolocation}
-                disabled={isSubmitting}
-                title="Utiliser ma géolocalisation"
-                aria-label="Utiliser ma géolocalisation"
-                className="inline-flex h-12 w-12 items-center justify-center rounded-[8px] bg-[#3B82F6] text-white transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <MapPin className="h-5 w-5" />
+    <div className="flex flex-col md:flex-row gap-6 w-full relative">
+      {/* Le bouton de filtre avancé reste, la modale est supprimée */}
+      {/* Partie gauche : Carte + Formulaire */}
+      <div className="flex flex-col w-full md:w-2/3 gap-4">
+        {/* Formulaire sous la carte */}
+        <form
+          className="flex flex-col sm:flex-row gap-2 p-2"
+          onSubmit={e => { e.preventDefault(); }}
+        >
+          <div className="flex flex-row w-full gap-2">
+            <div className="relative flex-1 flex items-center">
+              <input
+                type="text"
+                placeholder="Ville, adresse, quartier ou service..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full flex items-center rounded-[8px] border border-[#D1D5DB] pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+              <img
+                src={SearchIcon}
+                alt="Rechercher"
+                className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 opacity-60 pointer-events-none"
+              />
+            </div>
+            <div className="flex flex-row gap-[8px] items-center">
+              <button type="button" onClick={handleLocate} title="Me localiser" className=" rounded-[8px] hover:bg-blue-100 flex items-center">
+                <span className="w-[38px] h-[38px] bg-[#3B82F6] rounded-lg flex items-center justify-center">
+                  <img src={Logo} alt='LaundryMap Logo' className="w-5 h-5 object-contain" />
+                </span>
               </button>
-
-              <button
-                type="button"
-                onClick={() => setShowFilters((value) => !value)}
-                aria-expanded={showFilters}
-                title="Afficher les filtres"
-                aria-label="Afficher les filtres"
-                className={`inline-flex h-12 w-12 items-center justify-center rounded-[8px] border transition ${showFilters ? 'border-sky-500 bg-sky-500/10 text-sky-600' : isDarkTheme ? 'border-slate-700 bg-slate-950/60 text-slate-200 hover:bg-slate-900' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'}`}
-              >
-                <SlidersHorizontal className="h-4 w-4" />
+              <button type="button" title="Filtrage avancé" className=" rounded-[8px] hover:bg-blue-100 flex items-center">
+                <span className="w-[38px] h-[38px] border border-[#D1D5DB] rounded-lg flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" className="w-5 h-5" aria-label="Icône réglages/variation">
+                    <path d="M6.66667 3.33325H2" stroke="gray" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M8 12.6667H2" stroke="gray" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M9.33337 2V4.66667" stroke="gray" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M10.6666 11.3333V13.9999" stroke="gray" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M14 8H8" stroke="gray" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M14 12.6667H10.6666" stroke="gray" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M14 3.33325H9.33337" stroke="gray" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M5.33337 6.66675V9.33342" stroke="gray" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M5.33333 8H2" stroke="gray" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
               </button>
             </div>
-
-            {isLoadingLaundries && (
-              <p className={`text-sm ${isDarkTheme ? 'text-slate-300' : 'text-slate-600'}`}>
-                Recherche des laveries proches en cours...
-              </p>
-            )}
-
-            {apiError && (
-              <p className="text-sm text-red-500">{apiError}</p>
-            )}
-
-            {showFilters && (
-              <div className={`rounded-3xl border p-4 sm:p-5 ${isDarkTheme ? 'border-slate-800 ' : 'border-slate-200 '}`}>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-500">Filtres avancés</p>
-                    <p className={`mt-1 text-sm ${isDarkTheme ? 'text-slate-300' : 'text-slate-600'}`}>
-                      Affine ta recherche avant de lancer la requête.
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition ${isDarkTheme ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-600 hover:bg-white'}`}
-                  >
-                    <X className="h-4 w-4" />
-                    Réinitialiser
-                  </button>
-                </div>
-
-                <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                  <label className="space-y-2 text-sm font-medium">
-                    <span className={isDarkTheme ? 'text-slate-300' : 'text-slate-700'}>Ville</span>
-                    <select
-                      {...register('city')}
-                      className={`h-11 w-full rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-sky-500/40 ${isDarkTheme ? 'border-slate-700 bg-slate-950/60 text-slate-100' : 'border-slate-200 bg-white text-slate-900'}`}
-                    >
-                      <option value="all">Toutes les villes</option>
-                      {cities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label className="space-y-2 text-sm font-medium">
-                    <span className={isDarkTheme ? 'text-slate-300' : 'text-slate-700'}>Note minimum</span>
-                    <select
-                      {...register('minRating')}
-                      className={`h-11 w-full rounded-2xl border px-4 outline-none transition focus:ring-2 focus:ring-sky-500/40 ${isDarkTheme ? 'border-slate-700 bg-slate-950/60 text-slate-100' : 'border-slate-200 bg-white text-slate-900'}`}
-                    >
-                      <option value="">Toutes</option>
-                      <option value="4">4 étoiles et plus</option>
-                      <option value="4.5">4,5 étoiles et plus</option>
-                      <option value="4.8">4,8 étoiles et plus</option>
-                    </select>
-                  </label>
-
-                  <label className={`flex h-11 items-center gap-3 rounded-2xl border px-4 text-sm font-medium ${isDarkTheme ? 'border-slate-700 bg-slate-950/60 text-slate-100' : 'border-slate-200 bg-white text-slate-700'}`}>
-                    <input type="checkbox" {...register('openNow')} className="h-4 w-4 rounded border-slate-300 text-sky-500 focus:ring-sky-500" />
-                    Ouvert maintenant
-                  </label>
-
-                  <label className={`flex h-11 items-center gap-3 rounded-2xl border px-4 text-sm font-medium ${isDarkTheme ? 'border-slate-700 bg-slate-950/60 text-slate-100' : 'border-slate-200 bg-white text-slate-700'}`}>
-                    <input type="checkbox" {...register('featured')} className="h-4 w-4 rounded border-slate-300 text-sky-500 focus:ring-sky-500" />
-                    Coup de cœur
-                  </label>
-                </div>
-
-                <p className={`mt-4 text-xs ${isDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>
-                  Les résultats filtrés sont prêts à être branchés sur la suite de la page.
-                </p>
-              </div>
-            )}
-          </form>
-
-      {hasSearchQuery && (
-        <p className="mt-3 text-[12px] font-bold text-[#3B82F6]">
-          {filteredLaundries.length} {filteredLaundries.length > 1 ? 'laveries trouvées' : 'laverie trouvée'}
-        </p>
-      )}
-
-      <div className="mt-6">
-        <div className="overflow-hidden">
-          <MapContainer center={FRANCE_CENTER} zoom={6} className="h-[380px] w-full border-0">
+          </div>
+        </form>
+        <div className="h-[320px] md:h-[480px] rounded-lg overflow-hidden shadow">
+          <MapContainer
+            center={(() => {
+              if (focusedId) {
+                const focused = laundries.find(l => l.id === focusedId);
+                if (focused) return [focused.latitude, focused.longitude];
+              }
+              return userPosition || DEFAULT_POSITION;
+            })()}
+            zoom={DEFAULT_ZOOM}
+            style={{ height: '100%', width: '100%', zIndex: 0 }}
+            whenCreated={mapInstance => { mapRef.current = mapInstance; }}
+          >
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution="&copy; OpenStreetMap contributors"
             />
-
-            <MapInstanceBridge onReady={setMapInstance} />
-            <MapViewportBridge onBoundsChange={setMapBounds} />
-
-            <MapAutoCenter laundries={mapLaundries} userPosition={userPosition} />
-
-            {mapLaundries.map((laundry) => {
-              const isActive = selectedLaundryId === laundry.id || hoveredLaundryId === laundry.id
-
+            {userPosition && (
+              <Marker position={userPosition}>
+                <Popup>Vous êtes ici</Popup>
+              </Marker>
+            )}
+            {laundries.map((laundry) => {
+              let markerIcon = undefined;
+              if (highlightedId === laundry.id) {
+                markerIcon = L.icon({
+                  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+                  iconSize: [30, 49],
+                  iconAnchor: [15, 49],
+                  popupAnchor: [1, -34],
+                  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+                  className: 'marker-highlight',
+                });
+              }
               return (
-                <CircleMarker
+                <Marker
                   key={laundry.id}
-                  center={[laundry.latitude, laundry.longitude]}
-                  radius={isActive ? 11 : 8}
+                  position={[laundry.latitude, laundry.longitude]}
                   eventHandlers={{
-                    click: () => handleMarkerClick(laundry),
-                    mouseover: () => setHoveredLaundryId(laundry.id),
-                    mouseout: () => setHoveredLaundryId((current) => (current === laundry.id ? null : current)),
+                    click: () => {
+                      setHighlightedId(laundry.id);
+                      setFocusedId(laundry.id);
+                    },
+                    mouseover: () => setHighlightedId(laundry.id),
+                    mouseout: () => setHighlightedId(null),
                   }}
-                  pathOptions={isActive
-                    ? { color: '#1D4ED8', fillColor: '#2563EB', fillOpacity: 1 }
-                    : { color: '#2563EB', fillColor: '#3B82F6', fillOpacity: 0.85 }}
+                  {...(markerIcon ? { icon: markerIcon } : {})}
                 >
                   <Popup>
-                    <div>
-                      <strong>{laundry.establishmentName}</strong>
-                      <br />
-                      {laundry.address}, {laundry.city}
-                    </div>
+                    <strong>{laundry.establishmentName}</strong><br />
+                    {laundry.address}, {laundry.city}
                   </Popup>
-                </CircleMarker>
-              )
+                </Marker>
+              );
             })}
-
-            {userPosition && (
-              <CircleMarker
-                center={[userPosition.latitude, userPosition.longitude]}
-                radius={9}
-                pathOptions={{ color: '#047857', fillColor: '#10B981', fillOpacity: 0.95 }}
-              >
-                <Popup>Votre position</Popup>
-              </CircleMarker>
-            )}
           </MapContainer>
         </div>
-
-        <div className="mt-4">
-          <h2 className={`text-[12px] font-semibold flex items-center gap-2 ${isDarkTheme ? 'text-black' : 'text-black'}`}>
-            <img src={AddressIcon} alt="Nearby" className="inline-block h-[26px] w-[26px]" />
-            Laveries a proximite
-          </h2>
-
-          {!userPosition && (
-            <p className={`mt-2 text-xs ${isDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>
-              Distance inconnue tant que la geolocalisation n est pas autorisee. Clique sur l icone de localisation pour l activer.
-            </p>
-          )}
-
-          {nearbyLaundries.length === 0 ? (
-            <p className={`mt-2 text-sm ${isDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>
-              Aucune laverie ne correspond a votre recherche.
-            </p>
-          ) : (
-            <div className="mt-3 space-y-4">
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {nearbyLaundries.map((laundry) => (
-                  <div
-                    key={`nearby-${laundry.id}`}
-                    ref={(node) => registerCardRef(laundry.id, node)}
-                  >
-                    <LaundryCard
-                      laundry={laundry}
-                      userPosition={userPosition}
-                      isDarkTheme={isDarkTheme}
-                      isHighlighted={selectedLaundryId === laundry.id || hoveredLaundryId === laundry.id}
-                      isFavorite={favoriteLaundryIds.includes(laundry.id)}
-                      onToggleFavorite={() => toggleFavoriteLaundry(laundry.id)}
-                      onMouseEnter={() => setHoveredLaundryId(laundry.id)}
-                      onMouseLeave={() => setHoveredLaundryId((current) => (current === laundry.id ? null : current))}
-                      onClick={() => handleCardClick(laundry)}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {hasMoreLaundries && (
-                <div className="flex justify-center">
-                  <button
-                    type="button"
-                    onClick={handleShowMore}
-                    className="inline-flex items-center justify-center rounded-[8px] border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                  >
-                    Afficher plus
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
       </div>
-    </section>
-  )
-}
+      {/* Partie droite : Liste des laveries */}
+      <div className="w-full md:w-1/3 flex flex-col gap-4">
+        {loading && <div>Chargement...</div>}
+        {error && <div className="text-red-500">{error}</div>}
+        {!loading && laundries.length === 0 && <div>Aucune laverie trouvée.</div>}
+        {laundries.map((laundry) => (
+          <LaundryCard
+            key={laundry.id}
+            laundry={laundry}
+            isDarkTheme={isDarkTheme}
+            isHighlighted={highlightedId === laundry.id}
+            onMouseEnter={() => setHighlightedId(laundry.id)}
+            onMouseLeave={() => setHighlightedId(null)}
+            onClick={() => {
+              setFocusedId(laundry.id);
+              // Centre la carte sur le marker
+              if (mapRef.current) {
+                mapRef.current.setView([laundry.latitude, laundry.longitude], mapRef.current.getZoom(), { animate: true });
+              }
+            }}
+          />
+        ))}
+        {!loading && laundries.length >= limit && (
+          <button
+            className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            onClick={() => setLimit(l => l + 10)}
+          >
+            Afficher plus de laveries
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
 
-export default LaundryExplorer
+export default LaundryExplorer;
