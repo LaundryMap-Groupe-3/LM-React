@@ -349,6 +349,18 @@
   "explorer": {
     "badge": "Find a nearby laundry",
     "title": "Interactive map and synchronized list",
+    "open": "Open",
+    "closed": "Closed",
+    "add_favorite": "Add to favorites",
+    "remove_favorite": "Remove from favorites",
+    "favorite_login_required": "You must be logged in or registered to add a laundry to favorites.",
+    "laundry_photo_alt": "Photo of {{name}}",
+    "address_icon_alt": "Location icon",
+    "star_icon_alt": "Star",
+    "see_icon_alt": "See",
+    "see_laundry": "See laundry",
+    "distance": "Distance",
+    "unknown_distance": "Unknown distance",
     "subtitle": "Quickly spot laundries around you, compare results, and keep the map aligned with the list.",
     "home_intro_logged": "Browse the laundries on the map, compare results, and get to the closest one faster.",
     "home_intro_guest": "Explore laundries through the map and the list to quickly find the ones you need.",
@@ -378,6 +390,9 @@
     "proximity": "Distance",
     "distance_unknown": "Unknown distance",
     "reviews": "reviews"
+    ,
+    "load_error": "Unable to load laundries from the server.",
+    "show_more": "Show more"
   },
   "errors": {
     "404_title": "Page Not Found",
