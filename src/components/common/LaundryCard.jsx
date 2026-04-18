@@ -166,10 +166,16 @@ const LaundryCard = ({
                 type="button"
                 aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                 onClick={(event) => {
-                  event.preventDefault()
-                  event.stopPropagation()
+                  event.preventDefault();
+                  event.stopPropagation();
+                  // Remplacer ce test par la vraie logique d'authentification !
+                  const isLoggedIn = false; // À remplacer par le vrai état utilisateur
+                  if (!isLoggedIn) {
+                    window.alert('Vous devez être connecté ou inscrit pour ajouter une laverie en favori.');
+                    return;
+                  }
                   if (onToggleFavorite) {
-                    onToggleFavorite()
+                    onToggleFavorite();
                   }
                 }}
                 className={`inline-flex h-6 w-6 items-center justify-center transition ${isFavorite ? 'text-rose-500' : (isDarkTheme ? 'text-rose-300 hover:text-rose-200' : 'text-rose-500 hover:text-rose-600')}`}
@@ -196,24 +202,24 @@ const LaundryCard = ({
 
           <div className="mb-3 flex h-[69px] min-w-0 flex-1 flex-col justify-between">
             <div className="flex flex-col items-start gap-1">
-              <p className="text-[7px] flex items-center gap-1 font-semibold text-black">
+              <p className="text-[10px] flex items-center gap-1 font-semibold text-black">
                 <img src={AddressIcon} alt="Icône de localisation" className="inline-block h-[13px] w-[13px]" />
                 {laundry.address}, {laundry.city}
               </p>
               {rating !== null && (
                 <span
-                  className="inline-flex items-center gap-1 text-[7px] font-semibold text-[#FFD700]"
+                  className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#FFD700]"
                 >
                   <img src={StarIcon} alt="Étoile" className="h-[13px] w-[13px]" />
                   {rating.toFixed(1)}/5
                   {reviewCount !== null && (
-                    <span className="text-[#FFD700] text-[7px]">
+                    <span className="text-[#FFD700] text-[10px]">
                       ({reviewCount} avis)
                     </span>
                   )}
                 </span>
               )}
-              <span className="text-[7px] font-semibold text-black">
+              <span className="text-[10px] font-semibold text-black">
                 Distance: {distanceKm !== null ? `${distanceKm.toFixed(1)} km` : 'Distance inconnue'}
               </span>
             </div>
@@ -221,29 +227,16 @@ const LaundryCard = ({
             <div className="flex justify-end">
               <Link
                 to={`/laundry/${laundry.id}`}
-                className="inline-flex h-[25px] w-[105px] items-center justify-center gap-[5px] rounded-[8px] bg-[#3B82F6] px-2 py-1 text-[7px] font-semibold text-white transition hover:bg-blue-700"
+                className="inline-flex h-[25px] w-[135px] items-center justify-center gap-[5px] rounded-[8px] bg-[#3B82F6] px-2 py-1 text-[10px] font-semibold text-white transition hover:bg-blue-700"
                 style={{ textDecoration: 'none' }}
               >
-                <img src={EyeIcon} alt="Voir" className="h-[9px] w-[9px]" />
+                <img src={EyeIcon} alt="Voir" className="h-[13px] w-[13px]" />
                 Consulter la laverie
               </Link>
             </div>
           </div>
         </div>
       </div>
-
-      {Array.isArray(laundry.services) && laundry.services.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {laundry.services.slice(0, 2).map((service) => (
-            <span
-              key={`${laundry.id}-${service}`}
-              className={`rounded-full px-2 py-1 text-xs ${isDarkTheme ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}
-            >
-              {service}
-            </span>
-          ))}
-        </div>
-      )}
     </article>
   )
 }
