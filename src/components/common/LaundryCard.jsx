@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import StarIcon from '../../assets/images/icons/Star-yellow.svg';
 import AddressIcon from '../../assets/images/icons/Map.svg';
 import EyeIcon from '../../assets/images/icons/Eye-white.svg';
+import { useTranslation } from 'react-i18next';
+import { usePreferences } from '../../context/PreferencesContext';
 const parseOpeningHours = (openingHours) => {
   if (!openingHours || typeof openingHours !== 'string') {
     return null
@@ -112,6 +114,8 @@ const LaundryCard = ({
   onMouseLeave,
   onClick,
 }) => {
+  const { t } = useTranslation();
+  const { isAuthenticated } = usePreferences();
   const imageUrl = laundry.imageUrl || laundry.image || laundry.photoUrl || laundry.photo || laundry.coverUrl || ''
   const ratingValue = Number(laundry.averageNote ?? laundry.rating)
   const rating = Number.isFinite(ratingValue) ? ratingValue : null
@@ -133,21 +137,19 @@ const LaundryCard = ({
       tabIndex={0}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault()
+          event.preventDefault();
           if (onClick) {
-            onClick()
+            onClick();
           }
         }
       }}
       className={`cursor-pointer rounded-[8px] border border-[#E5E7EB] p-4 shadow-sm transition ${isHighlighted ? 'ring-2 ring-sky-500' : ''} ${isDarkTheme ? 'text-slate-200' : 'text-slate-700'}`}
     >
-
       <div className="space-y-2">
         <div className='flex items-start justify-between gap-2'>
           <h3 className={`text-[11px] font-bold text-[#3B82F6]`}>
             {laundry.establishmentName}
           </h3>
-
           <div className="flex flex-col items-end gap-1">
             <div className="flex items-center gap-2">
               <span
@@ -159,19 +161,16 @@ const LaundryCard = ({
                   aria-hidden="true"
                   className={`h-2 w-2 rounded-full ${isCurrentlyOpen ? (isDarkTheme ? 'bg-[#0E9620]/85' : 'bg-[#0E9620]') : 'bg-rose-500'}`}
                 />
-                {isCurrentlyOpen ? 'Ouvert' : 'Fermé'}
+                {isCurrentlyOpen ? t('common.open', 'Ouvert') : t('common.closed', 'Fermé')}
               </span>
-
               <button
                 type="button"
-                aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                aria-label={isFavorite ? t('explorer.remove_favorite', 'Retirer des favoris') : t('explorer.add_favorite', 'Ajouter aux favoris')}
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
-                  // Remplacer ce test par la vraie logique d'authentification !
-                  const isLoggedIn = false; // À remplacer par le vrai état utilisateur
-                  if (!isLoggedIn) {
-                    window.alert('Vous devez être connecté ou inscrit pour ajouter une laverie en favori.');
+                  if (!isAuthenticated) {
+                    window.alert(t('explorer.favorite_login_required', 'Vous devez être connecté ou inscrit pour ajouter une laverie en favori.'));
                     return;
                   }
                   if (onToggleFavorite) {
@@ -189,7 +188,7 @@ const LaundryCard = ({
           {imageUrl ? (
             <img
               src={imageUrl}
-              alt={`Photo de ${laundry.establishmentName}`}
+              alt={t('explorer.laundry_photo_alt', { name: laundry.establishmentName }, `Photo de ${laundry.establishmentName}`)}
               className="mb-3 h-[69px] w-[78px] rounded-[8px] object-cover"
               loading="lazy"
             />
@@ -199,39 +198,37 @@ const LaundryCard = ({
               aria-hidden="true"
             />
           )}
-
           <div className="mb-3 flex h-[69px] min-w-0 flex-1 flex-col justify-between">
             <div className="flex flex-col items-start gap-1">
               <p className="text-[10px] flex items-center gap-1 font-semibold text-black">
-                <img src={AddressIcon} alt="Icône de localisation" className="inline-block h-[13px] w-[13px]" />
+                <img src={AddressIcon} alt={t('explorer.address_icon_alt', 'Icône de localisation')} className="inline-block h-[13px] w-[13px]" />
                 {laundry.address}, {laundry.city}
               </p>
               {rating !== null && (
                 <span
                   className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#FFD700]"
                 >
-                  <img src={StarIcon} alt="Étoile" className="h-[13px] w-[13px]" />
+                  <img src={StarIcon} alt={t('explorer.star_icon_alt', 'Étoile')} className="h-[13px] w-[13px]" />
                   {rating.toFixed(1)}/5
                   {reviewCount !== null && (
                     <span className="text-[#FFD700] text-[10px]">
-                      ({reviewCount} avis)
+                      ({reviewCount} {t('explorer.reviews', 'avis')})
                     </span>
                   )}
                 </span>
               )}
               <span className="text-[10px] font-semibold text-black">
-                Distance: {distanceKm !== null ? `${distanceKm.toFixed(1)} km` : 'Distance inconnue'}
+                {t('explorer.distance', 'Distance')}: {distanceKm !== null ? `${distanceKm.toFixed(1)} km` : t('explorer.unknown_distance', 'Distance inconnue')}
               </span>
             </div>
-
             <div className="flex justify-end">
               <Link
                 to={`/laundry/${laundry.id}`}
                 className="inline-flex h-[25px] w-[135px] items-center justify-center gap-[5px] rounded-[8px] bg-[#3B82F6] px-2 py-1 text-[10px] font-semibold text-white transition hover:bg-blue-700"
                 style={{ textDecoration: 'none' }}
               >
-                <img src={EyeIcon} alt="Voir" className="h-[13px] w-[13px]" />
-                Consulter la laverie
+                <img src={EyeIcon} alt={t('explorer.see_icon_alt', 'Voir')} className="h-[13px] w-[13px]" />
+                {t('explorer.see_laundry', 'Consulter la laverie')}
               </Link>
             </div>
           </div>

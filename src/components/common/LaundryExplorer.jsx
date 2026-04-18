@@ -14,6 +14,7 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
 // import demoLaundries from '../../data/demoLaundries';
 import LaundryCard from './LaundryCard';
 import React, { useEffect, useState, useRef } from "react";
+import { useTranslation } from 'react-i18next';
 import laundryService from '../../services/laundryService';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -52,6 +53,7 @@ function SetViewOnLocation({ position }) {
 }
 
 const LaundryExplorer = () => {
+	const { t } = useTranslation();
 	const [laundries, setLaundries] = useState([]);
 	const [position, setPosition] = useState(null);
 	const [error, setError] = useState(null);
@@ -63,27 +65,26 @@ const LaundryExplorer = () => {
 	const [highlightedLaundryId, setHighlightedLaundryId] = useState(null);
 	const mapRef = useRef();
    // Chargement des laveries depuis l'API
-   useEffect(() => {
-	   // On n'envoie PAS de latitude/longitude pour récupérer toutes les laveries
-	   laundryService.getNearbyLaundries({})
-		   .then(data => {
-			   setLaundries(Array.isArray(data.laundries) ? data.laundries : []);
-		   })
-		   .catch((err) => {
-			   setError("Impossible de charger les laveries depuis le serveur.");
-			   // eslint-disable-next-line no-console
-			   console.error('[LaundryExplorer] Erreur récupération laveries:', err);
-		   });
-   }, []);
+	useEffect(() => {
+		laundryService.getNearbyLaundries({})
+			.then(data => {
+				setLaundries(Array.isArray(data.laundries) ? data.laundries : []);
+			})
+			.catch((err) => {
+				setError(t('explorer.load_error', 'Impossible de charger les laveries depuis le serveur.'));
+				// eslint-disable-next-line no-console
+				console.error('[LaundryExplorer] Erreur récupération laveries:', err);
+			});
+	}, [t]);
 
    // Fonction pour revenir à la position utilisateur
-   function handleRecenter() {
-	   if (position) {
-		   setMapCenter(position);
-		   setMode('position');
-		   setHighlightedLaundryId(null);
-	   }
-   }
+	function handleRecenter() {
+		if (position) {
+			setMapCenter(position);
+			setMode('position');
+			setHighlightedLaundryId(null);
+		}
+	}
 
    // Fonction de recherche
    function handleSearchChange(e) {
@@ -124,7 +125,7 @@ const LaundryExplorer = () => {
 
 	useEffect(() => {
 		if (!navigator.geolocation) {
-			setError("La géolocalisation n'est pas supportée par ce navigateur.");
+			setError(t('explorer.geolocation_unavailable', "La géolocalisation n'est pas supportée par ce navigateur."));
 			return;
 		}
 		navigator.geolocation.getCurrentPosition(
@@ -141,10 +142,10 @@ const LaundryExplorer = () => {
 				}, 100);
 			},
 			(err) => {
-				setError("Impossible d'obtenir la position : " + err.message);
+				setError(t('explorer.geolocation_denied', 'Impossible d\'obtenir la position : ') + err.message);
 			}
 		);
-	}, []);
+	}, [t]);
 
 	// Synchroniser mapCenter si pas de position
 	useEffect(() => {
@@ -235,26 +236,26 @@ const LaundryExplorer = () => {
 				   <div className="flex-1 min-w-0 flex flex-col w-full md:w-auto">
 					   {/* Formulaire de recherche non fonctionnel */}
 					   <div className="w-full flex justify-center mb-2 mt-2">
-						<form className="px-4 py-2 flex gap-2 items-center w-full max-w-xl relative" onSubmit={handleSearchSubmit}>
-							<span className="absolute left-6 top-1/2 -translate-y-1/2 pointer-events-none">
-								 <img src={SearchIcon} alt="Rechercher" className="h-5 w-5 text-gray-400" />
-							</span>
-							<input
-								 type="text"
-								 placeholder="Rechercher une laverie, une ville..."
-								 className="flex-1 border border-[#D1D5DB] rounded-[8px] w-[229px] h-[38px] pl-10 pr-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
-								 value={search}
-								 onChange={handleSearchChange}
-							 />
-								 <button
-									  type="button"
-								  onClick={handleRecenter}
-								  className={"bg-[#3B82F6] w-[38px] h-[38px] rounded-[8px] py-1 flex items-center justify-center transition " + (!position ? "opacity-50 cursor-not-allowed" : "cursor-pointer")}
-									  title="Revenir sur ma position"
-								  >
-									  <img src={Logo} alt="Ma position" className="inline-block h-[20px] w-[20px]" />
-								  </button>
-						</form>
+								<form className="px-4 py-2 flex gap-2 items-center w-full max-w-xl relative" onSubmit={handleSearchSubmit}>
+									<span className="absolute left-6 top-1/2 -translate-y-1/2 pointer-events-none">
+										<img src={SearchIcon} alt={t('explorer.search_placeholder', 'Rechercher')} className="h-5 w-5 text-gray-400" />
+									</span>
+									<input
+										type="text"
+										placeholder={t('explorer.search_placeholder', 'Rechercher une laverie, une ville...')}
+										className="flex-1 border border-[#D1D5DB] rounded-[8px] w-[229px] h-[38px] pl-10 pr-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
+										value={search}
+										onChange={handleSearchChange}
+									/>
+									<button
+										type="button"
+										onClick={handleRecenter}
+										className={"bg-[#3B82F6] w-[38px] h-[38px] rounded-[8px] py-1 flex items-center justify-center transition " + (!position ? "opacity-50 cursor-not-allowed" : "cursor-pointer")}
+										title={t('explorer.locate_me', 'Revenir sur ma position')}
+									>
+										<img src={Logo} alt={t('explorer.locate_me', 'Ma position')} className="inline-block h-[20px] w-[20px]" />
+									</button>
+								</form>
 					   </div>
 					   {/* Carte */}
 					   <div className="h-[500px] w-full">
@@ -301,9 +302,9 @@ const LaundryExplorer = () => {
 				   {/* Liste à droite */}
 				   <div className="flex-1 min-w-[220px] max-w-[480px] mt-0 w-full md:w-auto">
 					   <div className="mb-3">
-						   	<h3 className="text-[12px] font-semibold flex items-center justify-start gap-2 text-gray-800">
-						   		<img src={AdressIcon} alt="Icône de localisation" className="inline-block h-[26px] w-[26px] mr-1" />
-								Laveries à proximité
+							<h3 className="text-[12px] font-semibold flex items-center justify-start gap-2 text-gray-800">
+								<img src={AdressIcon} alt={t('explorer.address_icon_alt', 'Icône de localisation')} className="inline-block h-[26px] w-[26px] mr-1" />
+								{t('explorer.list_title', 'Laveries à proximité')}
 							</h3>
 					   </div>
 					   {laundriesVisible.length > 0 ? (
@@ -317,22 +318,22 @@ const LaundryExplorer = () => {
 								   />
 							   ))}
 							</div>
-							   {!showAll && laundriesVisible.length > 3 && (
-								   <button
-									   onClick={() => setShowAll(true)}
-									   className="mt-4 mb-2 px-3 py-1 cursor-pointer text-[12px] text-[#3B82F6] font-medium"
-								   >
-									   Afficher plus
-								   </button>
-							   )}
+							 {!showAll && laundriesVisible.length > 3 && (
+								 <button
+									 onClick={() => setShowAll(true)}
+									 className="mt-4 mb-2 px-3 py-1 cursor-pointer text-[12px] text-[#3B82F6] font-medium"
+								 >
+									 {t('explorer.show_more', 'Afficher plus')}
+								 </button>
+							 )}
 						   </>
 					   ) : (
-						   <div className="text-gray-500 text-sm">
-							   {laundries.length === 0
-								   ? "Aucune laverie trouvée."
-								   : "Aucune laverie dans cette zone."
-							   }
-						   </div>
+						 <div className="text-gray-500 text-sm">
+							 {laundries.length === 0
+								 ? t('explorer.no_results', 'Aucune laverie trouvée.')
+								 : t('explorer.no_results_hint', 'Aucune laverie dans cette zone.')
+							 }
+						 </div>
 					   )}
 				   </div>
 			   </div>

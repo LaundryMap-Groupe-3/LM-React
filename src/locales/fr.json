@@ -322,6 +322,18 @@
   "explorer": {
     "badge": "Trouver une laverie proche",
     "title": "Carte interactive et liste synchronisée",
+    "open": "Ouvert",
+    "closed": "Fermé",
+    "add_favorite": "Ajouter aux favoris",
+    "remove_favorite": "Retirer des favoris",
+    "favorite_login_required": "Vous devez être connecté ou inscrit pour ajouter une laverie en favori.",
+    "laundry_photo_alt": "Photo de {{name}}",
+    "address_icon_alt": "Icône de localisation",
+    "star_icon_alt": "Étoile",
+    "see_icon_alt": "Voir",
+    "see_laundry": "Consulter la laverie",
+    "distance": "Distance",
+    "unknown_distance": "Distance inconnue",
     "subtitle": "Repérez rapidement les laveries autour de vous, comparez les résultats et gardez la carte alignée avec la liste.",
     "home_intro_logged": "Parcourez les laveries disponibles sur la carte, comparez les résultats et accédez plus vite à la plus proche.",
     "home_intro_guest": "Explorez les laveries par carte et par liste pour repérer rapidement celles qui vous intéressent.",
@@ -351,6 +363,9 @@
     "proximity": "Distance",
     "distance_unknown": "Distance inconnue",
     "reviews": "avis"
+    ,
+    "load_error": "Impossible de charger les laveries depuis le serveur.",
+    "show_more": "Afficher plus"
   },
   "errors": {
     "404_title": "Page non trouvée",
