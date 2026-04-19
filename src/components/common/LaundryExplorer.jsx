@@ -29,6 +29,7 @@ import WashingMachineIcon from '../../assets/images/icons/Washing-Machine.svg';
 import AdressIcon from '../../assets/images/icons/Address.svg';
 import Logo from '../../assets/images/logos/logo-laundrymap.svg';
 import SearchIcon from '../../assets/images/icons/search.svg';
+import SystemIcon from '../../assets/images/icons/system.svg';
 
 
 // Icône personnalisée pour les laveries
@@ -53,6 +54,7 @@ function SetViewOnLocation({ position }) {
 }
 
 const LaundryExplorer = () => {
+	const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 	const { t } = useTranslation();
 	const [laundries, setLaundries] = useState([]);
 	const [position, setPosition] = useState(null);
@@ -64,6 +66,13 @@ const LaundryExplorer = () => {
 	const [search, setSearch] = useState("");
 	const [highlightedLaundryId, setHighlightedLaundryId] = useState(null);
 	const mapRef = useRef();
+	// State pour la valeur du périmètre (pour gérer la couleur)
+	const [radiusValue, setRadiusValue] = useState('');
+	function handleRadiusChange(e) {
+		// Autorise uniquement les chiffres
+		const val = e.target.value.replace(/[^0-9]/g, '');
+		setRadiusValue(val);
+	}
    // Chargement des laveries depuis l'API
 	useEffect(() => {
 		laundryService.getNearbyLaundries({})
@@ -77,7 +86,26 @@ const LaundryExplorer = () => {
 			});
 	}, [t]);
 
-   // Fonction pour revenir à la position utilisateur
+	// Ouvre/ferme la modal de filtre
+	function openFilterModal() {
+		setIsFilterModalOpen(true);
+		document.body.style.overflow = 'hidden';
+	}
+	function closeFilterModal() {
+		setIsFilterModalOpen(false);
+		document.body.style.overflow = '';
+	}
+
+	// Nettoyage si la modal est fermée par un autre moyen (sécurité)
+	useEffect(() => {
+		if (!isFilterModalOpen) {
+			document.body.style.overflow = '';
+		}
+		return () => {
+			document.body.style.overflow = '';
+		};
+	}, [isFilterModalOpen]);
+	 // Fonction pour revenir à la position utilisateur
 	function handleRecenter() {
 		if (position) {
 			setMapCenter(position);
@@ -231,32 +259,129 @@ const LaundryExplorer = () => {
 	   console.log('[LaundryExplorer] laundries:', laundries);
 
 		return (
-			<div className="flex flex-col md:flex-row gap-8 items-start w-full">
+			<div className="flex flex-col md:flex-row gap-8 items-baseline w-full">
 				   {/* Colonne gauche : formulaire + carte */}
 				   <div className="flex-1 min-w-0 flex flex-col w-full md:w-auto">
-					   {/* Formulaire de recherche non fonctionnel */}
-					   <div className="w-full flex justify-center mb-2 mt-2">
-								<form className="px-4 py-2 flex gap-2 items-center w-full max-w-xl relative" onSubmit={handleSearchSubmit}>
-									<span className="absolute left-6 top-1/2 -translate-y-1/2 pointer-events-none">
-										<img src={SearchIcon} alt={t('explorer.search_placeholder', 'Rechercher')} className="h-5 w-5 text-gray-400" />
-									</span>
-									<input
-										type="text"
-										placeholder={t('explorer.search_placeholder', 'Rechercher une laverie, une ville...')}
-										className="flex-1 border border-[#D1D5DB] rounded-[8px] w-[229px] h-[38px] pl-10 pr-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
-										value={search}
-										onChange={handleSearchChange}
-									/>
+						{/* Formulaire de recherche + bouton filtre */}
+						<div className="w-full flex justify-center mb-2 mt-2">
+							<form className="px-4 py-2 flex gap-2 items-center w-full max-w-xl relative" onSubmit={handleSearchSubmit}>
+								<span className="absolute left-6 top-1/2 -translate-y-1/2 pointer-events-none">
+									<img src={SearchIcon} alt={t('explorer.search_placeholder', 'Rechercher')} className="h-5 w-5 text-gray-400" />
+								</span>
+								<input
+									type="text"
+									placeholder={t('explorer.search_placeholder', 'Rechercher une laverie, une ville...')}
+									className="flex-1 border border-[#D1D5DB] rounded-[8px] w-[229px] h-[38px] pl-10 pr-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
+									value={search}
+									onChange={handleSearchChange}
+								/>
+								<button
+									type="button"
+									onClick={handleRecenter}
+									className={"bg-[#3B82F6] w-[38px] h-[38px] rounded-[8px] py-1 flex items-center justify-center transition " + (!position ? "opacity-50 cursor-not-allowed" : "cursor-pointer")}
+									title={t('explorer.locate_me', 'Revenir sur ma position')}
+								>
+									<img src={Logo} alt={t('explorer.locate_me', 'Ma position')} className="inline-block h-[20px] w-[20px]" />
+								</button>
+								<button
+									type="button"
+									onClick={openFilterModal}
+									className="bg-white border border-[#3B82F6] text-[#3B82F6] rounded-[8px] h-[38px] w-[38px] ml-2 flex items-center justify-center hover:bg-[#3B82F6] hover:text-white transition"
+									title={t('explorer.open_filters', 'Filtres')}
+								>
+									<img src={SystemIcon} alt={t('explorer.open_filters', 'Filtres')} className="h-5 w-5" />
+								</button>
+							</form>
+						</div>
+
+						{/* Modal de filtre simple */}
+						{isFilterModalOpen && (
+							<div className="fixed inset-0 z-[9999] flex items-end justify-center">
+								{/* Overlay gris semi-transparent */}
+								<div className="absolute inset-0 bg-gray-800 opacity-60" style={{zIndex: 1}}></div>
+										{/* Modal rectangle moitié bas, fond blanc */}
+										<div
+											className="relative shadow-lg p-6 w-full max-w-[600px] border-t-[#3B82F6] bg-[#CBD5E1]"
+											style={{
+												zIndex: 2,
+												maxHeight: '90vh',
+												overflowY: 'auto',
+												position: 'relative',
+												boxSizing: 'border-box',
+												...(window.innerWidth <= 640 ? {
+													width: '100vw',
+													maxWidth: '100vw',
+													minWidth: '0',
+													left: 0,
+													right: 0,
+													borderTop: '2px solid #3B82F6',
+												} : {})
+											}}
+										>
 									<button
-										type="button"
-										onClick={handleRecenter}
-										className={"bg-[#3B82F6] w-[38px] h-[38px] rounded-[8px] py-1 flex items-center justify-center transition " + (!position ? "opacity-50 cursor-not-allowed" : "cursor-pointer")}
-										title={t('explorer.locate_me', 'Revenir sur ma position')}
+										onClick={closeFilterModal}
+										className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
+										aria-label={t('common.close', 'Fermer')}
 									>
-										<img src={Logo} alt={t('explorer.locate_me', 'Ma position')} className="inline-block h-[20px] w-[20px]" />
+										×
 									</button>
-								</form>
-					   </div>
+									<h2 className="text-lg font-semibold underline mb-4 text-[#3B82F6]">{t('explorer.filters_title', 'Filtrage de la recherche')}</h2>
+									<form className="flex flex-col gap-4 w-full">
+										{/* Périmètre de recherche */}
+										<div>
+											<label className="block text-left font-bold text-[12px] text-[#3B82F6] mb-1">
+												{t('explorer.filter_radius', 'Périmètre de recherche (km)')}
+											</label>
+											<div className="w-full flex items-center bg-white rounded px-2 py-1">
+												<input
+													type="text"
+													inputMode="numeric"
+													pattern="[0-9]*"
+													min="1"
+													max="50"
+													value={radiusValue}
+													onChange={handleRadiusChange}
+													placeholder={t('explorer.filter_radius_placeholder', '10 km')}
+													className={
+														'flex-1 bg-transparent outline-none text-sm ' +
+														(radiusValue === '' ? 'placeholder-gray-400 text-gray-400' : 'text-gray-900')
+													}
+													style={{minWidth: 0}}
+												/>
+											</div>
+										</div>
+										{/* Horaire */}
+										<div>
+											<label className="block text-left font-bold text-[12px] text-[#3B82F6] mb-1">
+												{t('explorer.filter_hours', 'Horaires')}
+											</label>
+											<div className="flex flex-row gap-2">
+												<input type="text" inputMode="numeric" pattern="[0-9]{2}:[0-9]{2}" className="flex-1 bg-white w-full text-center rounded px-2 py-1 placeholder-gray-400" placeholder={t('explorer.filter_time_start_placeholder', '11:00')} />
+												<input type="text" inputMode="numeric" pattern="[0-9]{2}:[0-9]{2}" className="flex-1 bg-white w-full text-center rounded px-2 py-1 placeholder-gray-400" placeholder={t('explorer.filter_time_end_placeholder', '18:00')} />
+											</div>
+										</div>
+										{/* Service (boutons sélectionnables) */}
+										<div>
+											<label className="block text-left font-bold text-[12px] text-[#3B82F6] mb-1">
+												{t('explorer.filter_service', 'Service(s)')}
+											</label>
+											<div className="bg-white rounded-xl p-4 w-full">
+												<ServiceFilter t={t} hideLabel />
+											</div>
+										</div>
+										{/* Moyen de paiement (boutons sélectionnables) */}
+										<div>
+											<label className="block text-left font-bold text-[12px] text-[#3B82F6] mb-1">
+												{t('explorer.filter_payment', 'Moyens de paiement')}
+											</label>
+											<div className="bg-white rounded-xl p-4 w-full">
+												<PaymentFilter t={t} hideLabel />
+											</div>
+										</div>
+									</form>
+								</div>
+							</div>
+						)}
 					   {/* Carte */}
 					   <div className="h-[500px] w-full">
 						<MapContainer
@@ -341,3 +466,124 @@ const LaundryExplorer = () => {
 };
 
 export default LaundryExplorer;
+
+// Composant ServiceFilter pour la sélection visuelle des services
+function ServiceFilter({ t, hideLabel }) {
+	const [selected, setSelected] = React.useState([]);
+	const services = [
+		{ value: 'wifi', label: 'Wi-Fi' },
+		{ value: 'pressing', label: 'Pressing' },
+		{ value: 'seche-linge', label: 'Sèche-linge' },
+		{ value: 'repassage', label: 'Repassage' },
+	];
+
+	function toggleService(value) {
+		setSelected(sel =>
+			sel.includes(value) ? sel.filter(v => v !== value) : [...sel, value]
+		);
+	}
+
+	function removeService(value, e) {
+		e.stopPropagation();
+		setSelected(sel => sel.filter(v => v !== value));
+	}
+
+	   return (
+		   <div>
+			   {!hideLabel && (
+				   <label className="block text-left font-bold text-[12px] text-[#3B82F6] mb-1">
+					   {t('explorer.filter_service', 'Services')}
+				   </label>
+			   )}
+			   <div className="flex flex-wrap gap-2">
+				   {services.map(s => (
+					<button
+						type="button"
+						key={s.value}
+						onClick={() => toggleService(s.value)}
+						className={
+							'flex items-center gap-1 px-3 py-1 rounded-full border transition ' +
+							(selected.includes(s.value)
+								? 'bg-[#3B82F6] text-white border-[#3B82F6] shadow'
+								: 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-blue-100')
+						}
+					>
+						{s.label}
+						{selected.includes(s.value) && (
+							<span
+								onClick={e => removeService(s.value, e)}
+								className="ml-1 text-white bg-blue-500 rounded-full w-4 h-4 flex items-center justify-center text-xs cursor-pointer hover:bg-blue-700"
+								title={t('common.remove', 'Retirer')}
+							>
+								×
+							</span>
+						)}
+					</button>
+				))}
+			</div>
+			<div className="text-xs text-gray-500 mt-1">
+				{t('explorer.filter_service_hint', 'Cliquez pour sélectionner un ou plusieurs services.')}
+			</div>
+		</div>
+	);
+}
+
+// Composant PaymentFilter pour la sélection visuelle des moyens de paiement
+function PaymentFilter({ t, hideLabel }) {
+	const [selected, setSelected] = React.useState([]);
+	const payments = [
+		{ value: 'cb', label: t('explorer.filter_payment_cb', 'Carte bancaire') },
+		{ value: 'especes', label: t('explorer.filter_payment_cash', 'Espèces') },
+		{ value: 'app', label: t('explorer.filter_payment_app', 'Application mobile') },
+	];
+
+	function togglePayment(value) {
+		setSelected(sel =>
+			sel.includes(value) ? sel.filter(v => v !== value) : [...sel, value]
+		);
+	}
+
+	function removePayment(value, e) {
+		e.stopPropagation();
+		setSelected(sel => sel.filter(v => v !== value));
+	}
+
+	   return (
+		   <div>
+			   {!hideLabel && (
+				   <label className="block text-left font-bold text-[12px] text-[#3B82F6] mb-1">
+					   {t('explorer.filter_payment', 'Moyen de paiement')}
+				   </label>
+			   )}
+			   <div className="flex flex-wrap gap-2">
+				   {payments.map(p => (
+					<button
+						type="button"
+						key={p.value}
+						onClick={() => togglePayment(p.value)}
+						className={
+							'flex items-center gap-1 px-3 py-1 rounded-full border transition ' +
+							(selected.includes(p.value)
+								? 'bg-[#3B82F6] text-white border-[#3B82F6] shadow'
+								: 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-blue-100')
+						}
+					>
+						{p.label}
+						{selected.includes(p.value) && (
+							<span
+								onClick={e => removePayment(p.value, e)}
+								className="ml-1 text-white bg-blue-500 rounded-full w-4 h-4 flex items-center justify-center text-xs cursor-pointer hover:bg-blue-700"
+								title={t('common.remove', 'Retirer')}
+							>
+								×
+							</span>
+						)}
+					</button>
+				))}
+			</div>
+			<div className="text-xs text-gray-500 mt-1">
+				{t('explorer.filter_payment_hint', 'Cliquez pour sélectionner un ou plusieurs moyens de paiement.')}
+			</div>
+		</div>
+	);
+}

@@ -368,6 +368,10 @@
     ,
     "load_error": "Unable to load laundries from the server.",
     "show_more": "Show more"
+    ,
+    "open_filters": "Filters",
+    "filters_title": "Filters",
+    "filters_placeholder": "Here you will be able to filter laundries by equipment, hours, services, etc. (to be implemented)"
   },
   "errors": {
     "404_title": "Page Not Found",
