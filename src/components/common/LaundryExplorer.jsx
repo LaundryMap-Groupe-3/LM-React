@@ -16,7 +16,7 @@ import LaundryCard from './LaundryCard';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import WashingMachineIcon from '../../assets/images/icons/Washing-Machine.svg';
+import WashingMachineIcon from '../../assets/images/icons/machine.png';
 import AdressIcon from '../../assets/images/icons/Address.svg';
 import Logo from '../../assets/images/logos/logo-laundrymap.svg';
 import SearchIcon from '../../assets/images/icons/search.svg';
@@ -41,12 +41,12 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
 // Icône personnalisée pour les laveries
 const laundryIcon = L.icon({
 	iconUrl: WashingMachineIcon,
-	iconSize: [38, 38], // taille du marker
-	iconAnchor: [19, 38], // point d'ancrage du marker
-	popupAnchor: [0, -38], // point d'ancrage du popup
+	iconSize: [30, 41], // taille par défaut Leaflet
+	iconAnchor: [12, 41], // par défaut
+	popupAnchor: [1, -34], // par défaut
 	shadowUrl: markerShadow,
-	shadowSize: [41, 41],
-	shadowAnchor: [13, 41],
+	shadowSize: [41, 41], // par défaut
+	shadowAnchor: [13, 41], // par défaut
 });
 
 
@@ -55,38 +55,77 @@ const laundryIcon = L.icon({
 
 // Centre la carte uniquement si le centre a vraiment changé (évite la tremblote)
 function SetViewOnCenter({ center }) {
-	const map = useMap();
-	const lastCenter = React.useRef();
-	useEffect(() => {
-		if (!center) return;
-		const [lat, lng] = center;
-		const [lastLat, lastLng] = lastCenter.current || [];
-		// Calculer la distance entre l'ancien et le nouveau centre
-		const dist = lastCenter.current ? getDistanceKm(lat, lng, lastLat, lastLng) * 1000 : Infinity;
-		if (dist > 10) { // Seulement si > 10m
-			map.flyTo(center, 15, { animate: true, duration: 1.2 });
-			lastCenter.current = center;
-		}
-	}, [center, map]);
-	return null;
+       const map = useMap();
+       const lastCenter = React.useRef();
+       useEffect(() => {
+	       if (!center) return;
+	       const [lat, lng] = center;
+	       const [lastLat, lastLng] = lastCenter.current || [];
+	       // Calculer la distance entre l'ancien et le nouveau centre
+	       const dist = lastCenter.current ? getDistanceKm(lat, lng, lastLat, lastLng) * 1000 : Infinity;
+	       if (dist > 10) { // Seulement si > 10m
+		       const currentZoom = map.getZoom();
+		       map.flyTo(center, currentZoom, { animate: true, duration: 1.2 });
+		       lastCenter.current = center;
+	       }
+       }, [center, map]);
+       return null;
 }
 
 const LaundryExplorer = () => {
-	const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-	const { t } = useTranslation();
-	const [laundries, setLaundries] = useState([]);
-	const [position, setPosition] = useState(null);
-	const [error, setError] = useState(null);
-	const [mapBounds, setMapBounds] = useState(null);
-	const [mapCenter, setMapCenter] = useState(null);
-	const [mode, setMode] = useState('all'); // 'all', 'position', 'bounds'
-	const [showAll, setShowAll] = useState(false);
-	const [search, setSearch] = useState("");
-	const [highlightedLaundryId, setHighlightedLaundryId] = useState(null);
-	const mapRef = useRef();
-	const cardRefs = useRef({});
-	// State pour la valeur du périmètre (pour gérer la couleur)
-	const [radiusValue, setRadiusValue] = useState('');
+       const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+       const { t } = useTranslation();
+       const [laundries, setLaundries] = useState([]);
+       const [position, setPosition] = useState(null);
+       const [error, setError] = useState(null);
+       const [mapBounds, setMapBounds] = useState(null);
+       const [mapCenter, setMapCenter] = useState(null);
+       const [mode, setMode] = useState('all'); // 'all', 'position', 'bounds'
+       const [showAll, setShowAll] = useState(false);
+       const [search, setSearch] = useState("");
+       const [highlightedLaundryId, setHighlightedLaundryId] = useState(null);
+       const mapRef = useRef();
+       const cardRefs = useRef({});
+       // State pour la valeur du périmètre (pour gérer la couleur)
+       const [radiusValue, setRadiusValue] = useState('');
+
+       // Favoris utilisateur (liste d'ID)
+       const [favoriteIds, setFavoriteIds] = useState([]);
+       const [loadingFavorites, setLoadingFavorites] = useState(false);
+
+       // Charger les favoris utilisateur au montage si connecté
+       useEffect(() => {
+	       const token = localStorage.getItem('jwt_token') || localStorage.getItem('token');
+	       if (!token) return;
+	       setLoadingFavorites(true);
+	       fetch((import.meta.env.VITE_API_URL || 'http://localhost:8000') + '/api/user/favorites', {
+		       headers: { 'Authorization': `Bearer ${token}` }
+	       })
+		       .then(res => res.json())
+		       .then(data => {
+			       if (Array.isArray(data.favorites)) {
+				       setFavoriteIds(data.favorites.map(fav => fav.laundryId || fav.id || fav.laundry_id));
+			       }
+		       })
+		       .catch(() => setFavoriteIds([]))
+		       .finally(() => setLoadingFavorites(false));
+       }, []);
+
+       // Fonction pour toggler le favori d'une laverie
+       const handleToggleFavorite = async (laundryId) => {
+	       const isFav = favoriteIds.includes(laundryId);
+	       try {
+		       if (isFav) {
+			       await laundryService.removeFavorite(laundryId);
+			       setFavoriteIds(ids => ids.filter(id => id !== laundryId));
+		       } else {
+			       await laundryService.addFavorite(laundryId);
+			       setFavoriteIds(ids => [...ids, laundryId]);
+		       }
+	       } catch (err) {
+		       window.alert(t('explorer.favorite_error', 'Erreur lors de la mise à jour du favori.'));
+	       }
+       };
 	function handleRadiusChange(e) {
 		// Autorise uniquement les chiffres
 		const val = e.target.value.replace(/[^0-9]/g, '');
@@ -530,7 +569,7 @@ const LaundryExplorer = () => {
 											   L.icon({
 												   ...laundryIcon.options,
 												   iconUrl: WashingMachineIcon,
-												   iconSize: [48, 48],
+												   iconSize: [30],
 												   className: 'marker-animated',
 											   }) : laundryIcon}
 										   eventHandlers={{
@@ -568,18 +607,20 @@ const LaundryExplorer = () => {
 						   <>
 							<div className="flex flex-col gap-4">
 							   {laundriesToDisplay.map(laundry => (
-								   <LaundryCard
-									   key={laundry.id}
-									   laundry={laundry}
-									   isHighlighted={highlightedLaundryId === laundry.id}
-									   onMouseEnter={() => setHighlightedLaundryId(laundry.id)}
-									   onMouseLeave={() => setHighlightedLaundryId(null)}
-									   onClick={() => {
-										   setMapCenter([laundry.latitude, laundry.longitude]);
-										   setHighlightedLaundryId(laundry.id);
-									   }}
-									   ref={el => { cardRefs.current[laundry.id] = el; }}
-								   />
+								       <LaundryCard
+									       key={laundry.id}
+									       laundry={laundry}
+									       isHighlighted={highlightedLaundryId === laundry.id}
+									       isFavorite={favoriteIds.includes(laundry.id)}
+									       onToggleFavorite={() => handleToggleFavorite(laundry.id)}
+									       onMouseEnter={() => setHighlightedLaundryId(laundry.id)}
+									       onMouseLeave={() => setHighlightedLaundryId(null)}
+									       onClick={() => {
+										       setMapCenter([laundry.latitude, laundry.longitude]);
+										       setHighlightedLaundryId(laundry.id);
+									       }}
+									       ref={el => { cardRefs.current[laundry.id] = el; }}
+								       />
 							   ))}
 							</div>
 							 {!showAll && laundriesVisible.length > 3 && (
