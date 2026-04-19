@@ -1,9 +1,10 @@
+import React, { forwardRef } from 'react';
 import { Heart } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import StarIcon from '../../assets/images/icons/Star-yellow.svg';
 import AddressIcon from '../../assets/images/icons/Map.svg';
 import EyeIcon from '../../assets/images/icons/Eye-white.svg';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../../context/I18nContext';
 import { usePreferences } from '../../context/PreferencesContext';
 const parseOpeningHours = (openingHours) => {
   if (!openingHours || typeof openingHours !== 'string') {
@@ -103,7 +104,7 @@ const distanceInKm = (lat1, lng1, lat2, lng2) => {
   return earthRadiusKm * c
 }
 
-const LaundryCard = ({
+const LaundryCard = forwardRef(({
   laundry,
   userPosition = null,
   isDarkTheme,
@@ -113,7 +114,7 @@ const LaundryCard = ({
   onMouseEnter,
   onMouseLeave,
   onClick,
-}) => {
+}, ref) => {
   const { t } = useTranslation();
   const { isAuthenticated } = usePreferences();
   const imageUrl = laundry.imageUrl || laundry.image || laundry.photoUrl || laundry.photo || laundry.coverUrl || ''
@@ -130,6 +131,7 @@ const LaundryCard = ({
 
   return (
     <article
+      ref={ref}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onClick={onClick}
@@ -161,7 +163,7 @@ const LaundryCard = ({
                   aria-hidden="true"
                   className={`h-2 w-2 rounded-full ${isCurrentlyOpen ? (isDarkTheme ? 'bg-[#0E9620]/85' : 'bg-[#0E9620]') : 'bg-rose-500'}`}
                 />
-                {isCurrentlyOpen ? t('common.open', 'Ouvert') : t('common.closed', 'Fermé')}
+                {isCurrentlyOpen ? t('explorer.open', 'Ouvert') : t('explorer.closed', 'Fermé')}
               </span>
               <button
                 type="button"
@@ -188,7 +190,11 @@ const LaundryCard = ({
           {imageUrl ? (
             <img
               src={imageUrl}
-              alt={t('explorer.laundry_photo_alt', { name: laundry.establishmentName }, `Photo de ${laundry.establishmentName}`)}
+              alt={
+                t('explorer.laundry_photo_alt', undefined, undefined).includes('{{name}}')
+                  ? t('explorer.laundry_photo_alt', undefined, undefined).replace('{{name}}', laundry.establishmentName)
+                  : t('explorer.laundry_photo_alt', { name: laundry.establishmentName }, `Photo de ${laundry.establishmentName}`)
+              }
               className="mb-3 h-[69px] w-[78px] rounded-[8px] object-cover"
               loading="lazy"
             />
@@ -236,6 +242,6 @@ const LaundryCard = ({
       </div>
     </article>
   )
-}
+});
 
-export default LaundryCard
+export default LaundryCard;

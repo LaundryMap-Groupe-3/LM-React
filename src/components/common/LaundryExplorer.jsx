@@ -1,3 +1,28 @@
+
+// 1. Librairies externes
+import React, { useEffect, useState, useRef } from "react";
+import L from "leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+
+// 2. Contextes et services
+import { useTranslation } from '../../context/I18nContext';
+import laundryService from '../../services/laundryService';
+
+// 3. Composants locaux
+import LaundryCard from './LaundryCard';
+
+// 4. Assets/images
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import WashingMachineIcon from '../../assets/images/icons/Washing-Machine.svg';
+import AdressIcon from '../../assets/images/icons/Address.svg';
+import Logo from '../../assets/images/logos/logo-laundrymap.svg';
+import SearchIcon from '../../assets/images/icons/search.svg';
+import SystemIcon from '../../assets/images/icons/system.svg';
+import EraseIcon from '../../assets/images/icons/Erase.svg';
+
 // Fonction utilitaire pour calculer la distance entre deux points (Haversine)
 function getDistanceKm(lat1, lon1, lat2, lon2) {
 	const R = 6371; // Rayon de la Terre en km
@@ -11,26 +36,6 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
 	const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 	return R * c;
 }
-// import demoLaundries from '../../data/demoLaundries';
-import LaundryCard from './LaundryCard';
-import React, { useEffect, useState, useRef } from "react";
-import { useTranslation } from 'react-i18next';
-import laundryService from '../../services/laundryService';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-
-// Pour corriger l'icône par défaut de Leaflet sous React
-import L from "leaflet";
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-
-import WashingMachineIcon from '../../assets/images/icons/Washing-Machine.svg';
-import AdressIcon from '../../assets/images/icons/Address.svg';
-import Logo from '../../assets/images/logos/logo-laundrymap.svg';
-import SearchIcon from '../../assets/images/icons/search.svg';
-import SystemIcon from '../../assets/images/icons/system.svg';
-import EraseIcon from '../../assets/images/icons/Erase.svg';
 
 
 // Icône personnalisée pour les laveries
@@ -44,13 +49,25 @@ const laundryIcon = L.icon({
 	shadowAnchor: [13, 41],
 });
 
-function SetViewOnLocation({ position }) {
+
+
+// Centre dynamiquement la carte sur n'importe quel centre (position utilisateur, recherche, clic...)
+
+// Centre la carte uniquement si le centre a vraiment changé (évite la tremblote)
+function SetViewOnCenter({ center }) {
 	const map = useMap();
+	const lastCenter = React.useRef();
 	useEffect(() => {
-		if (position) {
-			map.setView(position, 15);
+		if (!center) return;
+		const [lat, lng] = center;
+		const [lastLat, lastLng] = lastCenter.current || [];
+		// Calculer la distance entre l'ancien et le nouveau centre
+		const dist = lastCenter.current ? getDistanceKm(lat, lng, lastLat, lastLng) * 1000 : Infinity;
+		if (dist > 10) { // Seulement si > 10m
+			map.flyTo(center, 15, { animate: true, duration: 1.2 });
+			lastCenter.current = center;
 		}
-	}, [map, position]);
+	}, [center, map]);
 	return null;
 }
 
@@ -67,6 +84,7 @@ const LaundryExplorer = () => {
 	const [search, setSearch] = useState("");
 	const [highlightedLaundryId, setHighlightedLaundryId] = useState(null);
 	const mapRef = useRef();
+	const cardRefs = useRef({});
 	// State pour la valeur du périmètre (pour gérer la couleur)
 	const [radiusValue, setRadiusValue] = useState('');
 	function handleRadiusChange(e) {
@@ -108,11 +126,37 @@ const LaundryExplorer = () => {
 	}, [isFilterModalOpen]);
 	 // Fonction pour revenir à la position utilisateur
 	function handleRecenter() {
-		if (position) {
-			setMapCenter(position);
-			setMode('position');
-			setHighlightedLaundryId(null);
+		if (!navigator.geolocation) {
+			setError(t('explorer.geolocation_unavailable', "La géolocalisation n'est pas supportée par ce navigateur."));
+			return;
 		}
+		navigator.geolocation.getCurrentPosition(
+			(pos) => {
+				const coords = [pos.coords.latitude, pos.coords.longitude];
+				setPosition(coords);
+				setMapCenter(coords);
+				setMode('position');
+				setHighlightedLaundryId(null);
+				if (search) setSearch("");
+				setError(null);
+				setTimeout(() => {
+					if (mapRef.current) {
+						// Utilise flyTo pour forcer le déplacement même si la carte est déjà centrée
+						mapRef.current.flyTo(coords, 15, { animate: true, duration: 1.2 });
+						setMapBounds(mapRef.current.getBounds());
+					}
+				}, 100);
+			},
+			(err) => {
+				if (err.code === 1) {
+					setError(t('explorer.geolocation_denied', 'Vous avez refusé la géolocalisation. Certaines fonctionnalités seront limitées.'));
+				} else if (err.code === 2) {
+					setError(t('explorer.geolocation_unavailable_position', 'Impossible de trouver votre position.'));
+				} else {
+					setError(t('explorer.geolocation_error', 'Erreur de géolocalisation : ') + err.message);
+				}
+			}
+		);
 	}
 
    // Fonction de recherche
@@ -134,6 +178,12 @@ const LaundryExplorer = () => {
 		   setMode('all');
 		   setHighlightedLaundryId(foundLaundry.id);
 		   setShowAll(true);
+		   // Scroll la carte de la laverie trouvée dans la liste
+		   setTimeout(() => {
+			   if (cardRefs.current[foundLaundry.id]) {
+				   cardRefs.current[foundLaundry.id].scrollIntoView({ behavior: 'smooth', block: 'center' });
+			   }
+		   }, 200);
 		   return;
 	   }
 
@@ -252,19 +302,39 @@ const LaundryExplorer = () => {
 	}
 
 
-	   // Laveries à afficher selon le mode
-	   let laundriesVisible = allLaundries();
-	   if (mode === 'position' && position) {
-		   laundriesVisible = laundriesInRadius(position, 10);
+	   // Tous les marqueurs sont toujours affichés sur la carte !
+
+	   // La liste à droite :
+	   // - Si recherche : filtrer par ville ou nom (insensible à la casse, partiel)
+	   // - Sinon, filtrer par zone visible (bounds) si mode 'bounds'
+	   // - Sinon, filtrer par distance < 10km autour de la position utilisateur
+	   let laundriesVisible = allLaundries().map(laundry => {
+		   // Calculer la distance pour chaque laverie si position connue
+		   let distance = null;
+		   if (position && typeof laundry.latitude === 'number' && typeof laundry.longitude === 'number') {
+			   distance = getDistanceKm(position[0], position[1], laundry.latitude, laundry.longitude);
+		   }
+		   return { ...laundry, distance };
+	   });
+	   if (search.trim()) {
+		   const query = search.trim().toLowerCase();
+		   laundriesVisible = laundriesVisible.filter(laundry =>
+			   (laundry.city && laundry.city.toLowerCase().includes(query)) ||
+			   (laundry.establishmentName && laundry.establishmentName.toLowerCase().includes(query))
+		   );
 	   } else if (mode === 'bounds' && mapBounds) {
 		   laundriesVisible = laundriesInBounds(mapBounds);
+	   } else if (position) {
+		   laundriesVisible = laundriesVisible.filter(laundry =>
+			   typeof laundry.distance === 'number' && laundry.distance <= 10
+		   );
 	   }
 
 	   // Limiter à 3 laveries sauf si showAll
 	   const laundriesToDisplay = showAll ? laundriesVisible : laundriesVisible.slice(0, 3);
 
 		return (
-		   <div className="flex flex-col md:flex-row gap-8 items-start w-full">
+		   <div className="flex flex-col md:flex-row gap-8 items-baseline w-full">
 			   {/* Affichage des erreurs de géolocalisation ou autres */}
 			   {error && (
 				   <div className="w-full mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded text-center text-sm">
@@ -275,17 +345,34 @@ const LaundryExplorer = () => {
 				   <div className="flex-1 min-w-0 flex flex-col w-full md:w-auto">
 						{/* Formulaire de recherche + bouton filtre */}
 						<div className="w-full flex justify-center mb-2 mt-2">
-							<form className="px-4 py-2 flex gap-2 items-center w-full max-w-xl relative" onSubmit={handleSearchSubmit}>
-								<span className="absolute left-6 top-1/2 -translate-y-1/2 pointer-events-none">
-									<img src={SearchIcon} alt={t('explorer.search_placeholder', 'Rechercher')} className="h-5 w-5 text-gray-400" />
-								</span>
-								<input
-									type="text"
-									placeholder={t('explorer.search_placeholder', 'Rechercher une laverie, une ville...')}
-									className="flex-1 border border-[#D1D5DB] rounded-[8px] w-[229px] h-[38px] pl-10 pr-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
-									value={search}
-									onChange={handleSearchChange}
-								/>
+							<form className="px-4 py-2 flex gap-2 items-center w-full max-w-xl" onSubmit={handleSearchSubmit}>
+								<div className="relative flex-1">
+									<span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+										<img src={SearchIcon} alt={t('explorer.search_placeholder', 'Rechercher')} className="h-5 w-5 text-gray-400" />
+									</span>
+									<input
+										type="text"
+										placeholder={t('explorer.search_placeholder', 'Rechercher une laverie, une ville...')}
+										className="w-full border border-[#D1D5DB] rounded-[8px] h-[38px] pl-10 pr-8 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
+										value={search}
+										onChange={handleSearchChange}
+									/>
+									{search && (
+										<button
+											type="button"
+											onClick={() => {
+												setSearch("");
+												handleRecenter();
+											}}
+											className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 text-lg font-bold focus:outline-none"
+											aria-label={t('common.close', 'Effacer la recherche')}
+											tabIndex={0}
+											style={{ background: 'none', border: 'none', padding: 0, margin: 0, lineHeight: 1 }}
+										>
+											×
+										</button>
+									)}
+								</div>
 								<button
 									type="button"
 									onClick={handleRecenter}
@@ -417,8 +504,9 @@ const LaundryExplorer = () => {
 							zoom={position ? 15 : 12}
 							style={{ height: "100%", width: "100%" }}
 							whenCreated={mapInstance => { mapRef.current = mapInstance; }}
-							key={mapCenter ? mapCenter.join('-') : 'default'}
 						>
+							{/* Centre dynamiquement la carte sur n'importe quel centre (position utilisateur, recherche, clic...) */}
+							{mapCenter && <SetViewOnCenter center={mapCenter} />}
 							   <TileLayer
 								   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 								   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -438,7 +526,23 @@ const LaundryExplorer = () => {
 									   <Marker
 										   key={laundry.id}
 										   position={[laundry.latitude, laundry.longitude]}
-										   icon={laundryIcon}
+										   icon={highlightedLaundryId === laundry.id ?
+											   L.icon({
+												   ...laundryIcon.options,
+												   iconUrl: WashingMachineIcon,
+												   iconSize: [48, 48],
+												   className: 'marker-animated',
+											   }) : laundryIcon}
+										   eventHandlers={{
+											   mouseover: () => setHighlightedLaundryId(laundry.id),
+											   mouseout: () => setHighlightedLaundryId(null),
+											   click: () => {
+												   setHighlightedLaundryId(laundry.id);
+												   if (cardRefs.current[laundry.id]) {
+													   cardRefs.current[laundry.id].scrollIntoView({ behavior: 'smooth', block: 'center' });
+												   }
+											   },
+										   }}
 									   >
 										   <Popup>
 											   <strong>{laundry.establishmentName}</strong><br />
@@ -468,6 +572,13 @@ const LaundryExplorer = () => {
 									   key={laundry.id}
 									   laundry={laundry}
 									   isHighlighted={highlightedLaundryId === laundry.id}
+									   onMouseEnter={() => setHighlightedLaundryId(laundry.id)}
+									   onMouseLeave={() => setHighlightedLaundryId(null)}
+									   onClick={() => {
+										   setMapCenter([laundry.latitude, laundry.longitude]);
+										   setHighlightedLaundryId(laundry.id);
+									   }}
+									   ref={el => { cardRefs.current[laundry.id] = el; }}
 								   />
 							   ))}
 							</div>
