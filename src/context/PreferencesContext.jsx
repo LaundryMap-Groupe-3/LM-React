@@ -163,6 +163,7 @@ export const PreferencesProvider = ({ children }) => {
       languages,
       loading,
       isDarkTheme,
+      isAuthenticated,
       updatePreferences,
       toggleTheme,
       changeLanguage,

@@ -1,5 +1,6 @@
 {
   "common": {
+      "explorer.favorite_error": "Une erreur est survenue lors de l’ajout aux favoris. Veuillez réessayer.",
     "app_name": "LaundryMap",
     "welcome": "Bienvenue sur",
     "logout": "Déconnexion",

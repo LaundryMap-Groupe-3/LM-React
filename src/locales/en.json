@@ -361,6 +361,7 @@
     "see_laundry": "See laundry",
     "distance": "Distance",
     "unknown_distance": "Unknown distance",
+    "favorite_error": "An error occurred while adding to favorites. Please try again.",
     "subtitle": "Quickly spot laundries around you, compare results, and keep the map aligned with the list.",
     "home_intro_logged": "Browse the laundries on the map, compare results, and get to the closest one faster.",
     "home_intro_guest": "Explore laundries through the map and the list to quickly find the ones you need.",
