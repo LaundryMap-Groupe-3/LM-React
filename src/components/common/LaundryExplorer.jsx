@@ -94,22 +94,31 @@ const LaundryExplorer = () => {
        const [loadingFavorites, setLoadingFavorites] = useState(false);
 
        // Charger les favoris utilisateur au montage si connecté
-       useEffect(() => {
-	       const token = localStorage.getItem('jwt_token') || localStorage.getItem('token');
-	       if (!token) return;
-	       setLoadingFavorites(true);
-	       fetch((import.meta.env.VITE_API_URL || 'http://localhost:8000') + '/api/user/favorites', {
-		       headers: { 'Authorization': `Bearer ${token}` }
-	       })
-		       .then(res => res.json())
-		       .then(data => {
-			       if (Array.isArray(data.favorites)) {
-				       setFavoriteIds(data.favorites.map(fav => fav.laundryId || fav.id || fav.laundry_id));
-			       }
+	       useEffect(() => {
+		       const token = localStorage.getItem('jwt_token') || localStorage.getItem('token');
+		       if (!token) return;
+		       setLoadingFavorites(true);
+		       fetch((import.meta.env.VITE_API_URL || 'http://localhost:8000') + '/api/user/favorites', {
+			       headers: { 'Authorization': `Bearer ${token}` }
 		       })
-		       .catch(() => setFavoriteIds([]))
-		       .finally(() => setLoadingFavorites(false));
-       }, []);
+			       .then(res => {
+				       if (!res.ok) throw new Error('Erreur API favoris: ' + res.status);
+				       return res.json();
+			       })
+			       .then(data => {
+				       if (Array.isArray(data.favorites)) {
+					       setFavoriteIds(data.favorites.map(fav => fav.laundryId || fav.id || fav.laundry_id));
+				       } else {
+					       setFavoriteIds([]);
+				       }
+			       })
+			       .catch((err) => {
+				       setFavoriteIds([]);
+				       // Affiche une notification console mais ne bloque pas l'UI
+				       console.warn('Impossible de charger les favoris utilisateur:', err);
+			       })
+			       .finally(() => setLoadingFavorites(false));
+	       }, []);
 
        // Fonction pour toggler le favori d'une laverie
        const handleToggleFavorite = async (laundryId) => {

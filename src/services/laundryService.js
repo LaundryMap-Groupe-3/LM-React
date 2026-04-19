@@ -51,11 +51,13 @@ const laundryService = {
 
   async addFavorite(laundryId) {
     try {
+      // Unifie la récupération du token (jwt_token ou token)
+      const token = localStorage.getItem('jwt_token') || localStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/api/laundries/${laundryId}/favorite`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : undefined,
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
       });
       if (!response.ok) {
@@ -76,11 +78,13 @@ const laundryService = {
 
   async removeFavorite(laundryId) {
     try {
+      // Unifie la récupération du token (jwt_token ou token)
+      const token = localStorage.getItem('jwt_token') || localStorage.getItem('token');
       const response = await fetch(`${API_BASE_URL}/api/laundries/${laundryId}/favorite`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : undefined,
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
       });
       if (!response.ok) {
