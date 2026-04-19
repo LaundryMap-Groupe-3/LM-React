@@ -61,6 +61,56 @@ const laundryService = {
       throw err
     }
   },
-};
+
+  async addFavorite(laundryId) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/laundries/${laundryId}/favorite`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : undefined,
+        },
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          data = text;
+        }
+        throw { status: response.status, body: data };
+      }
+      return true;
+    } catch (err) {
+      throw err;
+    }
+  },
+
+  async removeFavorite(laundryId) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/laundries/${laundryId}/favorite`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : undefined,
+        },
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          data = text;
+        }
+        throw { status: response.status, body: data };
+      }
+      return true;
+    } catch (err) {
+      throw err;
+    }
+  },
+}
 
 export default laundryService;
