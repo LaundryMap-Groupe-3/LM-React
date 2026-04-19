@@ -391,6 +391,10 @@
     ,
     "load_error": "Impossible de charger les laveries depuis le serveur.",
     "show_more": "Afficher plus"
+    ,
+    "open_filters": "Filtres",
+    "filters_title": "Filtres",
+    "filters_placeholder": "Ici, vous pourrez filtrer les laveries par équipements, horaires, services, etc. (à implémenter)"
   },
   "errors": {
     "404_title": "Page non trouvée",
