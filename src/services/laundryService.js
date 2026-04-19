@@ -36,7 +36,6 @@ const laundryService = {
       city: city && city !== 'all' ? city : '',
     })
 
-    console.log('[laundryService] URL:', `${API_BASE_URL}/api/laundries/nearby?${queryString}`)
     try {
       const response = await fetch(`${API_BASE_URL}/api/laundries/nearby?${queryString}`, {
         method: 'GET',
@@ -44,18 +43,14 @@ const laundryService = {
           'Content-Type': 'application/json',
         },
       })
-      console.log('[laundryService] Status:', response.status)
       const text = await response.text()
       let data
       try {
         data = JSON.parse(text)
       } catch (e) {
-        console.error('[laundryService] JSON parse error:', e, text)
         throw new Error('Réponse non JSON du serveur')
       }
-      console.log('[laundryService] Data:', data)
       if (!response.ok) {
-        console.error('[laundryService] Erreur HTTP:', response.status, data)
         throw {
           status: response.status,
           body: data,
@@ -63,7 +58,6 @@ const laundryService = {
       }
       return data
     } catch (err) {
-      console.error('[laundryService] Exception attrapée:', err)
       throw err
     }
   },
