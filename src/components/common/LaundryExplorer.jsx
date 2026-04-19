@@ -253,7 +253,6 @@ const LaundryExplorer = () => {
 
 
 	   // Laveries à afficher selon le mode
-
 	   let laundriesVisible = allLaundries();
 	   if (mode === 'position' && position) {
 		   laundriesVisible = laundriesInRadius(position, 10);
@@ -263,10 +262,6 @@ const LaundryExplorer = () => {
 
 	   // Limiter à 3 laveries sauf si showAll
 	   const laundriesToDisplay = showAll ? laundriesVisible : laundriesVisible.slice(0, 3);
-
-	   // DEBUG : log des laveries récupérées
-	   // eslint-disable-next-line no-console
-	   console.log('[LaundryExplorer] laundries:', laundries);
 
 		return (
 			<div className="flex flex-col md:flex-row gap-8 items-start w-full">
