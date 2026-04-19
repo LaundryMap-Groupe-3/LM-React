@@ -30,6 +30,7 @@ import AdressIcon from '../../assets/images/icons/Address.svg';
 import Logo from '../../assets/images/logos/logo-laundrymap.svg';
 import SearchIcon from '../../assets/images/icons/search.svg';
 import SystemIcon from '../../assets/images/icons/system.svg';
+import EraseIcon from '../../assets/images/icons/Erase.svg';
 
 
 // Icône personnalisée pour les laveries
@@ -325,12 +326,29 @@ const LaundryExplorer = () => {
 									>
 										×
 									</button>
-									<h2 className="text-lg font-semibold underline mb-4 text-[#3B82F6]">{t('explorer.filters_title', 'Filtrage de la recherche')}</h2>
+									<h2 className="text-lg font-semibold underline mb-2 text-[#3B82F6]">{t('explorer.filters_title', 'Filtrage de la recherche')}</h2>
+									<button
+										type="button"
+										onClick={() => {
+											setRadiusValue('');
+											// Réinitialisation des filtres enfants via events personnalisés
+											document.dispatchEvent(new CustomEvent('resetServiceFilter'));
+											document.dispatchEvent(new CustomEvent('resetPaymentFilter'));
+											// TODO: Réinitialiser les horaires si besoin (inputs non contrôlés)
+										}}
+										className="mb-4 px-3 py-1 rounded-[8px] w-[120px] h-[25px] bg-[#3B82F6] text-white text-[10px] font-semibold hover:bg-[#2563EB]"
+										style={{display: 'inline-block'}}
+									>
+										<div className='flex items-center'>
+											<img src={EraseIcon} alt={t('explorer.clear_filters_icon_alt', 'Effacer')} className="w-[15px] h-[15px] mr-1" />
+											{t('explorer.clear_filters', 'Effacer le filtre')}
+										</div>
+									</button>
 									<form className="flex flex-col gap-4 w-full">
 										{/* Périmètre de recherche */}
 										<div>
 											<label className="block text-left font-bold text-[12px] text-[#3B82F6] mb-1">
-												{t('explorer.filter_radius', 'Périmètre de recherche (km)')}
+												{t('explorer.filter_radius', 'Périmètre de recherche')}
 											</label>
 											<div className="w-full flex items-center bg-white rounded px-2 py-1">
 												<input
