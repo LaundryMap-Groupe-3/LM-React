@@ -163,6 +163,7 @@ const LaundryExplorer = () => {
 				setPosition(coords);
 				setMapCenter(coords);
 				setMode('position');
+				setError(null); // Réinitialise l'erreur si succès
 				setTimeout(() => {
 					if (mapRef.current) {
 						mapRef.current.setView(coords, 15);
@@ -171,7 +172,15 @@ const LaundryExplorer = () => {
 				}, 100);
 			},
 			(err) => {
-				setError(t('explorer.geolocation_denied', 'Impossible d\'obtenir la position : ') + err.message);
+				if (err.code === 1) {
+					// Refus de géolocalisation
+					setError(t('explorer.geolocation_denied', 'Vous avez refusé la géolocalisation. Certaines fonctionnalités seront limitées.'));
+				} else if (err.code === 2) {
+					// Position indisponible
+					setError(t('explorer.geolocation_unavailable_position', 'Impossible de trouver votre position.'));
+				} else {
+					setError(t('explorer.geolocation_error', 'Erreur de géolocalisation : ') + err.message);
+				}
 			}
 		);
 	}, [t]);
@@ -260,8 +269,14 @@ const LaundryExplorer = () => {
 	   console.log('[LaundryExplorer] laundries:', laundries);
 
 		return (
-			<div className="flex flex-col md:flex-row gap-8 items-baseline w-full">
-				   {/* Colonne gauche : formulaire + carte */}
+			<div className="flex flex-col md:flex-row gap-8 items-start w-full">
+				{/* Affichage des erreurs de géolocalisation ou autres */}
+				{error && (
+					<div className="w-full mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded text-center text-sm">
+						{error}
+					</div>
+				)}
+				{/* Colonne gauche : formulaire + carte */}
 				   <div className="flex-1 min-w-0 flex flex-col w-full md:w-auto">
 						{/* Formulaire de recherche + bouton filtre */}
 						<div className="w-full flex justify-center mb-2 mt-2">
