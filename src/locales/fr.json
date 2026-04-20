@@ -487,7 +487,12 @@
     "wiline_configuration_missing": "Configuration WI-LINE manquante côté serveur.",
     "wiline_auth_failed": "Échec d'authentification WI-LINE.",
     "wiline_client_not_found": "Code client WI-LINE introuvable.",
-    "wiline_fetch_failed": "Impossible de récupérer les machines WI-LINE."
+    "wiline_fetch_failed": "Impossible de récupérer les machines WI-LINE.",
+    "laundry_already_in_favorites": "La laverie a déjà été ajouté à vos favories.",
+    "laundry_not_found": "La laverie n'existe pas !",
+    "laundry_not_found_in_favorites": "Cette laverie n'est pas dans vos favoris.",
+    "during_add_favorite_laundry": "Une erreur est survenue lors de l'ajout de la laverie à vos favoris.",
+    "during_remove_favorite_laundry": "Une erreur est survenue lors de la suppression de la laverie de vos favoris."
   },
   "validation": {
     "email_required": "L'email est requis",
@@ -661,5 +666,9 @@
     "delete": "Supprimer",
     "delete_confirm": "Êtes-vous sûr de vouloir supprimer cette laverie ? Cette action est irréversible.",
     "delete_error": "Erreur lors de la suppression de la laverie."
+  },
+  "laundry_favorite": {
+    "add_success": "La laverie a été ajoutée à vos favoris avec succès.",
+    "remove_success": "La laverie a été retirée de vos favoris avec succès."
   }
 }
