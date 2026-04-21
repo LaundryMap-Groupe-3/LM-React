@@ -1,4 +1,4 @@
-
+// A faire : Logo à corriger / Cliquer sur les bulles / cluster ? / 0 Note / Ouverture / Filtres
 // 1. Librairies externes
 import React, { useEffect, useState, useRef } from "react";
 import L from "leaflet";
