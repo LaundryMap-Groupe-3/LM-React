@@ -279,7 +279,7 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 			},
 			(err) => {
 				if (err.code === 1) {
-					setError(t('explorer.geolocation_denied', 'Vous avez refusé la géolocalisation. Certaines fonctionnalités seront limitées.'));
+					setError(null);
 				} else if (err.code === 2) {
 					setError(t('explorer.geolocation_unavailable_position', 'Impossible de trouver votre position.'));
 				} else {
@@ -428,10 +428,7 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 				}, 100);
 			},
 			(err) => {
-				if (err.code === 1) {
-					// Refus de géolocalisation
-					setError(t('explorer.geolocation_denied', 'Vous avez refusé la géolocalisation. Certaines fonctionnalités seront limitées.'));
-				} else if (err.code === 2) {
+				if (err.code === 2) {
 					// Position indisponible
 					setError(t('explorer.geolocation_unavailable_position', 'Impossible de trouver votre position.'));
 				} else {
