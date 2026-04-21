@@ -72,6 +72,9 @@ function SetViewOnCenter({ center }) {
 }
 
 const LaundryExplorer = ({ isDarkTheme }) => {
+	const LIST_INITIAL_LIMIT = 3;
+	const LOCATION_SEARCH_LIMIT = 5;
+	const POSITION_NEAREST_LIMIT = 5;
        const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
        const { t } = useTranslation();
 	const { isDarkTheme: preferenceDarkTheme } = usePreferences();
@@ -84,12 +87,10 @@ const LaundryExplorer = ({ isDarkTheme }) => {
        const [mode, setMode] = useState('all'); // 'all', 'position', 'bounds'
        const [showAll, setShowAll] = useState(false);
        const [search, setSearch] = useState("");
-	const [submittedSearch, setSubmittedSearch] = useState("");
 	const [searchLocation, setSearchLocation] = useState(null);
 	const [isLocationSearch, setIsLocationSearch] = useState(false);
        const [highlightedLaundryId, setHighlightedLaundryId] = useState(null);
        const mapRef = useRef();
-	const searchCenteredForRef = useRef('');
        const cardRefs = useRef({});
        // State pour la valeur du périmètre (pour gérer la couleur)
        const [radiusValue, setRadiusValue] = useState('');
@@ -203,23 +204,19 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 
    // Chargement des laveries depuis l'API
 	useEffect(() => {
-		const isSearchMode = submittedSearch.length > 0;
 		const shouldLoadNearestFromLocation = isLocationSearch && Array.isArray(searchLocation);
-		const radius = getRadiusKm();
 		const hasFullTimeRange = isValidTimeHHMM(startTimeValue) && isValidTimeHHMM(endTimeValue);
-		const centerLat = searchLocation?.[0] ?? position?.[0];
-		const centerLng = searchLocation?.[1] ?? position?.[1];
 
 		laundryService.getNearbyLaundries({
-			latitude: (isSearchMode || shouldLoadNearestFromLocation) ? undefined : centerLat,
-			longitude: (isSearchMode || shouldLoadNearestFromLocation) ? undefined : centerLng,
-			radius: (isSearchMode || shouldLoadNearestFromLocation) ? undefined : radius,
-			limit: shouldLoadNearestFromLocation ? 100 : 50,
-			query: shouldLoadNearestFromLocation ? '' : submittedSearch,
-			services: (isSearchMode || shouldLoadNearestFromLocation) ? [] : selectedServices,
-			payments: (isSearchMode || shouldLoadNearestFromLocation) ? [] : selectedPayments,
-			openAt: (isSearchMode || shouldLoadNearestFromLocation) ? '' : (hasFullTimeRange ? startTimeValue : ''),
-			closeAt: (isSearchMode || shouldLoadNearestFromLocation) ? '' : (hasFullTimeRange ? endTimeValue : ''),
+			latitude: undefined,
+			longitude: undefined,
+			radius: undefined,
+			limit: 100,
+			query: '',
+			services: shouldLoadNearestFromLocation ? [] : selectedServices,
+			payments: shouldLoadNearestFromLocation ? [] : selectedPayments,
+			openAt: shouldLoadNearestFromLocation ? '' : (hasFullTimeRange ? startTimeValue : ''),
+			closeAt: shouldLoadNearestFromLocation ? '' : (hasFullTimeRange ? endTimeValue : ''),
 		})
 			.then(data => {
 				setLaundries(Array.isArray(data.laundries) ? data.laundries : []);
@@ -230,7 +227,7 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 				// eslint-disable-next-line no-console
 				console.error('[LaundryExplorer] Erreur récupération laveries:', err);
 			});
-	}, [t, position, searchLocation, submittedSearch, isLocationSearch, radiusValue, selectedServices, selectedPayments, startTimeValue, endTimeValue]);
+	}, [t, searchLocation, isLocationSearch, selectedServices, selectedPayments, startTimeValue, endTimeValue]);
 
 	// Ouvre/ferme la modal de filtre
 	function openFilterModal() {
@@ -253,6 +250,16 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 	}, [isFilterModalOpen]);
 	 // Fonction pour revenir à la position utilisateur
 	function handleRecenter() {
+		// Revenir immédiatement au mode "proximité utilisateur"
+		setIsLocationSearch(false);
+		setSearchLocation(null);
+		setShowAll(false);
+		setHighlightedLaundryId(null);
+		if (position) {
+			setMapCenter(position);
+			setMode('position');
+		}
+
 		if (!navigator.geolocation) {
 			setError(t('explorer.geolocation_unavailable', "La géolocalisation n'est pas supportée par ce navigateur."));
 			return;
@@ -261,12 +268,8 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 			(pos) => {
 				const coords = [pos.coords.latitude, pos.coords.longitude];
 				setPosition(coords);
-				setIsLocationSearch(false);
-				setSearchLocation(null);
-				setSubmittedSearch('');
 				setMapCenter(coords);
 				setMode('position');
-				setHighlightedLaundryId(null);
 				if (search) setSearch("");
 				setError(null);
 				setTimeout(() => {
@@ -294,26 +297,11 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 	   setSearch(e.target.value);
    }
 
-	function centerOnLaundry(laundry) {
-		if (!laundry || typeof laundry.latitude !== 'number' || typeof laundry.longitude !== 'number') {
-			return;
-		}
-
-		const coords = [laundry.latitude, laundry.longitude];
-		setMapCenter(coords);
-		setMode('all');
-		if (mapRef.current) {
-			mapRef.current.flyTo(coords, 15, { animate: true, duration: 1.2 });
-			setMapBounds(mapRef.current.getBounds());
-		}
-	}
-
    async function handleSearchSubmit(e) {
 	   e.preventDefault();
 	   const queryRaw = search.trim();
 	   if (!queryRaw) {
 		   setIsLocationSearch(false);
-		   setSubmittedSearch('');
 		   setSearchLocation(null);
 		   setHighlightedLaundryId(null);
 		   setShowAll(false);
@@ -321,92 +309,36 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 	   }
 
 	   setError(null);
-	   setShowAll(true);
-	   const query = queryRaw.toLowerCase();
-	   const cityMatchExists = laundries.some(laundry =>
-		   laundry.city && laundry.city.toLowerCase().includes(query)
-	   );
+	   setShowAll(false);
 
-	   if (looksLikeAddress(queryRaw) || cityMatchExists) {
-		   try {
-			   const coords = await geocodeAddress(queryRaw);
-			   if (coords) {
-				   setIsLocationSearch(true);
-				   setSubmittedSearch('');
-				   setSearchLocation(coords);
-				   setHighlightedLaundryId(null);
-				   setMapCenter(coords);
-				   setMode('all');
-				   if (mapRef.current) {
-					   mapRef.current.flyTo(coords, 15, { animate: true, duration: 1.2 });
-					   setMapBounds(mapRef.current.getBounds());
-				   }
-				   return;
-			   }
-		   } catch (err) {
-			   // eslint-disable-next-line no-console
-			   console.warn('[LaundryExplorer] Erreur geocodage adresse:', err);
+	   try {
+		   const coords = await geocodeAddress(queryRaw);
+		   if (!coords) {
+			   setIsLocationSearch(false);
+			   setSearchLocation(null);
+			   setHighlightedLaundryId(null);
+			   setError(null);
+			   return;
 		   }
+
+		   setIsLocationSearch(true);
+		   setSearchLocation(coords);
+		   setHighlightedLaundryId(null);
+		   setMapCenter(coords);
+		   setMode('all');
+		   if (mapRef.current) {
+			   mapRef.current.flyTo(coords, looksLikeAddress(queryRaw) ? 15 : 13, { animate: true, duration: 1.2 });
+			   setMapBounds(mapRef.current.getBounds());
+		   }
+	   } catch (err) {
+		   // eslint-disable-next-line no-console
+		   console.warn('[LaundryExplorer] Erreur geocodage:', err);
+		   setIsLocationSearch(false);
+		   setSearchLocation(null);
+		   setHighlightedLaundryId(null);
+		   setError(null);
 	   }
-
-	   setIsLocationSearch(false);
-	   setSearchLocation(null);
-	   searchCenteredForRef.current = '';
-	   setSubmittedSearch(queryRaw);
-
-	   const foundLaundry = laundries.find(laundry =>
-		   laundry.establishmentName && laundry.establishmentName.toLowerCase().includes(query)
-	   );
-	   const foundCityLaundry = laundries.find(laundry =>
-		   laundry.city && laundry.city.toLowerCase().includes(query)
-	   );
-	   if (foundLaundry) {
-		   centerOnLaundry(foundLaundry);
-		   searchCenteredForRef.current = queryRaw;
-		   setHighlightedLaundryId(foundLaundry.id);
-		   setTimeout(() => {
-			   if (cardRefs.current[foundLaundry.id]) {
-				   cardRefs.current[foundLaundry.id].scrollIntoView({ behavior: 'smooth', block: 'center' });
-			   }
-		   }, 200);
-		   return;
-	   }
-
-	   if (foundCityLaundry) {
-		   centerOnLaundry(foundCityLaundry);
-		   searchCenteredForRef.current = queryRaw;
-	   }
-
-	   setHighlightedLaundryId(null);
-	   setShowAll(true);
    }
-
-	useEffect(() => {
-		if (!submittedSearch.trim()) {
-			searchCenteredForRef.current = '';
-			return;
-		}
-
-		if (searchCenteredForRef.current === submittedSearch) {
-			return;
-		}
-
-		const query = submittedSearch.trim().toLowerCase();
-		const foundByName = laundries.find(laundry =>
-			laundry.establishmentName && laundry.establishmentName.toLowerCase().includes(query)
-		);
-		const foundByCity = laundries.find(laundry =>
-			laundry.city && laundry.city.toLowerCase().includes(query)
-		);
-		const targetLaundry = foundByName || foundByCity;
-
-		if (!targetLaundry) {
-			return;
-		}
-
-		centerOnLaundry(targetLaundry);
-		searchCenteredForRef.current = submittedSearch;
-	}, [laundries, submittedSearch]);
 
 	useEffect(() => {
 		if (!navigator.geolocation) {
@@ -428,7 +360,10 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 				}, 100);
 			},
 			(err) => {
-				if (err.code === 2) {
+				if (err.code === 1) {
+					// Refus utilisateur: ne pas afficher d'erreur UI
+					setError(null);
+				} else if (err.code === 2) {
 					// Position indisponible
 					setError(t('explorer.geolocation_unavailable_position', 'Impossible de trouver votre position.'));
 				} else {
@@ -444,31 +379,6 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 			setMapCenter([48.8584, 2.2945]); // Paris par défaut
 		}
 	}, [position, mapCenter]);
-
-	// Fonction pour filtrer les laveries dans la zone visible
-	   function laundriesInBounds(bounds) {
-		   if (!bounds) return [];
-		   const [[south, west], [north, east]] = [
-			   [bounds.getSouth(), bounds.getWest()],
-			   [bounds.getNorth(), bounds.getEast()]
-		   ];
-		   return laundries
-			   .filter(laundry =>
-				   laundry.latitude >= south && laundry.latitude <= north &&
-				   laundry.longitude >= west && laundry.longitude <= east
-			   )
-			   .map(laundry => {
-				   let distance = null;
-				   if (position) {
-					   distance = getDistanceKm(position[0], position[1], laundry.latitude, laundry.longitude);
-				   }
-				   return { ...laundry, distance };
-			   })
-			   .sort((a, b) => {
-				   if (a.distance !== null && b.distance !== null) return a.distance - b.distance;
-				   return 0;
-			   });
-	   }
 
 	// Fonction pour filtrer les laveries dans un rayon de 10km autour d'un centre donné
 	   function laundriesInRadius(center, radiusKm = 10) {
@@ -494,7 +404,6 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 			function updateBounds() {
 				setMapBounds(map.getBounds());
 				setMapCenter([map.getCenter().lat, map.getCenter().lng]);
-				if (mode !== 'bounds') setMode('bounds');
 			}
 			map.on('moveend', updateBounds);
 			return () => {
@@ -507,10 +416,8 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 
 	   // Tous les marqueurs sont toujours affichés sur la carte !
 
-	   // La liste à droite :
-	   // - Si recherche : filtrer par ville ou nom (insensible à la casse, partiel)
-	   // - Sinon, filtrer par zone visible (bounds) si mode 'bounds'
-	   // - Sinon, filtrer par distance < 10km autour de la position utilisateur
+	   // La liste à droite pilote l'exploration (la carte n'impose pas de filtre de liste).
+	   // La carte reste complète et affiche toujours tous les marqueurs valides.
 	   let laundriesVisible = allLaundries().map(laundry => {
 		   // Calculer la distance pour chaque laverie si position connue
 		   let distance = null;
@@ -535,23 +442,20 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 				   if (b.distance === null) return -1;
 				   return a.distance - b.distance;
 			   });
-	   } else if (submittedSearch.trim()) {
-		   const query = submittedSearch.trim().toLowerCase();
-		   laundriesVisible = laundriesVisible.filter(laundry =>
-			   (laundry.city && laundry.city.toLowerCase().includes(query)) ||
-			   (laundry.address && laundry.address.toLowerCase().includes(query)) ||
-			   (laundry.establishmentName && laundry.establishmentName.toLowerCase().includes(query))
-		   );
-	   } else if (mode === 'bounds' && mapBounds && selectedServices.length === 0 && selectedPayments.length === 0) {
-		   laundriesVisible = laundriesInBounds(mapBounds);
-	   } else if (position && selectedServices.length === 0 && selectedPayments.length === 0) {
-		   laundriesVisible = laundriesVisible.filter(laundry =>
-			   typeof laundry.distance === 'number' && laundry.distance <= 10
-		   );
+	   } else if (position) {
+		   laundriesVisible = laundriesVisible
+			   .filter(laundry => typeof laundry.distance === 'number')
+			   .sort((a, b) => a.distance - b.distance);
 	   }
 
-	   // Limiter à 3 laveries sauf si showAll
-	   const laundriesToDisplay = showAll ? laundriesVisible : laundriesVisible.slice(0, 3);
+	   const isPositionNearestMode = !isLocationSearch && !!position;
+
+	   // En recherche ville/adresse ou en géolocalisation, n'afficher que les plus proches.
+	   const laundriesToDisplay = isLocationSearch
+		   ? laundriesVisible.slice(0, LOCATION_SEARCH_LIMIT)
+		   : (isPositionNearestMode
+			   ? laundriesVisible.slice(0, POSITION_NEAREST_LIMIT)
+			   : (showAll ? laundriesVisible : laundriesVisible.slice(0, LIST_INITIAL_LIMIT)));
 
 		return (
 		   <div className={`flex flex-col md:flex-row gap-8 lg:gap-6 items-baseline lg:items-start w-full ${effectiveDarkTheme ? 'text-slate-100' : 'text-slate-900'}`}>
@@ -582,8 +486,8 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 											type="button"
 											onClick={() => {
 												setSearch("");
-													setSubmittedSearch('');
 													setSearchLocation(null);
+													setIsLocationSearch(false);
 												handleRecenter();
 											}}
 											className={`absolute right-2 top-1/2 -translate-y-1/2 text-lg font-bold focus:outline-none ${effectiveDarkTheme ? 'text-slate-400 hover:text-slate-200' : 'text-gray-400 hover:text-gray-700'}`}
@@ -831,7 +735,7 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 								       />
 							   ))}
 							</div>
-							 {!showAll && laundriesVisible.length > 3 && (
+							 {!isLocationSearch && !isPositionNearestMode && !showAll && laundriesVisible.length > LIST_INITIAL_LIMIT && (
 								 <button
 									 onClick={() => setShowAll(true)}
 									 className="mt-4 mb-2 px-3 py-1 lg:px-4 lg:py-2 cursor-pointer text-[12px] lg:text-sm text-[#3B82F6] font-medium"
