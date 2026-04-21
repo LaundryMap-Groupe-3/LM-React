@@ -225,13 +225,15 @@ const LaundryCard = forwardRef(({
                 </span>
               )}
             </div>
-            <div className="flex items-center justify-between gap-2">
-              <span className={`text-[10px] lg:text-[12px] xl:text-[13px] font-semibold whitespace-nowrap ${effectiveDarkTheme ? 'text-slate-200' : 'text-black'}`}>
-                {t('explorer.distance', 'Distance')}: {distanceKm !== null ? `${distanceKm.toFixed(1)} km` : t('explorer.unknown_distance', 'Distance inconnue')}
-              </span>
+            <div className={`flex items-center gap-2 ${distanceKm !== null ? 'justify-between' : 'justify-end'}`}>
+              {distanceKm !== null && (
+                <span className={`text-[10px] lg:text-[12px] xl:text-[13px] font-semibold whitespace-nowrap ${effectiveDarkTheme ? 'text-slate-200' : 'text-black'}`}>
+                  {t('explorer.distance', 'Distance')}: {`${distanceKm.toFixed(1)} km`}
+                </span>
+              )}
               <Link
                 to={`/laundry/${laundry.id}`}
-                className="inline-flex h-[25px] w-[85px] lg:h-[30px] lg:w-[125px] items-center justify-center gap-[5px] rounded-lg bg-[#3B82F6] px-2 py-1 text-[10px] lg:text-[12px] xl:text-[13px] font-semibold text-white transition hover:bg-blue-700"
+                className="inline-flex h-[25px] w-[85px] lg:h-[30px] lg:w-[95px] items-center justify-center gap-[5px] rounded-lg bg-[#3B82F6] px-2 py-1 text-[10px] lg:text-[12px] xl:text-[13px] font-semibold text-white transition hover:bg-blue-700"
                 style={{ textDecoration: 'none' }}
               >
                 <img src={EyeIcon} alt={t('explorer.see_icon_alt', 'Voir')} className="h-[13px] w-[13px]" />
