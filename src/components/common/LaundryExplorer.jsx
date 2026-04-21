@@ -49,8 +49,6 @@ const laundryIcon = L.icon({
 	shadowAnchor: [13, 41], // par défaut
 });
 
-
-
 // Centre dynamiquement la carte sur n'importe quel centre (position utilisateur, recherche, clic...)
 
 // Centre la carte uniquement si le centre a vraiment changé (évite la tremblote)
@@ -144,7 +142,17 @@ const LaundryExplorer = () => {
 	useEffect(() => {
 		laundryService.getNearbyLaundries({})
 			.then(data => {
-				setLaundries(Array.isArray(data.laundries) ? data.laundries : []);
+				const laundriesArray = Array.isArray(data.laundries) ? data.laundries : [];
+				// Mapping coordonnées : latitude/longitude, lat/lng, geo_lat/geo_lng, etc.
+				const mapped = laundriesArray.map(l => {
+					let latitude = l.latitude ?? l.lat ?? l.geo_lat ?? l.y ?? null;
+					let longitude = l.longitude ?? l.lng ?? l.lon ?? l.geo_lng ?? l.x ?? null;
+					latitude = typeof latitude === 'string' ? Number(latitude) : latitude;
+					longitude = typeof longitude === 'string' ? Number(longitude) : longitude;
+					return { ...l, latitude, longitude };
+				});
+				console.log('[LaundryExplorer] Laveries coordonnées corrigées:', mapped);
+				setLaundries(mapped);
 			})
 			.catch((err) => {
 				setError(t('explorer.load_error', 'Impossible de charger les laveries depuis le serveur.'));

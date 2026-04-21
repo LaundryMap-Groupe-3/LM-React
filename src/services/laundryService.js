@@ -14,17 +14,10 @@ const toQueryString = (params) => {
 
 const laundryService = {
   async getNearbyLaundries({ latitude, longitude, radius = 20, limit = 50, query = '', city = '' } = {}) {
-    const queryString = toQueryString({
-      lat: latitude,
-      lng: longitude,
-      radius,
-      limit,
-      query,
-      city: city && city !== 'all' ? city : '',
-    })
-
+    // Ajout du header Authorization si token présent
+    // Appel de la route publique
     try {
-      const response = await fetch(`${API_BASE_URL}/api/laundries/nearby?${queryString}`, {
+      const response = await fetch(`${API_BASE_URL}/api/laundries`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
