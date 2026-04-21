@@ -1,5 +1,7 @@
 {
   "common": {
+    "explorer.popup_rating_label": "Rating",
+    "explorer.popup_reviews_label": "reviews",
     "app_name": "LaundryMap",
     "welcome": "Welcome on",
     "logout": "Logout",
@@ -358,7 +360,7 @@
     "address_icon_alt": "Location icon",
     "star_icon_alt": "Star",
     "see_icon_alt": "See",
-    "see_laundry": "See laundry",
+    "see_laundry": "See",
     "distance": "Distance",
     "unknown_distance": "Unknown distance",
     "favorite_error": "An error occurred while adding to favorites. Please try again.",

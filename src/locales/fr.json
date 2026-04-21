@@ -1,6 +1,8 @@
 {
   "common": {
       "explorer.favorite_error": "Une erreur est survenue lors de l’ajout aux favoris. Veuillez réessayer.",
+    "explorer.popup_rating_label": "Note",
+    "explorer.popup_reviews_label": "avis",
     "app_name": "LaundryMap",
     "welcome": "Bienvenue sur",
     "logout": "Déconnexion",
@@ -357,7 +359,7 @@
     "address_icon_alt": "Icône de localisation",
     "star_icon_alt": "Étoile",
     "see_icon_alt": "Voir",
-    "see_laundry": "Consulter la laverie",
+    "see_laundry": "Consulter",
     "distance": "Distance",
     "unknown_distance": "Distance inconnue",
     "subtitle": "Repérez rapidement les laveries autour de vous, comparez les résultats et gardez la carte alignée avec la liste.",

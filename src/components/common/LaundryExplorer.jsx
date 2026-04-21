@@ -7,6 +7,7 @@ import "leaflet/dist/leaflet.css";
 
 // 2. Contextes et services
 import { useTranslation } from '../../context/I18nContext';
+import { usePreferences } from '../../context/PreferencesContext';
 import laundryService from '../../services/laundryService';
 
 // 3. Composants locaux
@@ -70,9 +71,11 @@ function SetViewOnCenter({ center }) {
        return null;
 }
 
-const LaundryExplorer = () => {
+const LaundryExplorer = ({ isDarkTheme }) => {
        const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
        const { t } = useTranslation();
+	const { isDarkTheme: preferenceDarkTheme } = usePreferences();
+	const effectiveDarkTheme = preferenceDarkTheme ?? isDarkTheme;
        const [laundries, setLaundries] = useState([]);
        const [position, setPosition] = useState(null);
        const [error, setError] = useState(null);
@@ -554,26 +557,26 @@ const LaundryExplorer = () => {
 	   const laundriesToDisplay = showAll ? laundriesVisible : laundriesVisible.slice(0, 3);
 
 		return (
-		   <div className="flex flex-col md:flex-row gap-8 items-baseline w-full">
+		   <div className={`flex flex-col md:flex-row gap-8 lg:gap-6 items-baseline lg:items-start w-full ${effectiveDarkTheme ? 'text-slate-100' : 'text-slate-900'}`}>
 			   {/* Affichage des erreurs de géolocalisation ou autres */}
 			   {error && (
-				   <div className="w-full mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded text-center text-sm">
+				   <div className={`w-full mb-4 p-3 rounded text-center text-sm ${effectiveDarkTheme ? 'bg-red-900/40 border border-red-700/60 text-red-200' : 'bg-red-100 border border-red-300 text-red-700'}`}>
 					   {error}
 				   </div>
 			   )}
 			   {/* Colonne gauche : formulaire + carte */}
-				   <div className="flex-1 min-w-0 flex flex-col w-full md:w-auto">
+				   <div className="flex-1 min-w-0 flex flex-col w-full md:w-auto lg:basis-[54%] xl:basis-[52%]">
 						{/* Formulaire de recherche + bouton filtre */}
-						<div className="w-full flex justify-center mb-2 mt-2">
-							<form className="px-4 py-2 flex gap-2 items-center w-full max-w-xl" onSubmit={handleSearchSubmit}>
+						<div className="w-full flex justify-center mb-2 mt-2 lg:mb-4">
+							<form className="px-4 py-2 lg:py-3 flex gap-2 lg:gap-3 items-center w-full max-w-xl lg:max-w-3xl xl:max-w-4xl" onSubmit={handleSearchSubmit}>
 								<div className="relative flex-1">
 									<span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-										<img src={SearchIcon} alt={t('explorer.search_placeholder', 'Rechercher')} className="h-5 w-5 text-gray-400" />
+										<img src={SearchIcon} alt={t('explorer.search_placeholder', 'Rechercher')} className="h-5 w-5 lg:h-6 lg:w-6 text-gray-400" />
 									</span>
 									<input
 										type="text"
 										placeholder={t('explorer.search_placeholder', 'Rechercher une laverie, une ville...')}
-										className="w-full border border-[#D1D5DB] rounded-lg h-[38px] pl-10 pr-8 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
+										className={`w-full border rounded-lg h-[38px] lg:h-[46px] pl-10 lg:pl-12 pr-8 py-1 text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-blue-200 ${effectiveDarkTheme ? 'border-slate-600 bg-slate-900 text-slate-100 placeholder-slate-400' : 'border-[#D1D5DB] bg-white text-slate-900'}`}
 										value={search}
 										onChange={handleSearchChange}
 									/>
@@ -586,7 +589,7 @@ const LaundryExplorer = () => {
 													setSearchLocation(null);
 												handleRecenter();
 											}}
-											className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 text-lg font-bold focus:outline-none"
+											className={`absolute right-2 top-1/2 -translate-y-1/2 text-lg font-bold focus:outline-none ${effectiveDarkTheme ? 'text-slate-400 hover:text-slate-200' : 'text-gray-400 hover:text-gray-700'}`}
 											aria-label={t('common.close', 'Effacer la recherche')}
 											tabIndex={0}
 											style={{ background: 'none', border: 'none', padding: 0, margin: 0, lineHeight: 1 }}
@@ -597,22 +600,22 @@ const LaundryExplorer = () => {
 								</div>
 									<button
 										type="submit"
-										className="bg-[#3B82F6] text-white px-3 h-[38px] rounded-lg text-sm font-medium hover:bg-[#1D4ED8] transition"
+										className="bg-[#3B82F6] text-white px-3 lg:px-5 h-[38px] lg:h-[46px] rounded-lg text-sm lg:text-base font-medium hover:bg-[#1D4ED8] transition"
 									>
 										{t('explorer.search_button', 'Rechercher')}
 									</button>
 								<button
 									type="button"
 									onClick={handleRecenter}
-									className={"bg-[#3B82F6] w-[38px] h-[38px] rounded-lg py-1 flex items-center justify-center transition " + (!position ? "opacity-50 cursor-not-allowed" : "cursor-pointer")}
+									className={"bg-[#3B82F6] w-[38px] h-[38px] lg:w-[46px] lg:h-[46px] rounded-lg py-1 flex items-center justify-center transition " + (!position ? "opacity-50 cursor-not-allowed" : "cursor-pointer")}
 									title={t('explorer.locate_me', 'Revenir sur ma position')}
 								>
-									<img src={Logo} alt={t('explorer.locate_me', 'Ma position')} className="inline-block h-5 w-5" />
+									<img src={Logo} alt={t('explorer.locate_me', 'Ma position')} className="inline-block h-5 w-5 lg:h-6 lg:w-6" />
 								</button>
 								<button
 									type="button"
 									onClick={openFilterModal}
-									className="bg-white border border-[#3B82F6] text-[#3B82F6] rounded-lg h-[38px] w-[38px] ml-2 flex items-center justify-center hover:bg-[#3B82F6] hover:text-white transition"
+									className="bg-white border border-[#3B82F6] text-[#3B82F6] rounded-lg h-[38px] w-[38px] lg:h-[46px] lg:w-[46px] flex items-center justify-center hover:bg-[#3B82F6] hover:text-white transition"
 									title={t('explorer.open_filters', 'Filtres')}
 								>
 									<img src={SystemIcon} alt={t('explorer.open_filters', 'Filtres')} className="h-5 w-5" />
@@ -627,7 +630,7 @@ const LaundryExplorer = () => {
 								<div className="absolute inset-0 bg-gray-800 opacity-60" style={{zIndex: 1}}></div>
 										{/* Modal rectangle moitié bas, fond blanc */}
 										<div
-											className="relative shadow-lg p-6 w-full max-w-[600px] border-t-[#3B82F6] bg-[#CBD5E1]"
+											className={`relative shadow-lg p-6 w-full max-w-[600px] border-t-[#3B82F6] ${effectiveDarkTheme ? 'bg-slate-800 text-slate-100' : 'bg-[#CBD5E1] text-slate-900'}`}
 											style={{
 												zIndex: 2,
 												maxHeight: '90vh',
@@ -646,7 +649,7 @@ const LaundryExplorer = () => {
 										>
 									<button
 										onClick={closeFilterModal}
-										className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
+										className={`absolute top-2 right-2 text-xl font-bold ${effectiveDarkTheme ? 'text-slate-400 hover:text-slate-200' : 'text-gray-400 hover:text-gray-700'}`}
 										aria-label={t('common.close', 'Fermer')}
 									>
 										×
@@ -675,7 +678,7 @@ const LaundryExplorer = () => {
 											<label className="block text-left font-bold text-[12px] text-[#3B82F6] mb-1">
 												{t('explorer.filter_radius', 'Périmètre de recherche')}
 											</label>
-											<div className="w-full flex items-center bg-white rounded px-2 py-1">
+											<div className={`w-full flex items-center rounded px-2 py-1 ${effectiveDarkTheme ? 'bg-slate-900' : 'bg-white'}`}>
 												<input
 													type="text"
 													inputMode="numeric"
@@ -687,7 +690,9 @@ const LaundryExplorer = () => {
 													placeholder={t('explorer.filter_radius_placeholder', '10 km')}
 													className={
 														'flex-1 bg-transparent outline-none text-sm ' +
-														(radiusValue === '' ? 'placeholder-gray-400 text-gray-400' : 'text-gray-900')
+														(radiusValue === ''
+															? (effectiveDarkTheme ? 'placeholder-slate-500 text-slate-500' : 'placeholder-gray-400 text-gray-400')
+															: (effectiveDarkTheme ? 'text-slate-100' : 'text-gray-900'))
 													}
 													style={{minWidth: 0}}
 												/>
@@ -705,7 +710,7 @@ const LaundryExplorer = () => {
 													pattern="[0-9]{2}:[0-9]{2}"
 													value={startTimeValue}
 													onChange={(e) => handleTimeChange(e.target.value, setStartTimeValue)}
-													className="flex-1 bg-white w-full text-center rounded px-2 py-1 placeholder-gray-400"
+													className={`flex-1 w-full text-center rounded px-2 py-1 placeholder-gray-400 ${effectiveDarkTheme ? 'bg-slate-900 text-slate-100 placeholder-slate-500' : 'bg-white text-slate-900'}`}
 													placeholder={t('explorer.filter_time_start_placeholder', '11:00')}
 												/>
 												<input
@@ -714,7 +719,7 @@ const LaundryExplorer = () => {
 													pattern="[0-9]{2}:[0-9]{2}"
 													value={endTimeValue}
 													onChange={(e) => handleTimeChange(e.target.value, setEndTimeValue)}
-													className="flex-1 bg-white w-full text-center rounded px-2 py-1 placeholder-gray-400"
+													className={`flex-1 w-full text-center rounded px-2 py-1 placeholder-gray-400 ${effectiveDarkTheme ? 'bg-slate-900 text-slate-100 placeholder-slate-500' : 'bg-white text-slate-900'}`}
 													placeholder={t('explorer.filter_time_end_placeholder', '18:00')}
 												/>
 											</div>
@@ -724,7 +729,7 @@ const LaundryExplorer = () => {
 											<label className="block text-left font-bold text-[12px] text-[#3B82F6] mb-1">
 												{t('explorer.filter_service', 'Service(s)')}
 											</label>
-											<div className="bg-white rounded-xl p-4 w-full">
+											<div className={`rounded-xl p-4 w-full ${effectiveDarkTheme ? 'bg-slate-900' : 'bg-white'}`}>
 												<ServiceFilter t={t} hideLabel selected={selectedServices} onChange={setSelectedServices} />
 											</div>
 										</div>
@@ -733,7 +738,7 @@ const LaundryExplorer = () => {
 											<label className="block text-left font-bold text-[12px] text-[#3B82F6] mb-1">
 												{t('explorer.filter_payment', 'Moyens de paiement')}
 											</label>
-											<div className="bg-white rounded-xl p-4 w-full">
+											<div className={`rounded-xl p-4 w-full ${effectiveDarkTheme ? 'bg-slate-900' : 'bg-white'}`}>
 												<PaymentFilter t={t} hideLabel selected={selectedPayments} onChange={setSelectedPayments} />
 											</div>
 										</div>
@@ -742,7 +747,7 @@ const LaundryExplorer = () => {
 							</div>
 						)}
 					   {/* Carte */}
-					   <div className="h-[500px] w-full">
+					   <div className="h-[500px] lg:h-[680px] xl:h-[760px] w-full">
 						<MapContainer
 							center={mapCenter || [48.8584, 2.2945]}
 							zoom={position ? 15 : 12}
@@ -790,8 +795,8 @@ const LaundryExplorer = () => {
 									   >
 										   <Popup>
 											   <strong>{laundry.establishmentName}</strong><br />
-											   {laundry.address}, {laundry.city}<br />
-											   Note : {laundry.rating} ⭐ ({laundry.reviews} avis)
+											   {laundry.address}<br />
+											   {t('explorer.popup_rating_label', 'Note')} : {laundry.rating} ⭐ ({laundry.reviews} {t('explorer.popup_reviews_label', 'avis')})
 										   </Popup>
 									   </Marker>
 								   ))}
@@ -801,16 +806,16 @@ const LaundryExplorer = () => {
 					   </div>
 				   </div>
 				   {/* Liste à droite */}
-				   <div className="flex-1 min-w-[220px] max-w-[480px] mt-0 w-full md:w-auto">
-					   <div className="mb-3">
-							<h3 className="text-[12px] font-semibold flex items-center justify-start gap-2 text-gray-800">
-								<img src={AdressIcon} alt={t('explorer.address_icon_alt', 'Icône de localisation')} className="inline-block h-[26px] w-[26px] mr-1" />
+				   <div className="flex-1 min-w-[220px] max-w-[480px] mt-0 w-full md:w-auto lg:basis-[46%] xl:basis-[48%] lg:max-w-[980px] lg:self-start lg:overflow-x-hidden lg:pr-1">
+					   <div className="lg:pt-6 mb-3">
+							<h3 className={`text-[12px] lg:text-base xl:text-lg font-semibold flex items-center justify-start gap-2 lg:gap-3 ${effectiveDarkTheme ? 'text-slate-100' : 'text-gray-800'}`}>
+								<img src={AdressIcon} alt={t('explorer.address_icon_alt', 'Icône de localisation')} className="inline-block h-[26px] w-[26px] lg:h-8 lg:w-8 xl:h-9 xl:w-9 mr-1" />
 								{t('explorer.list_title', 'Laveries à proximité')}
 							</h3>
 					   </div>
 					   {laundriesVisible.length > 0 ? (
 						   <>
-							<div className="flex flex-col gap-4">
+							<div className="flex flex-col items-stretch gap-4 lg:gap-6">
 							   {laundriesToDisplay.map(laundry => (
 								       <LaundryCard
 									       key={laundry.id}
@@ -818,6 +823,7 @@ const LaundryExplorer = () => {
 									       isHighlighted={highlightedLaundryId === laundry.id}
 									       isFavorite={favoriteIds.includes(laundry.id)}
 									       onToggleFavorite={() => handleToggleFavorite(laundry.id)}
+									       isDarkTheme={effectiveDarkTheme}
 									       onMouseEnter={() => setHighlightedLaundryId(laundry.id)}
 									       onMouseLeave={() => setHighlightedLaundryId(null)}
 									       onClick={() => {
@@ -831,14 +837,14 @@ const LaundryExplorer = () => {
 							 {!showAll && laundriesVisible.length > 3 && (
 								 <button
 									 onClick={() => setShowAll(true)}
-									 className="mt-4 mb-2 px-3 py-1 cursor-pointer text-[12px] text-[#3B82F6] font-medium"
+									 className="mt-4 mb-2 px-3 py-1 lg:px-4 lg:py-2 cursor-pointer text-[12px] lg:text-sm text-[#3B82F6] font-medium"
 								 >
 									 {t('explorer.show_more', 'Afficher plus')}
 								 </button>
 							 )}
 						   </>
 					   ) : (
-						 <div className="text-gray-500 text-sm">
+						 <div className={`text-sm ${effectiveDarkTheme ? 'text-slate-300' : 'text-gray-500'}`}>
 							 {laundries.length === 0
 								 ? t('explorer.no_results', 'Aucune laverie trouvée.')
 								 : t('explorer.no_results_hint', 'Aucune laverie dans cette zone.')
