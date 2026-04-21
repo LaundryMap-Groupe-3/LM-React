@@ -2,6 +2,28 @@ import authService from './authService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+function toQueryString(params = {}) {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') {
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        return;
+      }
+      searchParams.set(key, value.join(','));
+      return;
+    }
+
+    searchParams.set(key, String(value));
+  });
+
+  return searchParams.toString();
+}
+
 const laundryService = {
   async getPendingLaudries(page = 1, limit = 10) {
     const response = await fetch(
@@ -26,7 +48,18 @@ const laundryService = {
 
     return await response.json();
   },
-  async getNearbyLaundries({ latitude, longitude, radius = 20, limit = 50, query = '', city = '' } = {}) {
+  async getNearbyLaundries({
+    latitude,
+    longitude,
+    radius = 20,
+    limit = 50,
+    query = '',
+    city = '',
+    services = [],
+    payments = [],
+    openAt = '',
+    closeAt = '',
+  } = {}) {
     const queryString = toQueryString({
       lat: latitude,
       lng: longitude,
@@ -34,6 +67,10 @@ const laundryService = {
       limit,
       query,
       city: city && city !== 'all' ? city : '',
+      services,
+      payments,
+      openAt,
+      closeAt,
     })
 
     try {

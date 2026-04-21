@@ -13,13 +13,11 @@ import laundryService from '../../services/laundryService';
 import LaundryCard from './LaundryCard';
 
 // 4. Assets/images
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import WashingMachineIcon from '../../assets/images/icons/machine.png';
 import AdressIcon from '../../assets/images/icons/Address.svg';
 import Logo from '../../assets/images/logos/logo-laundrymap.svg';
-import SearchIcon from '../../assets/images/icons/search.svg';
+import SearchIcon from '../../assets/images/icons/Search.svg';
 import SystemIcon from '../../assets/images/icons/system.svg';
 import EraseIcon from '../../assets/images/icons/Erase.svg';
 
@@ -83,11 +81,19 @@ const LaundryExplorer = () => {
        const [mode, setMode] = useState('all'); // 'all', 'position', 'bounds'
        const [showAll, setShowAll] = useState(false);
        const [search, setSearch] = useState("");
+	const [submittedSearch, setSubmittedSearch] = useState("");
+	const [searchLocation, setSearchLocation] = useState(null);
+	const [isLocationSearch, setIsLocationSearch] = useState(false);
        const [highlightedLaundryId, setHighlightedLaundryId] = useState(null);
        const mapRef = useRef();
+	const searchCenteredForRef = useRef('');
        const cardRefs = useRef({});
        // State pour la valeur du périmètre (pour gérer la couleur)
        const [radiusValue, setRadiusValue] = useState('');
+	const [selectedServices, setSelectedServices] = useState([]);
+	const [selectedPayments, setSelectedPayments] = useState([]);
+	const [startTimeValue, setStartTimeValue] = useState('');
+	const [endTimeValue, setEndTimeValue] = useState('');
 
        // Favoris utilisateur (liste d'ID)
        const [favoriteIds, setFavoriteIds] = useState([]);
@@ -140,18 +146,88 @@ const LaundryExplorer = () => {
 		const val = e.target.value.replace(/[^0-9]/g, '');
 		setRadiusValue(val);
 	}
+
+	function handleTimeChange(value, setter) {
+		const sanitized = value.replace(/[^0-9:]/g, '').slice(0, 5);
+		setter(sanitized);
+	}
+
+	function getRadiusKm() {
+		const parsed = Number.parseInt(radiusValue, 10);
+		if (Number.isNaN(parsed)) {
+			return 20;
+		}
+
+		return Math.max(1, Math.min(100, parsed));
+	}
+
+	function isValidTimeHHMM(value) {
+		return /^([01]\d|2[0-3]):([0-5]\d)$/.test(value);
+	}
+
+	function looksLikeAddress(value) {
+		const normalized = value.toLowerCase();
+		return /\d/.test(normalized)
+			|| /\b(rue|avenue|av\.?|boulevard|bd\.?|place|chemin|route|allee|all[ée]e|impasse|quai)\b/.test(normalized);
+	}
+
+	async function geocodeAddress(query) {
+		const endpoint = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=fr&q=${encodeURIComponent(query)}`;
+		const response = await fetch(endpoint, {
+			headers: {
+				'Accept': 'application/json',
+				'Accept-Language': 'fr',
+			},
+		});
+
+		if (!response.ok) {
+			return null;
+		}
+
+		const data = await response.json();
+		if (!Array.isArray(data) || data.length === 0) {
+			return null;
+		}
+
+		const lat = Number.parseFloat(data[0].lat);
+		const lng = Number.parseFloat(data[0].lon);
+		if (Number.isNaN(lat) || Number.isNaN(lng)) {
+			return null;
+		}
+
+		return [lat, lng];
+	}
+
    // Chargement des laveries depuis l'API
 	useEffect(() => {
-		laundryService.getNearbyLaundries({})
+		const isSearchMode = submittedSearch.length > 0;
+		const shouldLoadNearestFromLocation = isLocationSearch && Array.isArray(searchLocation);
+		const radius = getRadiusKm();
+		const hasFullTimeRange = isValidTimeHHMM(startTimeValue) && isValidTimeHHMM(endTimeValue);
+		const centerLat = searchLocation?.[0] ?? position?.[0];
+		const centerLng = searchLocation?.[1] ?? position?.[1];
+
+		laundryService.getNearbyLaundries({
+			latitude: (isSearchMode || shouldLoadNearestFromLocation) ? undefined : centerLat,
+			longitude: (isSearchMode || shouldLoadNearestFromLocation) ? undefined : centerLng,
+			radius: (isSearchMode || shouldLoadNearestFromLocation) ? undefined : radius,
+			limit: shouldLoadNearestFromLocation ? 100 : 50,
+			query: shouldLoadNearestFromLocation ? '' : submittedSearch,
+			services: (isSearchMode || shouldLoadNearestFromLocation) ? [] : selectedServices,
+			payments: (isSearchMode || shouldLoadNearestFromLocation) ? [] : selectedPayments,
+			openAt: (isSearchMode || shouldLoadNearestFromLocation) ? '' : (hasFullTimeRange ? startTimeValue : ''),
+			closeAt: (isSearchMode || shouldLoadNearestFromLocation) ? '' : (hasFullTimeRange ? endTimeValue : ''),
+		})
 			.then(data => {
 				setLaundries(Array.isArray(data.laundries) ? data.laundries : []);
+				setError(null);
 			})
 			.catch((err) => {
 				setError(t('explorer.load_error', 'Impossible de charger les laveries depuis le serveur.'));
 				// eslint-disable-next-line no-console
 				console.error('[LaundryExplorer] Erreur récupération laveries:', err);
 			});
-	}, [t]);
+	}, [t, position, searchLocation, submittedSearch, isLocationSearch, radiusValue, selectedServices, selectedPayments, startTimeValue, endTimeValue]);
 
 	// Ouvre/ferme la modal de filtre
 	function openFilterModal() {
@@ -182,6 +258,9 @@ const LaundryExplorer = () => {
 			(pos) => {
 				const coords = [pos.coords.latitude, pos.coords.longitude];
 				setPosition(coords);
+				setIsLocationSearch(false);
+				setSearchLocation(null);
+				setSubmittedSearch('');
 				setMapCenter(coords);
 				setMode('position');
 				setHighlightedLaundryId(null);
@@ -212,21 +291,76 @@ const LaundryExplorer = () => {
 	   setSearch(e.target.value);
    }
 
-   function handleSearchSubmit(e) {
-	   e.preventDefault();
-	   const query = search.trim().toLowerCase();
-	   if (!query) return;
+	function centerOnLaundry(laundry) {
+		if (!laundry || typeof laundry.latitude !== 'number' || typeof laundry.longitude !== 'number') {
+			return;
+		}
 
-	   // Recherche par nom exact
+		const coords = [laundry.latitude, laundry.longitude];
+		setMapCenter(coords);
+		setMode('all');
+		if (mapRef.current) {
+			mapRef.current.flyTo(coords, 15, { animate: true, duration: 1.2 });
+			setMapBounds(mapRef.current.getBounds());
+		}
+	}
+
+   async function handleSearchSubmit(e) {
+	   e.preventDefault();
+	   const queryRaw = search.trim();
+	   if (!queryRaw) {
+		   setIsLocationSearch(false);
+		   setSubmittedSearch('');
+		   setSearchLocation(null);
+		   setHighlightedLaundryId(null);
+		   setShowAll(false);
+		   return;
+	   }
+
+	   setError(null);
+	   setShowAll(true);
+	   const query = queryRaw.toLowerCase();
+	   const cityMatchExists = laundries.some(laundry =>
+		   laundry.city && laundry.city.toLowerCase().includes(query)
+	   );
+
+	   if (looksLikeAddress(queryRaw) || cityMatchExists) {
+		   try {
+			   const coords = await geocodeAddress(queryRaw);
+			   if (coords) {
+				   setIsLocationSearch(true);
+				   setSubmittedSearch('');
+				   setSearchLocation(coords);
+				   setHighlightedLaundryId(null);
+				   setMapCenter(coords);
+				   setMode('all');
+				   if (mapRef.current) {
+					   mapRef.current.flyTo(coords, 15, { animate: true, duration: 1.2 });
+					   setMapBounds(mapRef.current.getBounds());
+				   }
+				   return;
+			   }
+		   } catch (err) {
+			   // eslint-disable-next-line no-console
+			   console.warn('[LaundryExplorer] Erreur geocodage adresse:', err);
+		   }
+	   }
+
+	   setIsLocationSearch(false);
+	   setSearchLocation(null);
+	   searchCenteredForRef.current = '';
+	   setSubmittedSearch(queryRaw);
+
 	   const foundLaundry = laundries.find(laundry =>
-		   laundry.establishmentName && laundry.establishmentName.toLowerCase() === query
+		   laundry.establishmentName && laundry.establishmentName.toLowerCase().includes(query)
+	   );
+	   const foundCityLaundry = laundries.find(laundry =>
+		   laundry.city && laundry.city.toLowerCase().includes(query)
 	   );
 	   if (foundLaundry) {
-		   setMapCenter([foundLaundry.latitude, foundLaundry.longitude]);
-		   setMode('all');
+		   centerOnLaundry(foundLaundry);
+		   searchCenteredForRef.current = queryRaw;
 		   setHighlightedLaundryId(foundLaundry.id);
-		   setShowAll(true);
-		   // Scroll la carte de la laverie trouvée dans la liste
 		   setTimeout(() => {
 			   if (cardRefs.current[foundLaundry.id]) {
 				   cardRefs.current[foundLaundry.id].scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -235,20 +369,41 @@ const LaundryExplorer = () => {
 		   return;
 	   }
 
-	   // Recherche par ville
-	   const laundriesInCity = laundries.filter(laundry =>
-		   laundry.city && laundry.city.toLowerCase() === query
-	   );
-	   if (laundriesInCity.length > 0) {
-		   // Centre sur la première laverie de la ville
-		   setMapCenter([laundriesInCity[0].latitude, laundriesInCity[0].longitude]);
-		   setMode('all');
-		   setHighlightedLaundryId(null);
-		   setShowAll(true);
-		   return;
+	   if (foundCityLaundry) {
+		   centerOnLaundry(foundCityLaundry);
+		   searchCenteredForRef.current = queryRaw;
 	   }
-	   // Sinon, rien
+
+	   setHighlightedLaundryId(null);
+	   setShowAll(true);
    }
+
+	useEffect(() => {
+		if (!submittedSearch.trim()) {
+			searchCenteredForRef.current = '';
+			return;
+		}
+
+		if (searchCenteredForRef.current === submittedSearch) {
+			return;
+		}
+
+		const query = submittedSearch.trim().toLowerCase();
+		const foundByName = laundries.find(laundry =>
+			laundry.establishmentName && laundry.establishmentName.toLowerCase().includes(query)
+		);
+		const foundByCity = laundries.find(laundry =>
+			laundry.city && laundry.city.toLowerCase().includes(query)
+		);
+		const targetLaundry = foundByName || foundByCity;
+
+		if (!targetLaundry) {
+			return;
+		}
+
+		centerOnLaundry(targetLaundry);
+		searchCenteredForRef.current = submittedSearch;
+	}, [laundries, submittedSearch]);
 
 	useEffect(() => {
 		if (!navigator.geolocation) {
@@ -364,15 +519,32 @@ const LaundryExplorer = () => {
 		   }
 		   return { ...laundry, distance };
 	   });
-	   if (search.trim()) {
-		   const query = search.trim().toLowerCase();
+	   if (isLocationSearch && Array.isArray(searchLocation)) {
+		   const [searchLat, searchLng] = searchLocation;
+		   laundriesVisible = allLaundries()
+			   .map(laundry => {
+				   if (typeof laundry.latitude !== 'number' || typeof laundry.longitude !== 'number') {
+					   return { ...laundry, distance: null };
+				   }
+				   const distance = getDistanceKm(searchLat, searchLng, laundry.latitude, laundry.longitude);
+				   return { ...laundry, distance };
+			   })
+			   .sort((a, b) => {
+				   if (a.distance === null && b.distance === null) return 0;
+				   if (a.distance === null) return 1;
+				   if (b.distance === null) return -1;
+				   return a.distance - b.distance;
+			   });
+	   } else if (submittedSearch.trim()) {
+		   const query = submittedSearch.trim().toLowerCase();
 		   laundriesVisible = laundriesVisible.filter(laundry =>
 			   (laundry.city && laundry.city.toLowerCase().includes(query)) ||
+			   (laundry.address && laundry.address.toLowerCase().includes(query)) ||
 			   (laundry.establishmentName && laundry.establishmentName.toLowerCase().includes(query))
 		   );
-	   } else if (mode === 'bounds' && mapBounds) {
+	   } else if (mode === 'bounds' && mapBounds && selectedServices.length === 0 && selectedPayments.length === 0) {
 		   laundriesVisible = laundriesInBounds(mapBounds);
-	   } else if (position) {
+	   } else if (position && selectedServices.length === 0 && selectedPayments.length === 0) {
 		   laundriesVisible = laundriesVisible.filter(laundry =>
 			   typeof laundry.distance === 'number' && laundry.distance <= 10
 		   );
@@ -401,7 +573,7 @@ const LaundryExplorer = () => {
 									<input
 										type="text"
 										placeholder={t('explorer.search_placeholder', 'Rechercher une laverie, une ville...')}
-										className="w-full border border-[#D1D5DB] rounded-[8px] h-[38px] pl-10 pr-8 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
+										className="w-full border border-[#D1D5DB] rounded-lg h-[38px] pl-10 pr-8 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 bg-white"
 										value={search}
 										onChange={handleSearchChange}
 									/>
@@ -410,6 +582,8 @@ const LaundryExplorer = () => {
 											type="button"
 											onClick={() => {
 												setSearch("");
+													setSubmittedSearch('');
+													setSearchLocation(null);
 												handleRecenter();
 											}}
 											className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 text-lg font-bold focus:outline-none"
@@ -421,18 +595,24 @@ const LaundryExplorer = () => {
 										</button>
 									)}
 								</div>
+									<button
+										type="submit"
+										className="bg-[#3B82F6] text-white px-3 h-[38px] rounded-lg text-sm font-medium hover:bg-[#1D4ED8] transition"
+									>
+										{t('explorer.search_button', 'Rechercher')}
+									</button>
 								<button
 									type="button"
 									onClick={handleRecenter}
-									className={"bg-[#3B82F6] w-[38px] h-[38px] rounded-[8px] py-1 flex items-center justify-center transition " + (!position ? "opacity-50 cursor-not-allowed" : "cursor-pointer")}
+									className={"bg-[#3B82F6] w-[38px] h-[38px] rounded-lg py-1 flex items-center justify-center transition " + (!position ? "opacity-50 cursor-not-allowed" : "cursor-pointer")}
 									title={t('explorer.locate_me', 'Revenir sur ma position')}
 								>
-									<img src={Logo} alt={t('explorer.locate_me', 'Ma position')} className="inline-block h-[20px] w-[20px]" />
+									<img src={Logo} alt={t('explorer.locate_me', 'Ma position')} className="inline-block h-5 w-5" />
 								</button>
 								<button
 									type="button"
 									onClick={openFilterModal}
-									className="bg-white border border-[#3B82F6] text-[#3B82F6] rounded-[8px] h-[38px] w-[38px] ml-2 flex items-center justify-center hover:bg-[#3B82F6] hover:text-white transition"
+									className="bg-white border border-[#3B82F6] text-[#3B82F6] rounded-lg h-[38px] w-[38px] ml-2 flex items-center justify-center hover:bg-[#3B82F6] hover:text-white transition"
 									title={t('explorer.open_filters', 'Filtres')}
 								>
 									<img src={SystemIcon} alt={t('explorer.open_filters', 'Filtres')} className="h-5 w-5" />
@@ -442,7 +622,7 @@ const LaundryExplorer = () => {
 
 						{/* Modal de filtre simple */}
 						{isFilterModalOpen && (
-							<div className="fixed inset-0 z-[9999] flex items-end justify-center">
+							<div className="fixed inset-0 z-9999 flex items-end justify-center">
 								{/* Overlay gris semi-transparent */}
 								<div className="absolute inset-0 bg-gray-800 opacity-60" style={{zIndex: 1}}></div>
 										{/* Modal rectangle moitié bas, fond blanc */}
@@ -476,12 +656,12 @@ const LaundryExplorer = () => {
 										type="button"
 										onClick={() => {
 											setRadiusValue('');
-											// Réinitialisation des filtres enfants via events personnalisés
-											document.dispatchEvent(new CustomEvent('resetServiceFilter'));
-											document.dispatchEvent(new CustomEvent('resetPaymentFilter'));
-											// TODO: Réinitialiser les horaires si besoin (inputs non contrôlés)
+											setSelectedServices([]);
+											setSelectedPayments([]);
+											setStartTimeValue('');
+											setEndTimeValue('');
 										}}
-										className="mb-4 px-3 py-1 rounded-[8px] w-[120px] h-[25px] bg-[#3B82F6] text-white text-[10px] font-semibold hover:bg-[#2563EB]"
+										className="mb-4 px-3 py-1 rounded-lg w-[120px] h-[25px] bg-[#3B82F6] text-white text-[10px] font-semibold hover:bg-[#2563EB]"
 										style={{display: 'inline-block'}}
 									>
 										<div className='flex items-center'>
@@ -519,8 +699,24 @@ const LaundryExplorer = () => {
 												{t('explorer.filter_hours', 'Horaires')}
 											</label>
 											<div className="flex flex-row gap-2">
-												<input type="text" inputMode="numeric" pattern="[0-9]{2}:[0-9]{2}" className="flex-1 bg-white w-full text-center rounded px-2 py-1 placeholder-gray-400" placeholder={t('explorer.filter_time_start_placeholder', '11:00')} />
-												<input type="text" inputMode="numeric" pattern="[0-9]{2}:[0-9]{2}" className="flex-1 bg-white w-full text-center rounded px-2 py-1 placeholder-gray-400" placeholder={t('explorer.filter_time_end_placeholder', '18:00')} />
+												<input
+													type="text"
+													inputMode="numeric"
+													pattern="[0-9]{2}:[0-9]{2}"
+													value={startTimeValue}
+													onChange={(e) => handleTimeChange(e.target.value, setStartTimeValue)}
+													className="flex-1 bg-white w-full text-center rounded px-2 py-1 placeholder-gray-400"
+													placeholder={t('explorer.filter_time_start_placeholder', '11:00')}
+												/>
+												<input
+													type="text"
+													inputMode="numeric"
+													pattern="[0-9]{2}:[0-9]{2}"
+													value={endTimeValue}
+													onChange={(e) => handleTimeChange(e.target.value, setEndTimeValue)}
+													className="flex-1 bg-white w-full text-center rounded px-2 py-1 placeholder-gray-400"
+													placeholder={t('explorer.filter_time_end_placeholder', '18:00')}
+												/>
 											</div>
 										</div>
 										{/* Service (boutons sélectionnables) */}
@@ -529,7 +725,7 @@ const LaundryExplorer = () => {
 												{t('explorer.filter_service', 'Service(s)')}
 											</label>
 											<div className="bg-white rounded-xl p-4 w-full">
-												<ServiceFilter t={t} hideLabel />
+												<ServiceFilter t={t} hideLabel selected={selectedServices} onChange={setSelectedServices} />
 											</div>
 										</div>
 										{/* Moyen de paiement (boutons sélectionnables) */}
@@ -538,7 +734,7 @@ const LaundryExplorer = () => {
 												{t('explorer.filter_payment', 'Moyens de paiement')}
 											</label>
 											<div className="bg-white rounded-xl p-4 w-full">
-												<PaymentFilter t={t} hideLabel />
+												<PaymentFilter t={t} hideLabel selected={selectedPayments} onChange={setSelectedPayments} />
 											</div>
 										</div>
 									</form>
@@ -657,24 +853,22 @@ const LaundryExplorer = () => {
 export default LaundryExplorer;
 
 // Composant ServiceFilter pour la sélection visuelle des services
-function ServiceFilter({ t, hideLabel }) {
-	const [selected, setSelected] = React.useState([]);
+function ServiceFilter({ t, hideLabel, selected = [], onChange }) {
 	const services = [
-		{ value: 'wifi', label: 'Wi-Fi' },
-		{ value: 'pressing', label: 'Pressing' },
-		{ value: 'seche-linge', label: 'Sèche-linge' },
-		{ value: 'repassage', label: 'Repassage' },
+		{ value: 'self-service-24-7', label: t('explorer.filter_service_self_service', 'Libre-service 24/7') },
+		{ value: 'ironing-station', label: t('explorer.filter_service_ironing', 'Poste de repassage') },
+		{ value: 'laundry-folding', label: t('explorer.filter_service_folding', 'Pliage du linge') },
 	];
 
 	function toggleService(value) {
-		setSelected(sel =>
+		onChange(sel =>
 			sel.includes(value) ? sel.filter(v => v !== value) : [...sel, value]
 		);
 	}
 
 	function removeService(value, e) {
 		e.stopPropagation();
-		setSelected(sel => sel.filter(v => v !== value));
+		onChange(sel => sel.filter(v => v !== value));
 	}
 
 	   return (
@@ -718,23 +912,22 @@ function ServiceFilter({ t, hideLabel }) {
 }
 
 // Composant PaymentFilter pour la sélection visuelle des moyens de paiement
-function PaymentFilter({ t, hideLabel }) {
-	const [selected, setSelected] = React.useState([]);
+function PaymentFilter({ t, hideLabel, selected = [], onChange }) {
 	const payments = [
-		{ value: 'cb', label: t('explorer.filter_payment_cb', 'Carte bancaire') },
-		{ value: 'especes', label: t('explorer.filter_payment_cash', 'Espèces') },
-		{ value: 'app', label: t('explorer.filter_payment_app', 'Application mobile') },
+		{ value: 'card', label: t('explorer.filter_payment_cb', 'Carte bancaire') },
+		{ value: 'cash', label: t('explorer.filter_payment_cash', 'Espèces') },
+		{ value: 'contactless', label: t('explorer.filter_payment_contactless', 'Sans contact') },
 	];
 
 	function togglePayment(value) {
-		setSelected(sel =>
+		onChange(sel =>
 			sel.includes(value) ? sel.filter(v => v !== value) : [...sel, value]
 		);
 	}
 
 	function removePayment(value, e) {
 		e.stopPropagation();
-		setSelected(sel => sel.filter(v => v !== value));
+		onChange(sel => sel.filter(v => v !== value));
 	}
 
 	   return (
