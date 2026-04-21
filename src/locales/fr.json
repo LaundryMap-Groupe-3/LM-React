@@ -328,7 +328,7 @@
     "help_center": "Centre d'aide"
   },
   "page_titles": {
-    "home": "Carte des laveries - LaundryMap",
+    "home": "LaundryMap",
     "login": "Se connecter - LaundryMap",
     "register": "S'inscrire - LaundryMap",
     "register_professional": "Inscription Professionnelle - LaundryMap",
@@ -508,6 +508,7 @@
     "email": "Email",
     "siret": "SIRET",
     "address": "Adresse",
+    "address_geolocation_pending": "La géolocalisation de l'adresse à échouée",
     "registration_date": "Date d'inscription",
     "page": "Page",
     "of": "sur",

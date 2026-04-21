@@ -25,9 +25,14 @@ import ProfessionalDashboard from './components/professional/ProfessionalDashboa
 import ProfessionalLaundryForm from './components/professional/ProfessionalLaundryForm'
 import ProfessionalLaundryDetails from './components/professional/ProfessionalLaundryDetails'
 import LaundryExplorer from './components/common/LaundryExplorer'
+import { useTranslation } from './context/I18nContext'
+import usePageTitle from './hooks/usePageTitle'
 
 // Composant pour la page d'accueil
 const Home = ({ isDarkTheme }) => {
+  const { t } = useTranslation()
+  usePageTitle('page_titles.home', t)
+
   return (
     <div className={`min-h-screen ${isDarkTheme ? 'bg-[#0F172A] text-slate-100' : ' text-slate-900'}`}>
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 md:px-8 lg:px-10 lg:py-8">

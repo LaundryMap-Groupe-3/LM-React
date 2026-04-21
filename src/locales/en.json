@@ -330,7 +330,7 @@
     "help_center": "Help Center"
   },
   "page_titles": {
-    "home": "Laundry map - LaundryMap",
+    "home": "LaundryMap",
     "login": "Login - LaundryMap",
     "register": "Sign Up - LaundryMap",
     "register_professional": "Professional Registration - LaundryMap",
@@ -510,6 +510,7 @@
     "email": "Email",
     "siret": "SIRET",
     "address": "Address",
+    "address_geolocation_pending": "Address geolocation is pending",
     "registration_date": "Registration Date",
     "page": "Page",
     "of": "of",
