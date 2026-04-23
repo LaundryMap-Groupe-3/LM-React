@@ -146,6 +146,7 @@ const AdminProfessionalDetails = ({ isDarkTheme }) => {
   const professionalUser = professional.user || professional;
   const isApproved = professional.status === 'approved' || professional.status === 'validated';
   const isRejected = professional.status === 'rejected';
+  const isRejectFlowActive = showRejectModal || rejectionReason.trim().length > 0;
   const professionalLocation = professional.address
     ? `${professional.address.street}, ${professional.address.postalCode} ${professional.address.city}`
     : '-';
@@ -229,7 +230,7 @@ const AdminProfessionalDetails = ({ isDarkTheme }) => {
             <div className="flex justify-center gap-[6px]">
               {!isApproved && !isRejected && (
                 <>
-                  {!showRejectModal && (
+                  {!isRejectFlowActive && (
                     <button
                       onClick={handleApprove}
                       disabled={isProcessing}
@@ -240,7 +241,7 @@ const AdminProfessionalDetails = ({ isDarkTheme }) => {
                     </button>
                   )}
 
-                  {!showRejectModal ? (
+                  {!isRejectFlowActive ? (
                     <button
                       onClick={() => setShowRejectModal(true)}
                       disabled={isProcessing}
