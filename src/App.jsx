@@ -1,3 +1,5 @@
+import './App.css'
+import PublicLaundryDetails from './components/public/PublicLaundryDetails';
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { useTranslation } from './context/I18nContext'
@@ -22,7 +24,6 @@ import Page404 from './components/common/Page404'
 import Page500 from './components/common/Page500'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import authService from './services/authService'
-import './App.css'
 import ProfessionalDashboard from './components/professional/ProfessionalDashboard'
 import ProfessionalLaundryForm from './components/professional/ProfessionalLaundryForm'
 import ProfessionalLaundryDetails from './components/professional/ProfessionalLaundryDetails'
@@ -306,6 +307,7 @@ function App() {
               <ProfessionalLaundryDetails isDarkTheme={isDarkTheme} />
             </ProtectedNonAdminRoute>
           }/>
+          <Route path="/laundries/:id" element={<PublicLaundryDetails isDarkTheme={isDarkTheme} />} />
           <Route path="/admin/laundries" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <AdminPendingLaundries 
