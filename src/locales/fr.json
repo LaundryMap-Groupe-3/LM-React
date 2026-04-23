@@ -256,6 +256,7 @@
   },
   "profile": {
     "personal_info": "Informations personnelles",
+    "my_information": "Mes informations",
     "preferences": "Préférences",
     "full_name": "Prénom & Nom",
     "member_since": "Membre depuis",
@@ -278,7 +279,7 @@
     "new_password": "Nouveau mot de passe",
     "confirm_new_password": "Confirmer le nouveau mot de passe",
     "last_modified": "Dernière modification",
-    "change_password": "Modifier",
+    "change_password": "Modifier le mot de passe",
     "placeholder_first_name": "Entrez votre prénom",
     "placeholder_last_name": "Entrez votre nom",
     "placeholder_email": "Entrez votre adresse email",
