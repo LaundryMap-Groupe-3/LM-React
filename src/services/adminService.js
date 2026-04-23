@@ -3,6 +3,35 @@ import authService from './authService';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const adminService = {
+    getProfile: async () => {
+    try {
+      const token = localStorage.getItem('jwt_token');
+      if (!token) {
+        throw { status: 401, body: { message: 'Token required' } };
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/admin/profile`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw {
+          status: response.status,
+          body: data,
+        };
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },
   async getPendingProfessionals(page = 1, limit = 10) {
     const response = await fetch(
       `${API_BASE_URL}/api/admin/professionals/pending?page=${page}&limit=${limit}`,

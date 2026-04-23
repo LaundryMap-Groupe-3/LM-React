@@ -9,6 +9,7 @@ import ForgotPassword from './components/auth/ForgotPassword'
 import ResetPassword from './components/auth/ResetPassword'
 import Profile from './components/user/Profile'
 import EditProfile from './components/user/EditProfile'
+import AdminProfile from './components/admin/AdminProfile'
 import AdminPendingProfessionals from './components/admin/AdminPendingProfessionals'
 import AdminPendingLaundries from './components/admin/AdminPendingLaundries'
 import AdminProfessionalDetails from './components/admin/AdminProfessionalDetails'
@@ -181,7 +182,7 @@ function App() {
           }/> 
           <Route path="/admin/profile" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
-              <Profile 
+              <AdminProfile 
                 isDarkTheme={isDarkTheme}
                 isLoggedIn={isLoggedIn}
                 userType={userType}
@@ -208,6 +209,11 @@ function App() {
               />
             </ProtectedAdminRoute>
           }/>
+          <Route path="/admin/dashboard" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <Navigate to="/admin/professionals" replace />
+            </ProtectedAdminRoute>
+          } />
           <Route path="/admin/professionals" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <AdminPendingProfessionals 
