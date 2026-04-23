@@ -227,7 +227,7 @@ const LaundryCard = forwardRef(({
                 {t('explorer.distance', 'Distance')}: {distanceKm !== null ? `${distanceKm.toFixed(1)} km` : t('explorer.unknown_distance', 'Distance inconnue')}
               </span>
             </div>
-            <div className="flex justify-end">
+            <div className="flex flex-col items-end gap-1">
               <Link
                 to={`/laundry/${laundry.id}`}
                 className="inline-flex h-[25px] w-[135px] items-center justify-center gap-[5px] rounded-[8px] bg-[#3B82F6] px-2 py-1 text-[10px] font-semibold text-white transition hover:bg-blue-700"

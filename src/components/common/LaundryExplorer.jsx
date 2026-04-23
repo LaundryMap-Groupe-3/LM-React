@@ -1,18 +1,13 @@
-
-// 1. Librairies externes
+import GoogleMapsIcon from '../../assets/images/icons/Google-Maps.svg';
+import WazeIcon from '../../assets/images/icons/Waze.svg';
+import StarIcon from '../../assets/images/icons/Star-yellow.svg';
 import React, { useEffect, useState, useRef } from "react";
 import L from "leaflet";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-
-// 2. Contextes et services
 import { useTranslation } from '../../context/I18nContext';
 import laundryService from '../../services/laundryService';
-
-// 3. Composants locaux
 import LaundryCard from './LaundryCard';
-
-// 4. Assets/images
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -22,8 +17,6 @@ import Logo from '../../assets/images/logos/logo-laundrymap.svg';
 import SearchIcon from '../../assets/images/icons/search.svg';
 import SystemIcon from '../../assets/images/icons/system.svg';
 import EraseIcon from '../../assets/images/icons/Erase.svg';
-
-// Fonction utilitaire pour calculer la distance entre deux points (Haversine)
 function getDistanceKm(lat1, lon1, lat2, lon2) {
 	const R = 6371; // Rayon de la Terre en km
 	const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -36,9 +29,6 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
 	const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 	return R * c;
 }
-
-
-// Icône personnalisée pour les laveries
 const laundryIcon = L.icon({
 	iconUrl: WashingMachineIcon,
 	iconSize: [30, 41], // taille par défaut Leaflet
@@ -48,50 +38,53 @@ const laundryIcon = L.icon({
 	shadowSize: [41, 41], // par défaut
 	shadowAnchor: [13, 41], // par défaut
 });
-
-// Centre dynamiquement la carte sur n'importe quel centre (position utilisateur, recherche, clic...)
-
-// Centre la carte uniquement si le centre a vraiment changé (évite la tremblote)
 function SetViewOnCenter({ center }) {
-       const map = useMap();
-       const lastCenter = React.useRef();
-       useEffect(() => {
-	       if (!center) return;
-	       const [lat, lng] = center;
-	       const [lastLat, lastLng] = lastCenter.current || [];
-	       // Calculer la distance entre l'ancien et le nouveau centre
-	       const dist = lastCenter.current ? getDistanceKm(lat, lng, lastLat, lastLng) * 1000 : Infinity;
-	       if (dist > 10) { // Seulement si > 10m
-		       const currentZoom = map.getZoom();
-		       map.flyTo(center, currentZoom, { animate: true, duration: 1.2 });
-		       lastCenter.current = center;
-	       }
-       }, [center, map]);
-       return null;
+	       const map = useMap();
+	       const lastCenter = React.useRef();
+	       useEffect(() => {
+		       if (!center) return;
+		       const [lat, lng] = center;
+		       if (!lastCenter.current) {
+			       lastCenter.current = center;
+			       return;
+		       }
+		       const [lastLat, lastLng] = lastCenter.current;
+		       const dist = getDistanceKm(lat, lng, lastLat, lastLng) * 1000;
+		       if (dist > 10) { // Seulement si > 10m
+			       const currentZoom = map.getZoom();
+			       map.flyTo(center, currentZoom, { animate: true, duration: 1.2 });
+			       lastCenter.current = center;
+		       }
+	       }, [center, map]);
+	       return null;
 }
 
 const LaundryExplorer = () => {
-       const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-       const { t } = useTranslation();
-       const [laundries, setLaundries] = useState([]);
-       const [position, setPosition] = useState(null);
-       const [error, setError] = useState(null);
-       const [mapBounds, setMapBounds] = useState(null);
-       const [mapCenter, setMapCenter] = useState(null);
-       const [mode, setMode] = useState('all'); // 'all', 'position', 'bounds'
-       const [showAll, setShowAll] = useState(false);
-       const [search, setSearch] = useState("");
-       const [highlightedLaundryId, setHighlightedLaundryId] = useState(null);
-       const mapRef = useRef();
-       const cardRefs = useRef({});
-       // State pour la valeur du périmètre (pour gérer la couleur)
-       const [radiusValue, setRadiusValue] = useState('');
+	       const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+	       const { t } = useTranslation();
+	       const [laundries, setLaundries] = useState([]);
+	       const [position, setPosition] = useState(null);
+	       const [error, setError] = useState(null);
+	       const [mapBounds, setMapBounds] = useState(null);
+	       const [mapCenter, setMapCenter] = useState(null);
+	       const [mode, setMode] = useState('all');
+		const [showAll, setShowAll] = useState(false);
+		const [search, setSearch] = useState("");
+		const [highlightedLaundryId, setHighlightedLaundryId] = useState(null);
+		const [selectedLaundryId, setSelectedLaundryId] = useState(null); 
+	       const mapRef = useRef();
+	       const cardRefs = useRef({});
+	       const [radiusValue, setRadiusValue] = useState('');
 
-       // Favoris utilisateur (liste d'ID)
+		       useEffect(() => {
+			       if (selectedLaundryId && cardRefs.current[selectedLaundryId]) {
+				       cardRefs.current[selectedLaundryId].scrollIntoView({ behavior: 'smooth', block: 'center' });
+			       }
+		       }, [selectedLaundryId]);
+
        const [favoriteIds, setFavoriteIds] = useState([]);
        const [loadingFavorites, setLoadingFavorites] = useState(false);
 
-       // Charger les favoris utilisateur au montage si connecté
 	       useEffect(() => {
 		       const token = localStorage.getItem('jwt_token') || localStorage.getItem('token');
 		       if (!token) return;
@@ -112,13 +105,11 @@ const LaundryExplorer = () => {
 			       })
 			       .catch((err) => {
 				       setFavoriteIds([]);
-				       // Affiche une notification console mais ne bloque pas l'UI
 				       console.warn('Impossible de charger les favoris utilisateur:', err);
 			       })
 			       .finally(() => setLoadingFavorites(false));
 	       }, []);
 
-       // Fonction pour toggler le favori d'une laverie
        const handleToggleFavorite = async (laundryId) => {
 	       const isFav = favoriteIds.includes(laundryId);
 	       try {
@@ -134,16 +125,13 @@ const LaundryExplorer = () => {
 	       }
        };
 	function handleRadiusChange(e) {
-		// Autorise uniquement les chiffres
 		const val = e.target.value.replace(/[^0-9]/g, '');
 		setRadiusValue(val);
 	}
-   // Chargement des laveries depuis l'API
 	useEffect(() => {
 		laundryService.getNearbyLaundries({})
 			.then(data => {
 				const laundriesArray = Array.isArray(data.laundries) ? data.laundries : [];
-				// Mapping coordonnées : latitude/longitude, lat/lng, geo_lat/geo_lng, etc.
 				const mapped = laundriesArray.map(l => {
 					let latitude = l.latitude ?? l.lat ?? l.geo_lat ?? l.y ?? null;
 					let longitude = l.longitude ?? l.lng ?? l.lon ?? l.geo_lng ?? l.x ?? null;
@@ -156,12 +144,10 @@ const LaundryExplorer = () => {
 			})
 			.catch((err) => {
 				setError(t('explorer.load_error', 'Impossible de charger les laveries depuis le serveur.'));
-				// eslint-disable-next-line no-console
 				console.error('[LaundryExplorer] Erreur récupération laveries:', err);
 			});
 	}, [t]);
 
-	// Ouvre/ferme la modal de filtre
 	function openFilterModal() {
 		setIsFilterModalOpen(true);
 		document.body.style.overflow = 'hidden';
@@ -171,7 +157,6 @@ const LaundryExplorer = () => {
 		document.body.style.overflow = '';
 	}
 
-	// Nettoyage si la modal est fermée par un autre moyen (sécurité)
 	useEffect(() => {
 		if (!isFilterModalOpen) {
 			document.body.style.overflow = '';
@@ -180,7 +165,6 @@ const LaundryExplorer = () => {
 			document.body.style.overflow = '';
 		};
 	}, [isFilterModalOpen]);
-	 // Fonction pour revenir à la position utilisateur
 	function handleRecenter() {
 		if (!navigator.geolocation) {
 			setError(t('explorer.geolocation_unavailable', "La géolocalisation n'est pas supportée par ce navigateur."));
@@ -197,7 +181,6 @@ const LaundryExplorer = () => {
 				setError(null);
 				setTimeout(() => {
 					if (mapRef.current) {
-						// Utilise flyTo pour forcer le déplacement même si la carte est déjà centrée
 						mapRef.current.flyTo(coords, 15, { animate: true, duration: 1.2 });
 						setMapBounds(mapRef.current.getBounds());
 					}
@@ -215,7 +198,6 @@ const LaundryExplorer = () => {
 		);
 	}
 
-   // Fonction de recherche
    function handleSearchChange(e) {
 	   setSearch(e.target.value);
    }
@@ -225,7 +207,6 @@ const LaundryExplorer = () => {
 	   const query = search.trim().toLowerCase();
 	   if (!query) return;
 
-	   // Recherche par nom exact
 	   const foundLaundry = laundries.find(laundry =>
 		   laundry.establishmentName && laundry.establishmentName.toLowerCase() === query
 	   );
@@ -234,7 +215,6 @@ const LaundryExplorer = () => {
 		   setMode('all');
 		   setHighlightedLaundryId(foundLaundry.id);
 		   setShowAll(true);
-		   // Scroll la carte de la laverie trouvée dans la liste
 		   setTimeout(() => {
 			   if (cardRefs.current[foundLaundry.id]) {
 				   cardRefs.current[foundLaundry.id].scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -243,19 +223,16 @@ const LaundryExplorer = () => {
 		   return;
 	   }
 
-	   // Recherche par ville
 	   const laundriesInCity = laundries.filter(laundry =>
 		   laundry.city && laundry.city.toLowerCase() === query
 	   );
 	   if (laundriesInCity.length > 0) {
-		   // Centre sur la première laverie de la ville
 		   setMapCenter([laundriesInCity[0].latitude, laundriesInCity[0].longitude]);
 		   setMode('all');
 		   setHighlightedLaundryId(null);
 		   setShowAll(true);
 		   return;
 	   }
-	   // Sinon, rien
    }
 
 	useEffect(() => {
@@ -269,7 +246,7 @@ const LaundryExplorer = () => {
 				setPosition(coords);
 				setMapCenter(coords);
 				setMode('position');
-				setError(null); // Réinitialise l'erreur si succès
+				setError(null); 
 				setTimeout(() => {
 					if (mapRef.current) {
 						mapRef.current.setView(coords, 15);
@@ -279,10 +256,8 @@ const LaundryExplorer = () => {
 			},
 			(err) => {
 				if (err.code === 1) {
-					// Refus de géolocalisation
 					setError(t('explorer.geolocation_denied', 'Vous avez refusé la géolocalisation. Certaines fonctionnalités seront limitées.'));
 				} else if (err.code === 2) {
-					// Position indisponible
 					setError(t('explorer.geolocation_unavailable_position', 'Impossible de trouver votre position.'));
 				} else {
 					setError(t('explorer.geolocation_error', 'Erreur de géolocalisation : ') + err.message);
@@ -291,14 +266,12 @@ const LaundryExplorer = () => {
 		);
 	}, [t]);
 
-	// Synchroniser mapCenter si pas de position
 	useEffect(() => {
 		if (!position && !mapCenter) {
 			setMapCenter([48.8584, 2.2945]); // Paris par défaut
 		}
 	}, [position, mapCenter]);
 
-	// Fonction pour filtrer les laveries dans la zone visible
 	   function laundriesInBounds(bounds) {
 		   if (!bounds) return [];
 		   const [[south, west], [north, east]] = [
@@ -323,7 +296,6 @@ const LaundryExplorer = () => {
 			   });
 	   }
 
-	// Fonction pour filtrer les laveries dans un rayon de 10km autour d'un centre donné
 	   function laundriesInRadius(center, radiusKm = 10) {
 		   if (!center) return [];
 		   return laundries
@@ -335,19 +307,19 @@ const LaundryExplorer = () => {
 			   .sort((a, b) => a.distance - b.distance);
 	   }
 
-	// Toutes les laveries
 	   function allLaundries() {
 		   return laundries.map(laundry => ({ ...laundry, distance: null }));
 	   }
 
-	// Composant pour synchroniser les bounds de la carte
+
 	function MapEventsSync() {
 		const map = useMap();
 		useEffect(() => {
 			function updateBounds() {
-				setMapBounds(map.getBounds());
-				setMapCenter([map.getCenter().lat, map.getCenter().lng]);
-				if (mode !== 'bounds') setMode('bounds');
+				   setMapBounds(map.getBounds());
+				   setMapCenter([map.getCenter().lat, map.getCenter().lng]);
+				   setSelectedLaundryId(null); // Reset le filtre single lors d'un move
+				   if (mode !== 'bounds') setMode('bounds');
 			}
 			map.on('moveend', updateBounds);
 			return () => {
@@ -357,15 +329,7 @@ const LaundryExplorer = () => {
 		return null;
 	}
 
-
-	   // Tous les marqueurs sont toujours affichés sur la carte !
-
-	   // La liste à droite :
-	   // - Si recherche : filtrer par ville ou nom (insensible à la casse, partiel)
-	   // - Sinon, filtrer par zone visible (bounds) si mode 'bounds'
-	   // - Sinon, filtrer par distance < 10km autour de la position utilisateur
 	   let laundriesVisible = allLaundries().map(laundry => {
-		   // Calculer la distance pour chaque laverie si position connue
 		   let distance = null;
 		   if (position && typeof laundry.latitude === 'number' && typeof laundry.longitude === 'number') {
 			   distance = getDistanceKm(position[0], position[1], laundry.latitude, laundry.longitude);
@@ -386,8 +350,15 @@ const LaundryExplorer = () => {
 		   );
 	   }
 
-	   // Limiter à 3 laveries sauf si showAll
-	   const laundriesToDisplay = showAll ? laundriesVisible : laundriesVisible.slice(0, 3);
+	       // Limiter à 3 laveries sauf si showAll, mais toujours inclure la laverie sélectionnée
+		       let laundriesToDisplay;
+		       if (selectedLaundryId) {
+			       laundriesToDisplay = laundriesVisible.filter(l => l.id === selectedLaundryId);
+		       } else if (showAll) {
+			       laundriesToDisplay = laundriesVisible;
+		       } else {
+			       laundriesToDisplay = laundriesVisible.slice(0, 3);
+		       }
 
 		return (
 		   <div className="flex flex-col md:flex-row gap-8 items-baseline w-full">
@@ -594,16 +565,33 @@ const LaundryExplorer = () => {
 											   mouseout: () => setHighlightedLaundryId(null),
 											   click: () => {
 												   setHighlightedLaundryId(laundry.id);
-												   if (cardRefs.current[laundry.id]) {
-													   cardRefs.current[laundry.id].scrollIntoView({ behavior: 'smooth', block: 'center' });
-												   }
+												   setSelectedLaundryId(laundry.id);
 											   },
 										   }}
 									   >
 										   <Popup>
 											   <strong>{laundry.establishmentName}</strong><br />
 											   {laundry.address}, {laundry.city}<br />
-											   Note : {laundry.rating} ⭐ ({laundry.reviews} avis)
+											   <div style={{marginTop: 8, display: 'flex', alignItems: 'center', gap: 4}}>
+												   {/* Boutons itinéraire avec vrais logos */}
+												   <a
+													   href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(laundry.address + ', ' + laundry.city)}${laundry.latitude && laundry.longitude ? `&destination_place_id=&destination_lat=${laundry.latitude}&destination_lng=${laundry.longitude}` : ''}`}
+													   target="_blank"
+													   rel="noopener noreferrer"
+													   className="inline-flex mt-1 w-[50px] h-[38px] items-center justify-center rounded bg-[#4285F4] hover:bg-blue-700"
+													   style={{marginBottom: 4}}
+												   >
+													   <img src={GoogleMapsIcon} alt="Google Maps" style={{height: 22, width: 22, display: 'block'}} />
+												   </a>
+												   <a
+													   href={`https://waze.com/ul?ll=${laundry.latitude},${laundry.longitude}&navigate=yes`}
+													   target="_blank"
+													   rel="noopener noreferrer"
+													   className="inline-flex w-[50px] h-[38px] items-center justify-center rounded bg-[#33CCFF] hover:bg-indigo-700"
+												   >
+													   <img src={WazeIcon} alt="Waze" style={{height: 22, width: 22, display: 'block'}} />
+												   </a>
+											   </div>
 										   </Popup>
 									   </Marker>
 								   ))}
