@@ -40,7 +40,6 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
     const fetchProfessionalData = async () => {
       try {
         const response = await professionalService.getLaundriesStats();
-        console.log('Réponse API /api/professional/laundries', response);
         setLaundries(response.laundries || []);
         setStats(response.stats || { averageNote: '--', total: '--', pending: '--' });
       } catch (error) {
@@ -165,7 +164,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
               type="button"
               className="flex items-center gap-2 rounded-full bg-[#10B981] w-[30px] h-[30px] justify-center hover:bg-[#059669] transition-colors"
               title={t('dashboard.create_laundry', 'Créer une laverie')}
-              onClick={() => navigate('/creer-laverie')}
+              onClick={() => navigate('/create-laundry')}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21" fill="none">
                 <line x1="10.5" y1="5" x2="10.5" y2="16" stroke="#fbfbfb" strokeWidth="2" strokeLinecap="round"/>
@@ -267,7 +266,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                               className="flex-1 flex items-center justify-center gap-1 px-2 h-8 md:h-10 bg-[#3B82F6] text-white text-xs md:text-sm font-medium rounded-[6px] whitespace-nowrap"
                               title={t('dashboard.edit', 'Modifier')}
                               type="button"
-                              onClick={() => navigate(`/modifier-laverie/${laundry.id}`)}
+                              onClick={() => navigate(`/edit-laundry/${laundry.id}`)}
                             >
                               <img src={EditIcon} alt={t('dashboard.edit', 'Modifier')} className="w-3 h-3 md:w-4 md:h-4" />
                               {t('dashboard.edit', 'Modifier')}
@@ -276,7 +275,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                               className="flex-1 flex items-center justify-center gap-1 px-2 h-8 md:h-10 bg-[#4B5563] text-white text-xs md:text-sm font-medium rounded-[6px] whitespace-nowrap"
                               title={t('dashboard.view_sheet', 'Voir la fiche')}
                               type="button"
-                              onClick={() => navigate(`/fiche-laverie/${laundry.id}`)}
+                              onClick={() => navigate(`/laundry-details/${laundry.id}`)}
                             >
                               <img src={EyeIcon} alt={t('dashboard.view_sheet', 'Voir la fiche')} className="w-3 h-3 md:w-4 md:h-4" />
                               {t('dashboard.view_sheet', 'Voir la fiche')}
