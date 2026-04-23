@@ -12,24 +12,17 @@ import UploadIcon from '../../assets/images/icons/Upload.svg';
 import InfoGrayIcon from '../../assets/images/icons/Info-gray.svg';
 import OpenSignIcon from '../../assets/images/icons/Open-Sign.svg';
 import ServicesIcon from '../../assets/images/icons/Services.svg';
-import BenchIcon from '../../assets/images/icons/Bench.svg';
-import SoapBubbleIcon from '../../assets/images/icons/Soap Bubble.svg';
-import TVIcon from '../../assets/images/icons/TV.svg';
-import StackOfCoinsIcon from '../../assets/images/icons/stackOfCoins.svg';
-import ParkingIcon from '../../assets/images/icons/Parking.svg';
-import WifiIcon from '../../assets/images/icons/Wi-Fi Logo.svg';
 import WifiBlueIcon from '../../assets/images/icons/Wi-Fi-blue.svg';
 import EuroIcon from '../../assets/images/icons/Euro.svg';
 import SaveIcon from '../../assets/images/icons/Save.svg';
-import PaymentCardIcon from '../../assets/images/icons/magneticCard.svg';
-import PayIcon from '../../assets/images/icons/Pay.svg';
-import MobilePaymentIcon from '../../assets/images/icons/iPhoneSE.svg';
+import StackOfCoinsIcon from '../../assets/images/icons/stackOfCoins.svg';
 
 const defaultValues = {
   establishmentName: '',
   contactPhone: '',
   description: '',
   logo: null,
+  mediaFiles: null,
   washingMachines6kg: '',
   washingMachines8kg: '',
   washingMachines10kg: '',
@@ -38,21 +31,8 @@ const defaultValues = {
   dryers8kg: '',
   dryers10kg: '',
   dryers12kgPlus: '',
-  services: {
-    foldingArea: false,
-    detergentDispenser: false,
-    cardPayment: false,
-    cashPayment: false,
-    parking: false,
-    wifi: false,
-  },
-  paymentMethods: {
-    card: false,
-    cash: false,
-    contactless: false,
-    mobile: false,
-  },
-  customServices: [],
+  serviceIds: [],
+  paymentMethodIds: [],
   openingHours: {
     monday: { open: '', close: '' },
     tuesday: { open: '', close: '' },
@@ -67,6 +47,7 @@ const defaultValues = {
   city: '',
   country: '',
   showPreciseAddress: false,
+  wiLineReference: '',
   washingPrice6kg: '',
   washingPrice8kg: '',
   washingPrice10kg: '',
@@ -146,10 +127,20 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [closedDays, setClosedDays] = useState(initialClosedDays);
   const [additionalSlotsByDay, setAdditionalSlotsByDay] = useState(initialAdditionalSlots);
-  const [customServicesCount, setCustomServicesCount] = useState(0);
   const [loadingLaundry, setLoadingLaundry] = useState(false);
+  const [loadingOptions, setLoadingOptions] = useState(true);
+  const [serviceOptions, setServiceOptions] = useState([]);
+  const [paymentMethodOptions, setPaymentMethodOptions] = useState([]);
+  const [currentLogo, setCurrentLogo] = useState(null);
+  const [currentMedias, setCurrentMedias] = useState([]);
+  const [pendingMediaFiles, setPendingMediaFiles] = useState([]);
+  const [wiLineLoading, setWiLineLoading] = useState(false);
+  const [wiLineError, setWiLineError] = useState('');
+  const [lastFetchedWiLineCode, setLastFetchedWiLineCode] = useState('');
+  const [wiLineAutoFillSuccess, setWiLineAutoFillSuccess] = useState(false);
 
   const {
     register,
@@ -157,6 +148,10 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     trigger,
     watch,
     reset,
+    setValue,
+    setError,
+    clearErrors,
+    getValues,
     formState: { errors },
   } = useForm({
     mode: 'onBlur',
@@ -164,6 +159,153 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
   });
   const selectedLogo = watch('logo');
   const showPreciseAddress = watch('showPreciseAddress');
+  const wiLineReference = watch('wiLineReference');
+
+  const appendMediaFiles = (fileList) => {
+    const files = Array.from(fileList || []).filter((file) => file instanceof File);
+    if (files.length === 0) {
+      return;
+    }
+
+    setPendingMediaFiles((current) => {
+      const existingSignatures = new Set(
+        current.map((file) => `${file.name}-${file.size}-${file.lastModified}`)
+      );
+
+      const newUniqueFiles = files.filter((file) => {
+        const signature = `${file.name}-${file.size}-${file.lastModified}`;
+        if (existingSignatures.has(signature)) {
+          return false;
+        }
+        existingSignatures.add(signature);
+        return true;
+      });
+
+      return [...current, ...newUniqueFiles];
+    });
+  };
+
+  const removePendingMediaFile = (indexToRemove) => {
+    setPendingMediaFiles((current) => current.filter((_, index) => index !== indexToRemove));
+  };
+
+  const toNumberOrZero = (value) => {
+    if (value === null || value === undefined || value === '') {
+      return 0;
+    }
+
+    const normalized = typeof value === 'string' ? value.replace(',', '.') : value;
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const normalizeSelectedIds = (value) => {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+
+    return [...new Set(value.map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0))];
+  };
+
+  const isValidHourFormat = (value) => /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value);
+
+  const validateOpeningHoursStep = () => {
+    clearErrors('openingHours');
+    clearErrors('openingHoursExtra');
+
+    const openingHours = getValues('openingHours') || {};
+    const openingHoursExtra = getValues('openingHoursExtra') || {};
+
+    let hasError = false;
+
+    for (const day of openingHoursDays) {
+      const dayKey = day.key;
+      const slots = [];
+
+      const primary = openingHours[dayKey] || { open: '', close: '' };
+      const primaryOpen = (primary.open || '').trim();
+      const primaryClose = (primary.close || '').trim();
+
+      if (primaryOpen !== '' || primaryClose !== '') {
+        if (primaryOpen === '' || primaryClose === '') {
+          setError(`openingHours.${dayKey}.open`, {
+            type: 'manual',
+            message: t('validation.opening_hours_slot_incomplete', 'Veuillez renseigner une heure d\'ouverture et de fermeture.'),
+          });
+          hasError = true;
+        } else if (!isValidHourFormat(primaryOpen) || !isValidHourFormat(primaryClose)) {
+          setError(`openingHours.${dayKey}.open`, {
+            type: 'manual',
+            message: t('validation.opening_hours_invalid_format', 'Format d\'horaire invalide.'),
+          });
+          hasError = true;
+        } else if (primaryOpen >= primaryClose) {
+          setError(`openingHours.${dayKey}.open`, {
+            type: 'manual',
+            message: t('validation.opening_hours_order_invalid', 'L\'heure d\'ouverture doit être antérieure à l\'heure de fermeture.'),
+          });
+          hasError = true;
+        } else {
+          slots.push({ open: primaryOpen, close: primaryClose });
+        }
+      }
+
+      const extras = Array.isArray(openingHoursExtra[dayKey]) ? openingHoursExtra[dayKey] : [];
+      extras.forEach((slot, index) => {
+        const open = (slot?.open || '').trim();
+        const close = (slot?.close || '').trim();
+
+        if (open === '' && close === '') {
+          return;
+        }
+
+        if (open === '' || close === '') {
+          setError(`openingHoursExtra.${dayKey}.${index}.open`, {
+            type: 'manual',
+            message: t('validation.opening_hours_slot_incomplete', 'Veuillez renseigner une heure d\'ouverture et de fermeture.'),
+          });
+          hasError = true;
+          return;
+        }
+
+        if (!isValidHourFormat(open) || !isValidHourFormat(close)) {
+          setError(`openingHoursExtra.${dayKey}.${index}.open`, {
+            type: 'manual',
+            message: t('validation.opening_hours_invalid_format', 'Format d\'horaire invalide.'),
+          });
+          hasError = true;
+          return;
+        }
+
+        if (open >= close) {
+          setError(`openingHoursExtra.${dayKey}.${index}.open`, {
+            type: 'manual',
+            message: t('validation.opening_hours_order_invalid', 'L\'heure d\'ouverture doit être antérieure à l\'heure de fermeture.'),
+          });
+          hasError = true;
+          return;
+        }
+
+        slots.push({ open, close });
+      });
+
+      if (slots.length > 1) {
+        const sorted = [...slots].sort((a, b) => a.open.localeCompare(b.open));
+        for (let i = 1; i < sorted.length; i += 1) {
+          if (sorted[i].open < sorted[i - 1].close) {
+            setError(`openingHours.${dayKey}.open`, {
+              type: 'manual',
+              message: t('validation.opening_hours_overlap', 'Deux créneaux horaires se chevauchent.'),
+            });
+            hasError = true;
+            break;
+          }
+        }
+      }
+    }
+
+    return !hasError;
+  };
 
   const mapLaundryToFormValues = (laundry) => ({
     ...defaultValues,
@@ -175,6 +317,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     city: laundry?.address?.city ?? '',
     country: laundry?.address?.country ?? '',
     showPreciseAddress: Boolean(laundry?.showPreciseAddress),
+    wiLineReference: laundry?.wiLineReference?.toString?.() ?? '',
     washingMachines6kg: laundry?.washingMachines6kg ?? '',
     washingMachines8kg: laundry?.washingMachines8kg ?? '',
     washingMachines10kg: laundry?.washingMachines10kg ?? '',
@@ -183,15 +326,8 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     dryers8kg: laundry?.dryers8kg ?? '',
     dryers10kg: laundry?.dryers10kg ?? '',
     dryers12kgPlus: laundry?.dryers12kgPlus ?? '',
-    services: {
-      ...defaultValues.services,
-      ...(laundry?.services ?? {}),
-    },
-    paymentMethods: {
-      ...defaultValues.paymentMethods,
-      ...(laundry?.paymentMethods ?? {}),
-    },
-    customServices: Array.isArray(laundry?.customServices) ? laundry.customServices : [],
+    serviceIds: Array.isArray(laundry?.serviceIds) ? laundry.serviceIds.map((serviceId) => String(serviceId)) : [],
+    paymentMethodIds: Array.isArray(laundry?.paymentMethodIds) ? laundry.paymentMethodIds.map((paymentId) => String(paymentId)) : [],
     openingHours: {
       ...defaultValues.openingHours,
       ...(laundry?.openingHours ?? {}),
@@ -207,8 +343,29 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
   });
 
   useEffect(() => {
+    const loadOptions = async () => {
+      setLoadingOptions(true);
+      try {
+        const options = await professionalService.getLaundryOptions();
+        setServiceOptions(Array.isArray(options?.services) ? options.services : []);
+        setPaymentMethodOptions(Array.isArray(options?.paymentMethods) ? options.paymentMethods : []);
+      } catch (error) {
+        setServiceOptions([]);
+        setPaymentMethodOptions([]);
+      } finally {
+        setLoadingOptions(false);
+      }
+    };
+
+    loadOptions();
+  }, []);
+
+  useEffect(() => {
     if (!isEditMode) {
       reset(defaultValues);
+      setCurrentLogo(null);
+      setCurrentMedias([]);
+      setPendingMediaFiles([]);
       return;
     }
 
@@ -218,9 +375,9 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
       try {
         const laundry = await professionalService.getLaundry(id);
         reset(mapLaundryToFormValues(laundry));
-
-        const existingCustomServices = Array.isArray(laundry?.customServices) ? laundry.customServices.length : 0;
-        setCustomServicesCount(existingCustomServices);
+        setCurrentLogo(laundry?.logo ?? null);
+        setCurrentMedias(Array.isArray(laundry?.medias) ? laundry.medias : []);
+        setPendingMediaFiles([]);
 
         const additionalSlots = openingHoursDays.reduce((accumulator, day) => {
           const slots = laundry?.openingHoursExtra?.[day.key];
@@ -245,30 +402,205 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     loadLaundry();
   }, [id, isEditMode, navigate, reset]);
 
-  const onSubmit = async () => {
-    if (currentStep !== totalSteps) {
+  useEffect(() => {
+    if (!showPreciseAddress) {
+      setWiLineError('');
+      setWiLineLoading(false);
+      setWiLineAutoFillSuccess(false);
+      return;
+    }
+
+    const clientCode = (wiLineReference || '').trim();
+    if (clientCode === '') {
+      setWiLineError('');
+      setWiLineAutoFillSuccess(false);
+      return;
+    }
+
+    if (!/^\d+$/.test(clientCode)) {
+      setWiLineError(t('validation.wiline_client_code_invalid', 'Le code client WI-LINE doit contenir uniquement des chiffres.'));
+      setWiLineAutoFillSuccess(false);
+      return;
+    }
+
+    if (clientCode === lastFetchedWiLineCode) {
+      return;
+    }
+
+    let cancelled = false;
+    const timeoutId = setTimeout(async () => {
+      setWiLineLoading(true);
+      setWiLineError('');
+      setWiLineAutoFillSuccess(false);
+
+      try {
+        const result = await professionalService.fetchWiLineClientMachines(clientCode);
+        const autoFill = result?.autoFill || {};
+        const hasValidLaundry = Number.isInteger(Number(result?.laundry?.id)) && Number(result?.laundry?.id) > 0;
+        const fieldsToAutoFill = [
+          'washingMachines6kg',
+          'washingMachines8kg',
+          'washingMachines10kg',
+          'washingMachines12kgPlus',
+          'dryers6kg',
+          'dryers8kg',
+          'dryers10kg',
+          'dryers12kgPlus',
+          'washingPrice6kg',
+          'washingPrice8kg',
+          'washingPrice10kg',
+          'washingPrice12kgPlus',
+          'dryingPrice6kg',
+          'dryingPrice8kg',
+          'dryingPrice10kg',
+          'dryingPrice12kgPlus',
+        ];
+
+        if (cancelled) {
+          return;
+        }
+
+        fieldsToAutoFill.forEach((fieldName) => {
+          if (Object.prototype.hasOwnProperty.call(autoFill, fieldName)) {
+            setValue(fieldName, autoFill[fieldName] ?? '');
+          }
+        });
+
+        setLastFetchedWiLineCode(clientCode);
+        setWiLineAutoFillSuccess(hasValidLaundry);
+
+        if (!hasValidLaundry) {
+          setWiLineError(t('errors.wiline_client_not_found', 'Code client WI-LINE introuvable.'));
+        }
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        const backendErrorKey = error?.body?.error;
+        setWiLineError(t(backendErrorKey || 'errors.wiline_fetch_failed', 'Impossible de récupérer les machines WI-LINE.'));
+        setWiLineAutoFillSuccess(false);
+      } finally {
+        if (!cancelled) {
+          setWiLineLoading(false);
+        }
+      }
+    }, 600);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [showPreciseAddress, wiLineReference, lastFetchedWiLineCode, setValue, t]);
+
+  const onSubmit = async (values, event) => {
+    const submitter = event?.nativeEvent?.submitter;
+    const isFinalSave = submitter?.getAttribute('data-submit-intent') === 'final-save';
+
+    if (currentStep !== totalSteps || !isFinalSave) {
       return;
     }
 
     setSubmitting(true);
-    setSubmitting(false);
+    setSubmitError('');
+
+    const payload = {
+      establishmentName: values.establishmentName?.trim() || '',
+      contactPhone: values.contactPhone?.trim() || '',
+      description: values.description?.trim() || '',
+      showPreciseAddress: Boolean(values.showPreciseAddress),
+      wiLineReference: values.showPreciseAddress
+        ? (values.wiLineReference?.trim() || null)
+        : null,
+      address: {
+        street: values.street?.trim() || '',
+        postalCode: values.postalCode?.trim() || '',
+        city: values.city?.trim() || '',
+        country: values.country?.trim() || '',
+      },
+      serviceIds: normalizeSelectedIds(values.serviceIds),
+      paymentMethodIds: normalizeSelectedIds(values.paymentMethodIds),
+      openingHours: values.openingHours || defaultValues.openingHours,
+      openingHoursExtra: values.openingHoursExtra || {},
+      washingMachines6kg: toNumberOrZero(values.washingMachines6kg),
+      washingMachines8kg: toNumberOrZero(values.washingMachines8kg),
+      washingMachines10kg: toNumberOrZero(values.washingMachines10kg),
+      washingMachines12kgPlus: toNumberOrZero(values.washingMachines12kgPlus),
+      dryers6kg: toNumberOrZero(values.dryers6kg),
+      dryers8kg: toNumberOrZero(values.dryers8kg),
+      dryers10kg: toNumberOrZero(values.dryers10kg),
+      dryers12kgPlus: toNumberOrZero(values.dryers12kgPlus),
+      washingPrice6kg: toNumberOrZero(values.washingPrice6kg),
+      washingPrice8kg: toNumberOrZero(values.washingPrice8kg),
+      washingPrice10kg: toNumberOrZero(values.washingPrice10kg),
+      washingPrice12kgPlus: toNumberOrZero(values.washingPrice12kgPlus),
+      dryingPrice6kg: toNumberOrZero(values.dryingPrice6kg),
+      dryingPrice8kg: toNumberOrZero(values.dryingPrice8kg),
+      dryingPrice10kg: toNumberOrZero(values.dryingPrice10kg),
+      dryingPrice12kgPlus: toNumberOrZero(values.dryingPrice12kgPlus),
+    };
+
+    try {
+      const savedLaundry = isEditMode
+        ? await professionalService.updateLaundry(id, payload)
+        : await professionalService.createLaundry(payload);
+
+      const selectedLogoFile = values?.logo?.[0];
+      if (selectedLogoFile instanceof File) {
+        await professionalService.uploadLaundryLogo(savedLaundry.id, selectedLogoFile);
+      } else {
+        // keep existing logo untouched when no new file is selected
+      }
+
+      const mediaFiles = pendingMediaFiles;
+      if (mediaFiles.length > 0) {
+        await professionalService.uploadLaundryMedias(savedLaundry.id, mediaFiles);
+      }
+
+      navigate('/professional-dashboard');
+    } catch (error) {
+      const apiErrors = error?.body?.errors;
+
+      if (apiErrors && typeof apiErrors === 'object') {
+        Object.entries(apiErrors).forEach(([field, message]) => {
+          setError(field, {
+            type: 'server',
+            message: t(message, message),
+          });
+        });
+      }
+
+      setSubmitError(t('errors.unexpected_error', 'Une erreur est survenue.'));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
     navigate('/professional-dashboard');
   };
 
-  const goToNextStep = async () => {
+  const goToNextStep = async (event) => {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
     const fieldsByStep = {
-      1: ['establishmentName', 'contactPhone', 'description'],
+      1: ['establishmentName', 'contactPhone', 'description', 'street', 'postalCode', 'city', 'country'],
       2: [],
       3: [],
-      4: ['country'],
+      4: [],
     };
 
     const isValid = fieldsByStep[currentStep].length > 0 ? await trigger(fieldsByStep[currentStep]) : true;
     if (!isValid) {
       return;
+    }
+
+    if (currentStep === 2) {
+      const hasValidOpeningHours = validateOpeningHoursStep();
+      if (!hasValidOpeningHours) {
+        return;
+      }
     }
 
     setCurrentStep((prev) => Math.min(prev + 1, totalSteps));
@@ -292,8 +624,20 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     }));
   };
 
-  const addCustomService = () => {
-    setCustomServicesCount((current) => current + 1);
+  const handleDeleteMedia = async (mediaId) => {
+    if (!isEditMode || !id || submitting) {
+      return;
+    }
+
+    try {
+      const updatedLaundry = await professionalService.deleteLaundryMedia(id, mediaId);
+      setCurrentMedias(Array.isArray(updatedLaundry?.medias) ? updatedLaundry.medias : []);
+      if (!updatedLaundry?.logo) {
+        setCurrentLogo(null);
+      }
+    } catch (error) {
+      setSubmitError(t('errors.generic_error', 'Une erreur est survenue. Veuillez réessayer.'));
+    }
   };
 
   return (
@@ -400,6 +744,77 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
               </div>
 
               <div>
+                <label htmlFor="street" className={`mb-2 block text-[12px] font-regular ${isDarkTheme ? 'text-[#374151]' : 'text-[#374151]'}`}>
+                  {t('auth.street', 'Rue')}<span className="text-[#F97316]">*</span>
+                </label>
+                <input
+                  id="street"
+                  type="text"
+                  {...register('street', {
+                    required: t('validation.street_required', 'La rue est requise.'),
+                  })}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-900'} ${errors.street ? 'border-red-500' : ''}`}
+                  placeholder={t('auth.placeholder_street', 'Ex: 12 rue de Paris')}
+                />
+                {errors.street && <p className="mt-1 text-xs text-red-500">{errors.street.message}</p>}
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label htmlFor="postalCode" className={`mb-2 block text-[12px] font-regular ${isDarkTheme ? 'text-[#374151]' : 'text-[#374151]'}`}>
+                    {t('auth.postal_code', 'Code postal')}<span className="text-[#F97316]">*</span>
+                  </label>
+                  <input
+                    id="postalCode"
+                    type="text"
+                    inputMode="numeric"
+                    {...register('postalCode', {
+                      required: t('validation.postal_code_required', 'Le code postal est requis.'),
+                      pattern: {
+                        value: /^\d{5}$/,
+                        message: t('validation.postal_code_invalid', 'Le code postal doit contenir 5 chiffres.'),
+                      },
+                    })}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-900'} ${errors.postalCode ? 'border-red-500' : ''}`}
+                    placeholder="75000"
+                  />
+                  {errors.postalCode && <p className="mt-1 text-xs text-red-500">{errors.postalCode.message}</p>}
+                </div>
+
+                <div>
+                  <label htmlFor="city" className={`mb-2 block text-[12px] font-regular ${isDarkTheme ? 'text-[#374151]' : 'text-[#374151]'}`}>
+                    {t('auth.city', 'Ville')}<span className="text-[#F97316]">*</span>
+                  </label>
+                  <input
+                    id="city"
+                    type="text"
+                    {...register('city', {
+                      required: t('validation.city_required', 'La ville est requise.'),
+                    })}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-900'} ${errors.city ? 'border-red-500' : ''}`}
+                    placeholder={t('auth.placeholder_city', 'Paris')}
+                  />
+                  {errors.city && <p className="mt-1 text-xs text-red-500">{errors.city.message}</p>}
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="country" className={`mb-2 block text-[12px] font-regular ${isDarkTheme ? 'text-[#374151]' : 'text-[#374151]'}`}>
+                  {t('auth.country', 'Pays')}<span className="text-[#F97316]">*</span>
+                </label>
+                <input
+                  id="country"
+                  type="text"
+                  {...register('country', {
+                    required: t('validation.country_required', 'Le pays est requis.'),
+                  })}
+                  className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-900'} ${errors.country ? 'border-red-500' : ''}`}
+                  placeholder={t('auth.placeholder_country', 'France')}
+                />
+                {errors.country && <p className="mt-1 text-xs text-red-500">{errors.country.message}</p>}
+              </div>
+
+              <div>
                 <label htmlFor="logo" className={`mb-2 block text-[12px] font-regular ${isDarkTheme ? 'text-[#374151]' : 'text-[#374151]'}`}>
                   {t('professional.laundry_form.logo', 'Logo')}
                 </label>
@@ -416,9 +831,88 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                   />
                   <img src={UploadIcon} alt="Upload" className="mr-3 h-[32px] w-[32px]" />
                   <span className={isDarkTheme ? 'text-gray-100' : 'text-slate-700'}>
-                    {selectedLogo?.[0]?.name || t('professional.laundry_form.logo_placeholder', 'Glisser ou cliquer pour uploader')}
+                    {selectedLogo?.[0]?.name
+                      || currentLogo?.originalName
+                      || t('professional.laundry_form.logo_placeholder', 'Glisser ou cliquer pour uploader')}
                   </span>
                 </label>
+                {currentLogo?.location && !selectedLogo?.[0]?.name && (
+                  <p className={`mt-1 text-xs ${isDarkTheme ? 'text-gray-300' : 'text-slate-500'}`}>
+                    {t('professional.laundry_form.current_logo', 'Logo actuel')}: {currentLogo.originalName}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="mediaFiles" className={`mb-2 block text-[12px] font-regular ${isDarkTheme ? 'text-[#374151]' : 'text-[#374151]'}`}>
+                  {t('professional.laundry_form.gallery_media', 'Photos de la laverie')}
+                </label>
+                <label
+                  htmlFor="mediaFiles"
+                  className={`flex flex-col w-full cursor-pointer items-center rounded-xl border border-dashed px-4 py-3 text-sm transition ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-900'}`}
+                >
+                  <input
+                    id="mediaFiles"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(event) => {
+                      appendMediaFiles(event.target.files);
+                      event.target.value = '';
+                    }}
+                    className="sr-only"
+                  />
+                  <img src={UploadIcon} alt="Upload" className="mr-3 h-[32px] w-[32px]" />
+                  <span className={isDarkTheme ? 'text-gray-100' : 'text-slate-700'}>
+                    {pendingMediaFiles.length > 0
+                      ? t('professional.laundry_form.gallery_files_selected', '{{count}} fichier(s) sélectionné(s)').replace('{{count}}', String(pendingMediaFiles.length))
+                      : t('professional.laundry_form.gallery_placeholder', 'Glisser ou cliquer pour ajouter plusieurs photos')}
+                  </span>
+                </label>
+
+                {pendingMediaFiles.length > 0 && (
+                  <div className="mt-3 grid grid-cols-1 gap-2">
+                    {pendingMediaFiles.map((file, index) => (
+                      <div
+                        key={`${file.name}-${file.size}-${file.lastModified}`}
+                        className={`flex items-center justify-between rounded-lg border px-3 py-2 ${isDarkTheme ? 'border-gray-600 bg-gray-800' : 'border-slate-200 bg-slate-50'}`}
+                      >
+                        <span className={`truncate text-xs ${isDarkTheme ? 'text-gray-200' : 'text-slate-700'}`}>
+                          {file.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removePendingMediaFile(index)}
+                          className="ml-2 text-xs text-red-500 hover:text-red-600"
+                        >
+                          {t('common.delete', 'Supprimer')}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {currentMedias.length > 0 && (
+                  <div className="mt-3 grid grid-cols-1 gap-2">
+                    {currentMedias.map((media) => (
+                      <div
+                        key={media.id}
+                        className={`flex items-center justify-between rounded-lg border px-3 py-2 ${isDarkTheme ? 'border-gray-600 bg-gray-800' : 'border-slate-200 bg-slate-50'}`}
+                      >
+                        <span className={`truncate text-xs ${isDarkTheme ? 'text-gray-200' : 'text-slate-700'}`}>
+                          {media.originalName}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteMedia(media.id)}
+                          className="ml-2 text-xs text-red-500 hover:text-red-600"
+                        >
+                          {t('common.delete', 'Supprimer')}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
              
             </div>
@@ -727,64 +1221,31 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                 <h3 className={`mt-4 text-[14px] font-regular text-left ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
                   {t('professional.laundry_form.services_title', 'Services disponibles')}
                 </h3>
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    onClick={addCustomService}
-                    className={`flex h-[28px] w-[28px] items-center justify-center rounded-md border text-[18px] leading-none transition-colors ${isDarkTheme ? 'border-[#D1D5DB] bg-gray-700 text-[#D1D5DB] hover:bg-gray-600' : 'border-[#D1D5DB] bg-white text-[#D1D5DB] hover:bg-slate-50'}`}
-                    aria-label={t('professional.laundry_form.add_service', 'Ajouter un service')}
-                  >
-                    +
-                  </button>
-                </div>
               </div>
               <div className={`r p-4 ${isDarkTheme ? 'border-gray-600 bg-gray-800' : 'border-slate-300 bg-white'}`}>
                 <div className="mt-3 grid grid-cols-2 gap-3">
-                  <label className={`flex items-center gap-2 text-[8px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('services.foldingArea')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={BenchIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.service_folding_area', 'Banc disponible')}</span>
-                  </label>
-                  <label className={`flex items-center gap-2 text-[8px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('services.detergentDispenser')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={SoapBubbleIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.service_detergent_dispenser', 'Distributeur de lessive')}</span>
-                  </label>
-                  <label className={`flex items-center gap-2 text-[8px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('services.cardPayment')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={TVIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.service_card_payment', 'Télévision')}</span>
-                  </label>
-                  <label className={`flex items-center gap-2 text-[8px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('services.cashPayment')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={StackOfCoinsIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.service_cash_payment', 'Paiement en espèces')}</span>
-                  </label>
-                  <label className={`flex items-center gap-2 text-[8px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('services.parking')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={ParkingIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.service_parking', 'Parking')}</span>
-                  </label>
-                  <label className={`flex items-center gap-2 text-[8px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('services.wifi')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={WifiIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.service_wifi', 'Wi-Fi')}</span>
-                  </label>
-                </div>
-                {customServicesCount > 0 && (
-                  <div className="mt-4 space-y-3">
-                    {Array.from({ length: customServicesCount }).map((_, index) => (
-                      <div key={`custom-service-${index}`}>
+                  {loadingOptions ? (
+                    <p className={`col-span-2 text-xs ${isDarkTheme ? 'text-gray-300' : 'text-slate-500'}`}>
+                      {t('common.loading_text', 'Chargement...')}
+                    </p>
+                  ) : serviceOptions.length === 0 ? (
+                    <p className={`col-span-2 text-xs ${isDarkTheme ? 'text-gray-300' : 'text-slate-500'}`}>
+                      {t('professional.laundry_form.no_services_available', 'Aucun service disponible')}
+                    </p>
+                  ) : (
+                    serviceOptions.map((service, index) => (
+                      <label key={service.id} className={`flex items-center gap-2 text-[10px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
                         <input
-                          type="text"
-                          {...register(`customServices.${index}`)}
-                          className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-900'}`}
-                          placeholder={t('professional.laundry_form.custom_service_placeholder', 'Nom du service')}
+                          type="checkbox"
+                          value={String(service.id)}
+                          {...register('serviceIds')}
+                          className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]"
                         />
-                      </div>
-                    ))}
-                  </div>
-                )}
+                        <span>{t(service.translationKey, service.name)}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           </section>
@@ -822,6 +1283,51 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                   />
                 </label>
               </div>
+
+              {showPreciseAddress && (
+                <div>
+                  <label htmlFor="wiLineReference" className={`mb-2 block text-[12px] font-regular ${isDarkTheme ? 'text-[#374151]' : 'text-[#374151]'}`}>
+                    {t('professional.laundry_form.wiline_client_code', 'Code client WI-LINE')}<span className="text-[#F97316]">*</span>
+                  </label>
+                  <input
+                    id="wiLineReference"
+                    type="text"
+                    inputMode="numeric"
+                    {...register('wiLineReference', {
+                      validate: (value) => {
+                        if (!showPreciseAddress) {
+                          return true;
+                        }
+
+                        const trimmed = (value || '').trim();
+                        if (trimmed === '') {
+                          return t('validation.wiline_client_code_required', 'Le code client WI-LINE est requis.');
+                        }
+
+                        if (!/^\d+$/.test(trimmed)) {
+                          return t('validation.wiline_client_code_invalid', 'Le code client WI-LINE doit contenir uniquement des chiffres.');
+                        }
+
+                        return true;
+                      },
+                    })}
+                    className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-900'} ${errors.wiLineReference ? 'border-red-500' : ''}`}
+                    placeholder={t('professional.laundry_form.wiline_client_code_placeholder', 'Ex: 1554')}
+                  />
+                  {errors.wiLineReference && <p className="mt-1 text-xs text-red-500">{errors.wiLineReference.message}</p>}
+                  {!errors.wiLineReference && wiLineError && <p className="mt-1 text-xs text-red-500">{wiLineError}</p>}
+                  {!errors.wiLineReference && !wiLineError && wiLineLoading && (
+                    <p className={`mt-1 text-xs ${isDarkTheme ? 'text-gray-300' : 'text-slate-600'}`}>
+                      {t('professional.laundry_form.wiline_loading', 'Récupération des machines WI-LINE...')}
+                    </p>
+                  )}
+                  {!errors.wiLineReference && !wiLineError && !wiLineLoading && wiLineAutoFillSuccess && lastFetchedWiLineCode === (wiLineReference || '').trim() && (wiLineReference || '').trim() !== '' && (
+                    <p className="mt-1 text-xs text-green-600">
+                      {t('professional.laundry_form.wiline_autofill_done', 'Machines WI-LINE récupérées et champs mis à jour.')}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
             <h2 className="mt-6 flex items-center text-left text-[17px] font-bold">
               <img src={EuroIcon} alt="" className="mr-2 inline-block h-[20px] w-[20px]" />
@@ -902,26 +1408,27 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                   {t('professional.laundry_form.payment_methods_title', 'Modes de paiement acceptés')}
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <label className={`flex items-center gap-2 text-[12px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('paymentMethods.card')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={PaymentCardIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.payment_card', 'Carte bancaire')}</span>
-                  </label>
-                  <label className={`flex items-center gap-2 text-[12px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('paymentMethods.cash')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={StackOfCoinsIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.payment_cash', 'Espèces')}</span>
-                  </label>
-                  <label className={`flex items-center gap-2 text-[12px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('paymentMethods.contactless')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={PayIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.payment_contactless', 'Sans contact')}</span>
-                  </label>
-                  <label className={`flex items-center gap-2 text-[12px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                    <input type="checkbox" {...register('paymentMethods.mobile')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                    <img src={MobilePaymentIcon} alt="" className="h-[21px] w-[21px]" />
-                    <span>{t('professional.laundry_form.payment_mobile', 'Paiement mobile')}</span>
-                  </label>
+                  {loadingOptions ? (
+                    <p className={`col-span-2 text-xs ${isDarkTheme ? 'text-gray-300' : 'text-slate-500'}`}>
+                      {t('common.loading_text', 'Chargement...')}
+                    </p>
+                  ) : paymentMethodOptions.length === 0 ? (
+                    <p className={`col-span-2 text-xs ${isDarkTheme ? 'text-gray-300' : 'text-slate-500'}`}>
+                      {t('professional.laundry_form.no_payment_methods_available', 'Aucun mode de paiement disponible')}
+                    </p>
+                  ) : (
+                    paymentMethodOptions.map((paymentMethod) => (
+                      <label key={paymentMethod.id} className={`flex items-center gap-2 text-[12px] ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
+                        <input
+                          type="checkbox"
+                          value={String(paymentMethod.id)}
+                          {...register('paymentMethodIds')}
+                          className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]"
+                        />
+                        <span>{t(paymentMethod.translationKey, paymentMethod.name)}</span>
+                      </label>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -942,8 +1449,9 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
               )}
               {currentStep < totalSteps ? (
                 <button
+                  key="next-step"
                   type="button"
-                  onClick={goToNextStep}
+                  onClick={(event) => goToNextStep(event)}
                   disabled={submitting}
                   className="flex items-center justify-center rounded-[6px] w-[114px] h-[34px] bg-[#3B82F6] px-5 py-3 text-sm text-white transition-colors hover:bg-[#2563EB] disabled:opacity-50"
                 >
@@ -952,7 +1460,9 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                 </button>
               ) : (
                 <button
+                  key="final-save"
                   type="submit"
+                  data-submit-intent="final-save"
                   disabled={submitting}
                   className="flex items-center justify-center rounded-[6px] w-[114px] h-[34px] bg-[#3B82F6] px-5 py-3 text-sm text-white transition-colors hover:bg-[#2563EB] disabled:opacity-50 gap-1"
                 >
@@ -973,6 +1483,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
               </p>
             )}
           </div>
+          {submitError && <p className="text-right text-xs text-red-500">{submitError}</p>}
         </form>
       </div>
     </div>

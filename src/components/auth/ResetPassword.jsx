@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
+import { getStrongPasswordRules } from '../../utils/passwordValidation';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -65,7 +66,7 @@ const ResetPassword = ({ isDarkTheme }) => {
           setApiError(t(`errors.${errorKey}`));
           setTokenValid(false);
         }
-      } catch (error) {
+      } catch {
         setApiError(t('errors.generic_error'));
         setTokenValid(false);
       } finally {
@@ -184,13 +185,7 @@ const ResetPassword = ({ isDarkTheme }) => {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id="password"
-                  {...register('password', {
-                    required: t('validation.password_required'),
-                    minLength: {
-                      value: 8,
-                      message: t('validation.password_too_short'),
-                    },
-                  })}
+                  {...register('password', getStrongPasswordRules(t))}
                   className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                     errors.password ? 'border-red-500' : isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-gray-300 bg-white text-gray-900'
                   }`}
@@ -257,7 +252,11 @@ const ResetPassword = ({ isDarkTheme }) => {
               <ul className={`list-disc list-inside ${
                 isDarkTheme ? 'text-gray-400' : 'text-gray-600'
               }`}>
-                <li>{t('auth.password_min_8_chars')}</li>
+                <li>{t('auth.password_min_12_chars')}</li>
+                <li>{t('auth.password_one_lowercase')}</li>
+                <li>{t('auth.password_one_uppercase')}</li>
+                <li>{t('auth.password_one_number')}</li>
+                <li>{t('auth.password_one_special')}</li>
               </ul>
             </div>
 

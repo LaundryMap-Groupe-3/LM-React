@@ -68,7 +68,11 @@ const EditProfile = ({ isDarkTheme, isLoggedIn, userType }) => {
         if (!currentUser && !profile) {
           throw new Error('No profile data available');
         }
+<<<<<<< HEAD
       } catch (error) {
+=======
+      } catch {
+>>>>>>> 72392c60df5524c779892edabc7fa2c7dd77c0cc
         setToastMessage(t('errors.profile_load_error'));
         setToastType('error');
       } finally {
@@ -111,6 +115,32 @@ const EditProfile = ({ isDarkTheme, isLoggedIn, userType }) => {
       setToastMessage(t('success.password_changed'));
       setToastType('success');
     } catch (error) {
+      const validationErrors = error.body?.errors;
+      if (validationErrors?.currentPassword) {
+        setPasswordError('currentPassword', {
+          type: 'server',
+          message: t(validationErrors.currentPassword),
+        });
+      }
+      if (validationErrors?.newPassword) {
+        setPasswordError('newPassword', {
+          type: 'server',
+          message: t(validationErrors.newPassword),
+        });
+      }
+      if (validationErrors?.confirmPassword) {
+        setPasswordError('confirmPassword', {
+          type: 'server',
+          message: t(validationErrors.confirmPassword),
+        });
+      }
+
+      if (validationErrors) {
+        setToastMessage(Object.values(validationErrors).map((key) => t(key)).join(' '));
+        setToastType('error');
+        return;
+      }
+
       const errorKey = error.body?.message || 'errors.password_change_error';
       if (errorKey === 'errors.invalid_current_password') {
         setPasswordError('currentPassword', {
@@ -328,6 +358,7 @@ const EditProfile = ({ isDarkTheme, isLoggedIn, userType }) => {
                 <input
                   type={showNewPassword ? 'text' : 'password'}
                   id="newPassword"
+<<<<<<< HEAD
                   {...registerPassword('newPassword', {
                     required: t('validation.password_required'),
                     minLength: {
@@ -335,6 +366,9 @@ const EditProfile = ({ isDarkTheme, isLoggedIn, userType }) => {
                       message: t('validation.password_too_short'),
                     },
                   })}
+=======
+                  {...registerPassword('newPassword', getStrongPasswordRules(t))}
+>>>>>>> 72392c60df5524c779892edabc7fa2c7dd77c0cc
                   className={`w-full min-h-[44px] px-3 pr-10 py-2 text-[11px] font-normal border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                     isDarkTheme 
                       ? 'bg-gray-700 border-[#D1D5DB] text-gray-100' 

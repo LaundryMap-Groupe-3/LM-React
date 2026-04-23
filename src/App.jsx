@@ -1,3 +1,5 @@
+import './App.css'
+import PublicLaundryDetails from './components/public/PublicLaundryDetails';
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { usePreferences } from './context/PreferencesContext'
@@ -13,13 +15,13 @@ import AdminProfile from './components/admin/AdminProfile'
 import AdminPendingProfessionals from './components/admin/AdminPendingProfessionals'
 import AdminPendingLaundries from './components/admin/AdminPendingLaundries'
 import AdminProfessionalDetails from './components/admin/AdminProfessionalDetails'
+import AdminLaundryDetails from './components/admin/AdminLaundryDetails'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import Page404 from './components/common/Page404'
 import Page500 from './components/common/Page500'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import authService from './services/authService'
-import './App.css'
 import ProfessionalDashboard from './components/professional/ProfessionalDashboard'
 import ProfessionalLaundryForm from './components/professional/ProfessionalLaundryForm'
 import ProfessionalLaundryDetails from './components/professional/ProfessionalLaundryDetails'
@@ -221,13 +223,6 @@ function App() {
               />
             </ProtectedAdminRoute>
           }/>
-          <Route path="/admin/laundries" element={
-            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
-              <AdminPendingLaundries 
-                isDarkTheme={isDarkTheme}
-              />
-            </ProtectedAdminRoute>
-          }/>
           <Route path="/admin/professionals/:id" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <AdminProfessionalDetails 
@@ -268,6 +263,24 @@ function App() {
             <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <ProfessionalLaundryDetails isDarkTheme={isDarkTheme} />
             </ProtectedNonAdminRoute>
+          }/>
+          <Route path="/laundries/:id" element={<PublicLaundryDetails isDarkTheme={isDarkTheme} />} />
+          <Route path="/admin/laundries" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminPendingLaundries 
+                isDarkTheme={isDarkTheme}
+              />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/laundries/:id" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminLaundryDetails
+                isDarkTheme={isDarkTheme}
+              />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/pending-laundries" element={
+            <Navigate to="/admin/laundries" replace />
           }/>
           <Route path="*" element={<Page404 isDarkTheme={isDarkTheme} />} />
         </Routes>

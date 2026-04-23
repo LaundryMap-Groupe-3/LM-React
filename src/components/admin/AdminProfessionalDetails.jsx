@@ -183,7 +183,7 @@ const AdminProfessionalDetails = ({ isDarkTheme }) => {
 
       <div className="mt-4 rounded-lg border-l-2 border-l-[#F59E0B] px-4 py-3 shadow-md shadow-gray-200/70 bg-white">
         <div className="flex flex-col gap-6 lg:flex-row-reverse">
-          <aside className="order-2 lg:order-1 lg:w-[240px] lg:shrink-0 lg:border-l lg:border-gray-200 lg:pl-6">
+          <aside className="order-2 lg:order-1 lg:w-60 lg:shrink-0 lg:border-l lg:border-gray-200 lg:pl-6">
             {(isApproved || isRejected) && (
               <div className="mb-6 p-4 rounded-lg bg-gray-50 border border-gray-200">
                 <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-2">
@@ -209,12 +209,12 @@ const AdminProfessionalDetails = ({ isDarkTheme }) => {
 
             {!isApproved && !isRejected && showRejectModal && (
               <div className="mb-6 p-4 flex flex-col gap-[15px] rounded-lg">
-                <div className="flex flex-col gap-[4px]">
+                <div className="flex flex-col gap-1">
                   <label className="text-[14px] font-extrabold text-[#374151]">
                     {t('admin.rejection_reason')}
                   </label>
                   <p className="font-regular text-[12px] text-[#6B7280]">
-                    Professionnel refuse, veuillez preciser la raison.
+                    {t('admin.rejection_reason_helper_professional')}
                   </p>
                 </div>
                 <textarea
@@ -227,17 +227,17 @@ const AdminProfessionalDetails = ({ isDarkTheme }) => {
               </div>
             )}
 
-            <div className="flex justify-center gap-[6px]">
+            <div className="flex justify-center gap-1.5">
               {!isApproved && !isRejected && (
                 <>
                   {!isRejectFlowActive && (
                     <button
                       onClick={handleApprove}
                       disabled={isProcessing}
-                      className="w-[147px] h-[36px] bg-[#10B981] hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200 flex items-center justify-center gap-2"
+                      className="w-[147px] h-9 bg-[#10B981] hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200 flex items-center justify-center gap-2"
                     >
                       <img src={DoneIcon} alt="" className="w-[15px] h-[15px]" />
-                      {isProcessing ? t('admin.approving') : 'Valider'}
+                      {isProcessing ? t('admin.approving') : t('admin.approve_button')}
                     </button>
                   )}
 
@@ -245,7 +245,7 @@ const AdminProfessionalDetails = ({ isDarkTheme }) => {
                     <button
                       onClick={() => setShowRejectModal(true)}
                       disabled={isProcessing}
-                      className="w-[147px] h-[36px] bg-[#EF4444] hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200 flex items-center justify-center gap-2"
+                      className="w-[147px] h-9 bg-[#EF4444] hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200 flex items-center justify-center gap-2"
                     >
                       <img src={WhiteCrossIcon} alt="" className="w-[15px] h-[15px]" />
                       {t('admin.reject_button')}
@@ -312,11 +312,11 @@ const AdminProfessionalDetails = ({ isDarkTheme }) => {
 
             <p className="flex text-[12px] items-center">
               <img src={CalendarIcon} alt="Calendar Icon" className="inline-block w-[13px] h-[13px] mr-1" />
-              Demande du {formatDate(professionalUser.createdAt)}
+              {t('admin.request_date')} {formatDate(professionalUser.createdAt)}
             </p>
 
             <div className="text-left">
-              <h3 className="font-extrabold text-[12px] text-[#374151]"> Informations personnelles</h3>
+              <h3 className="font-extrabold text-[12px] text-[#374151]">{t('admin.personal_information')}</h3>
               <p>
                 <img src={UserIcon} alt="User Icon" className="inline-block w-[13px] h-[13px] mr-1" />
                 {professionalUser.firstName} {professionalUser.lastName}
@@ -328,7 +328,7 @@ const AdminProfessionalDetails = ({ isDarkTheme }) => {
             </div>
 
             <div className="text-left mt-3">
-              <h3 className="font-extrabold text-[12px] text-[#374151]">Entreprise/Société</h3>
+              <h3 className="font-extrabold text-[12px] text-[#374151]">{t('admin.company_section')}</h3>
               <h4 className="text-[12px] font-medium">{professional.companyName || '-'}</h4>
               <p className="text-[12px] text-[#111827] mt-1">
                 <img src={LocationIcon} alt="Location Icon" className="inline-block w-[13px] h-[13px] mr-1" />
