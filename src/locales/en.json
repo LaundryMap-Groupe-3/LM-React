@@ -158,6 +158,7 @@
     "verification_error": "Verification error",
     "back_to_registration": "Back to registration",
     "professional_info": "Professional Information",
+    "company_section_title": "My company",
     "forgot_password_description": "Enter your email address and we'll send you a link to reset your password.",
     "password_reset_email_sent": "Password reset email sent successfully!",
     "check_email_for_reset_link": "Check your email for the password reset link.",

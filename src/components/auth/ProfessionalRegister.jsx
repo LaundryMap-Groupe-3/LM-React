@@ -127,9 +127,9 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
           {/* INFORMATIONS PERSONNELLES */}
-          <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
+          <h2 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
             {t('auth.personal_info')}
-          </h1>
+          </h2>
 
           {/* Nom */}
           <div>
@@ -184,9 +184,9 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
           </div>
 
           {/* INFORMATIONS PROFESSIONNELLES */}
-          <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6">
-            {t('auth.professional_info')}
-          </h1>
+          <h2 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6">
+            {t('auth.company_section_title')}
+          </h2>
 
           {/* SIRET */}
           <div>
@@ -349,9 +349,9 @@ const ProfessionalRegister = ({ isDarkTheme, isLoggedIn }) => {
           </div>
 
           {/* INFORMATIONS DE CONNEXION */}
-          <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6">
+          <h2 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6">
             {t('auth.connection_info')}
-          </h1>
+          </h2>
 
           {/* Email */}
           <div>
