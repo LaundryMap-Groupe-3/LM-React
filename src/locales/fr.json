@@ -438,6 +438,8 @@
     "phone_required": "Le téléphone est requis",
     "phone_invalid": "Le numéro de téléphone n'est pas valide",
     "company_name_required": "Le nom de l'entreprise est requis",
+    "name_max_length": "Le nom ne peut pas dépasser 50 caractères",
+    "company_name_max_length": "Le nom de l'entreprise ne peut pas dépasser 50 caractères",
     "washing_machines_required": "Le nombre de lave-linge est requis.",
     "language_not_found": "Langue non trouvée",
     "invalid_theme": "Thème invalide"

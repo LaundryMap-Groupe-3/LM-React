@@ -135,7 +135,9 @@ const EditProfile = ({ isDarkTheme, isLoggedIn, userType }) => {
                 {...registerProfile('firstName', {
                   required: t('validation.first_name_required'),
                   minLength: { value: 2, message: 'Minimum 2 caractères' },
+                  maxLength: { value: 50, message: t('validation.name_max_length') },
                 })}
+                maxLength={50}
                 className={`w-full px-3 py-2 border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                   isDarkTheme 
                     ? 'bg-gray-700 border-[#D1D5DB] text-gray-100' 
@@ -164,7 +166,9 @@ const EditProfile = ({ isDarkTheme, isLoggedIn, userType }) => {
                 {...registerProfile('lastName', {
                   required: t('validation.last_name_required'),
                   minLength: { value: 2, message: 'Minimum 2 caractères' },
+                  maxLength: { value: 50, message: t('validation.name_max_length') },
                 })}
+                maxLength={50}
                 className={`w-full px-3 py-2 border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                   isDarkTheme 
                     ? 'bg-gray-700 border-[#D1D5DB] text-gray-100' 

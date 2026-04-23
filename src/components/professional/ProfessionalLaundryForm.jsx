@@ -347,7 +347,12 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                   type="text"
                   {...register('establishmentName', {
                     required: t('validation.company_name_required', 'Le nom de l’entreprise est requis.'),
+                    maxLength: {
+                      value: 50,
+                      message: t('validation.company_name_max_length', 'Le nom de l\'entreprise ne peut pas dépasser 50 caractères.'),
+                    },
                   })}
+                  maxLength={50}
                   className={`w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-900'} ${errors.establishmentName ? 'border-red-500' : ''}`}
                   placeholder={t('professional.laundry_form.laundry_name_placeholder')}
                 />
