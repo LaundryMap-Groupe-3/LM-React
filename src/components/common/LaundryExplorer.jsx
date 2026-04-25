@@ -17,6 +17,27 @@ import Logo from '../../assets/images/logos/logo-laundrymap.svg';
 import SearchIcon from '../../assets/images/icons/search.svg';
 import SystemIcon from '../../assets/images/icons/system.svg';
 import EraseIcon from '../../assets/images/icons/Erase.svg';
+
+function normalizeCoordinate(value) {
+	if (value === null || value === undefined || value === '') return null;
+	if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+	if (typeof value === 'string') {
+		const parsed = Number.parseFloat(value.replace(',', '.').trim());
+		return Number.isFinite(parsed) ? parsed : null;
+	}
+	return null;
+}
+
+function isValidCoordinatePair(lat, lng) {
+	return Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+}
+
+function toValidCenter(center) {
+	if (!Array.isArray(center) || center.length !== 2) return null;
+	const [lat, lng] = center;
+	return isValidCoordinatePair(lat, lng) ? center : null;
+}
+
 function getDistanceKm(lat1, lon1, lat2, lon2) {
 	const R = 6371; // Rayon de la Terre en km
 	const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -42,7 +63,7 @@ function SetViewOnCenter({ center }) {
 	       const map = useMap();
 	       const lastCenter = React.useRef();
 	       useEffect(() => {
-		       if (!center) return;
+		       if (!toValidCenter(center)) return;
 		       const [lat, lng] = center;
 		       if (!lastCenter.current) {
 			       lastCenter.current = center;
@@ -135,16 +156,14 @@ const LaundryExplorer = () => {
 				const mapped = laundriesArray.map(l => {
 					let latitude = l.latitude ?? l.lat ?? l.geo_lat ?? l.y ?? null;
 					let longitude = l.longitude ?? l.lng ?? l.lon ?? l.geo_lng ?? l.x ?? null;
-					latitude = typeof latitude === 'string' ? Number(latitude) : latitude;
-					longitude = typeof longitude === 'string' ? Number(longitude) : longitude;
+					latitude = normalizeCoordinate(latitude);
+					longitude = normalizeCoordinate(longitude);
 					return { ...l, latitude, longitude };
 				});
-				console.log('[LaundryExplorer] Laveries coordonnées corrigées:', mapped);
 				setLaundries(mapped);
 			})
 			.catch((err) => {
 				setError(t('explorer.load_error', 'Impossible de charger les laveries depuis le serveur.'));
-				console.error('[LaundryExplorer] Erreur récupération laveries:', err);
 			});
 	}, [t]);
 
@@ -173,6 +192,10 @@ const LaundryExplorer = () => {
 		navigator.geolocation.getCurrentPosition(
 			(pos) => {
 				const coords = [pos.coords.latitude, pos.coords.longitude];
+				if (!toValidCenter(coords)) {
+					setError(t('explorer.geolocation_unavailable_position', 'Impossible de trouver votre position.'));
+					return;
+				}
 				setPosition(coords);
 				setMapCenter(coords);
 				setMode('position');
@@ -208,7 +231,9 @@ const LaundryExplorer = () => {
 	   if (!query) return;
 
 	   const foundLaundry = laundries.find(laundry =>
-		   laundry.establishmentName && laundry.establishmentName.toLowerCase() === query
+		   laundry.establishmentName &&
+		   laundry.establishmentName.toLowerCase() === query &&
+		   isValidCoordinatePair(laundry.latitude, laundry.longitude)
 	   );
 	   if (foundLaundry) {
 		   setMapCenter([foundLaundry.latitude, foundLaundry.longitude]);
@@ -224,7 +249,9 @@ const LaundryExplorer = () => {
 	   }
 
 	   const laundriesInCity = laundries.filter(laundry =>
-		   laundry.city && laundry.city.toLowerCase() === query
+		   laundry.city &&
+		   laundry.city.toLowerCase() === query &&
+		   isValidCoordinatePair(laundry.latitude, laundry.longitude)
 	   );
 	   if (laundriesInCity.length > 0) {
 		   setMapCenter([laundriesInCity[0].latitude, laundriesInCity[0].longitude]);
@@ -243,6 +270,10 @@ const LaundryExplorer = () => {
 		navigator.geolocation.getCurrentPosition(
 			(pos) => {
 				const coords = [pos.coords.latitude, pos.coords.longitude];
+				if (!toValidCenter(coords)) {
+					setError(t('explorer.geolocation_unavailable_position', 'Impossible de trouver votre position.'));
+					return;
+				}
 				setPosition(coords);
 				setMapCenter(coords);
 				setMode('position');
@@ -280,6 +311,7 @@ const LaundryExplorer = () => {
 		   ];
 		   return laundries
 			   .filter(laundry =>
+				   isValidCoordinatePair(laundry.latitude, laundry.longitude) &&
 				   laundry.latitude >= south && laundry.latitude <= north &&
 				   laundry.longitude >= west && laundry.longitude <= east
 			   )
@@ -299,6 +331,7 @@ const LaundryExplorer = () => {
 	   function laundriesInRadius(center, radiusKm = 10) {
 		   if (!center) return [];
 		   return laundries
+			   .filter(laundry => isValidCoordinatePair(laundry.latitude, laundry.longitude))
 			   .map(laundry => {
 				   const distance = getDistanceKm(center[0], center[1], laundry.latitude, laundry.longitude);
 				   return { ...laundry, distance };
@@ -308,7 +341,9 @@ const LaundryExplorer = () => {
 	   }
 
 	   function allLaundries() {
-		   return laundries.map(laundry => ({ ...laundry, distance: null }));
+		   return laundries
+			   .filter(laundry => isValidCoordinatePair(laundry.latitude, laundry.longitude))
+			   .map(laundry => ({ ...laundry, distance: null }));
 	   }
 
 
@@ -317,7 +352,10 @@ const LaundryExplorer = () => {
 		useEffect(() => {
 			function updateBounds() {
 				   setMapBounds(map.getBounds());
-				   setMapCenter([map.getCenter().lat, map.getCenter().lng]);
+				   const nextCenter = [map.getCenter().lat, map.getCenter().lng];
+				   if (toValidCenter(nextCenter)) {
+					   setMapCenter(nextCenter);
+				   }
 				   setSelectedLaundryId(null); // Reset le filtre single lors d'un move
 				   if (mode !== 'bounds') setMode('bounds');
 			}
@@ -359,6 +397,8 @@ const LaundryExplorer = () => {
 		       } else {
 			       laundriesToDisplay = laundriesVisible.slice(0, 3);
 		       }
+
+		const effectiveCenter = toValidCenter(mapCenter) || [48.8584, 2.2945];
 
 		return (
 		   <div className="flex flex-col md:flex-row gap-8 items-baseline w-full">
@@ -527,32 +567,30 @@ const LaundryExplorer = () => {
 					   {/* Carte */}
 					   <div className="h-[500px] w-full">
 						<MapContainer
-							center={mapCenter || [48.8584, 2.2945]}
+							center={effectiveCenter}
 							zoom={position ? 15 : 12}
 							style={{ height: "100%", width: "100%" }}
 							whenCreated={mapInstance => { mapRef.current = mapInstance; }}
 						>
 							{/* Centre dynamiquement la carte sur n'importe quel centre (position utilisateur, recherche, clic...) */}
-							{mapCenter && <SetViewOnCenter center={mapCenter} />}
+							{toValidCenter(mapCenter) && <SetViewOnCenter center={mapCenter} />}
 							   <TileLayer
 								   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 								   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
 							   />
-							   {position && (
-								   <Marker position={position}>
+							   {toValidCenter(position) && (
+								   <Marker position={position} autoPanOnFocus={false}>
 									   <Popup>Vous êtes ici</Popup>
 								   </Marker>
 							   )}
 							   {/* Marqueurs laveries : TOUJOURS tous les marqueurs */}
 							   {laundries
-								   .filter(laundry =>
-									   typeof laundry.latitude === 'number' && typeof laundry.longitude === 'number' &&
-									   !isNaN(laundry.latitude) && !isNaN(laundry.longitude)
-								   )
+								   .filter(laundry => isValidCoordinatePair(laundry.latitude, laundry.longitude))
 								   .map((laundry) => (
 									   <Marker
 										   key={laundry.id}
 										   position={[laundry.latitude, laundry.longitude]}
+										   autoPanOnFocus={false}
 										   icon={highlightedLaundryId === laundry.id ?
 											   L.icon({
 												   ...laundryIcon.options,
@@ -621,7 +659,9 @@ const LaundryExplorer = () => {
 									       onMouseEnter={() => setHighlightedLaundryId(laundry.id)}
 									       onMouseLeave={() => setHighlightedLaundryId(null)}
 									       onClick={() => {
-										       setMapCenter([laundry.latitude, laundry.longitude]);
+										       if (isValidCoordinatePair(laundry.latitude, laundry.longitude)) {
+											       setMapCenter([laundry.latitude, laundry.longitude]);
+										       }
 										       setHighlightedLaundryId(laundry.id);
 									       }}
 									       ref={el => { cardRefs.current[laundry.id] = el; }}

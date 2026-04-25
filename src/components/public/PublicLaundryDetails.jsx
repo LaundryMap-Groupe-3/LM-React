@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import Toast from '../common/Toast.jsx';
 import publicLaundryService from '../../services/publicLaundryService';
 
 const PublicLaundryDetails = ({ isDarkTheme }) => {
+  const navigate = useNavigate();
   const { id } = useParams();
+  const normalizedId = typeof id === 'string' ? id.replace(/^:/, '') : '';
+  const isValidId = /^\d+$/.test(normalizedId);
   const { t } = useTranslation();
   usePageTitle('laundry.details', t);
 
@@ -17,8 +20,21 @@ const PublicLaundryDetails = ({ isDarkTheme }) => {
 
   useEffect(() => {
     const loadLaundry = async () => {
+      if (!isValidId) {
+        try {
+          const fallbackId = await publicLaundryService.getFirstAvailableLaundryId();
+          navigate(`/laundries/${fallbackId}`, { replace: true });
+          return;
+        } catch (error) {
+          setToastType('error');
+          setToastMessage(t('laundry.invalid_id', 'Identifiant de laverie invalide.'));
+          setLoading(false);
+        }
+        return;
+      }
+
       try {
-        const data = await publicLaundryService.getLaundry(id);
+        const data = await publicLaundryService.getLaundry(normalizedId);
         setLaundry(data);
       } catch (error) {
         setToastType('error');
@@ -28,7 +44,7 @@ const PublicLaundryDetails = ({ isDarkTheme }) => {
       }
     };
     loadLaundry();
-  }, [id, t]);
+  }, [isValidId, navigate, normalizedId, t]);
 
   if (loading) {
     return (
@@ -39,8 +55,77 @@ const PublicLaundryDetails = ({ isDarkTheme }) => {
   }
 
   if (!laundry) {
-    return null;
+    return (
+      <div className={`min-h-screen px-4 py-8 md:px-10 md:py-12 lg:px-24 ${isDarkTheme ? 'bg-gray-900 text-gray-100' : 'bg-gradient-to-br from-slate-50 via-white to-sky-50 text-gray-900'}`}>
+        <Toast message={toastMessage} type={toastType} onClose={() => setToastMessage('')} />
+        <div className="mx-auto w-full max-w-2xl rounded-[18px] border border-red-200 bg-white p-6 text-center shadow-lg">
+          <h1 className="text-xl font-semibold text-red-600">{t('laundry.unavailable_title', 'Laverie introuvable')}</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            {toastMessage || t('laundry.unavailable_message', 'La fiche demandée est indisponible ou inaccessible.')}
+          </p>
+        </div>
+      </div>
+    );
   }
+  const parseOpeningHours = (openingHours) => {
+  if (!openingHours || typeof openingHours !== 'string') {
+    return null
+  }
+
+  const match = openingHours.match(/(\d{2}):(\d{2})\s*-\s*(\d{2}):(\d{2})/)
+
+  if (!match) {
+    return null
+  }
+
+  const [, startHour, startMinute, endHour, endMinute] = match
+
+  return {
+    start: Number(startHour) * 60 + Number(startMinute),
+    end: Number(endHour) * 60 + Number(endMinute),
+  }
+}
+
+const isOpenNow = (openingHours) => {
+  const schedule = parseOpeningHours(openingHours)
+
+  if (!schedule) {
+    return null
+  }
+
+  const now = new Date()
+  const currentMinutes = now.getHours() * 60 + now.getMinutes()
+
+  if (schedule.start <= schedule.end) {
+    return currentMinutes >= schedule.start && currentMinutes <= schedule.end
+  }
+
+  return currentMinutes >= schedule.start || currentMinutes <= schedule.end
+}
+
+const resolveOpenState = (laundry) => {
+  if (typeof laundry?.isOpenNow === 'boolean') {
+    return laundry.isOpenNow
+  }
+
+  if (typeof laundry?.openNow === 'boolean') {
+    return laundry.openNow
+  }
+
+  if (typeof laundry?.isOpen === 'boolean') {
+    return laundry.isOpen
+  }
+
+  const fromHours = isOpenNow(laundry?.openingHours)
+  if (fromHours !== null) {
+    return fromHours
+  }
+
+  return false
+}
+
+  const isCurrentlyOpen = resolveOpenState(laundry)
+
 
   return (
     <div className={`min-h-screen px-4 py-8 md:px-10 md:py-12 lg:px-24 ${isDarkTheme ? 'bg-gray-900 text-gray-100' : 'bg-gradient-to-br from-slate-50 via-white to-sky-50 text-gray-900'}`}>
@@ -55,18 +140,26 @@ const PublicLaundryDetails = ({ isDarkTheme }) => {
             <p className={`mt-2 font-regular text-sm md:text-base ${isDarkTheme ? 'text-gray-300' : 'text-slate-600'}`}>
               {laundry.address || `${laundry.street || ''} ${laundry.postalCode || ''} ${laundry.city || ''}`.trim()}
             </p>
-            <div className='flex'>
-              <button className={`mt-2 inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${laundry.isOpen ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                {laundry.isOpen ? t('laundry.open', 'Ouvert') : t('laundry.closed', 'Fermé')}
-              </button>
-              <span className={`ml-4 mt-2 inline-flex items-center rounded-full px-3 py-1 text-sm font-medium text-[#FFD700]`}>
+            <div className='flex items-center'>
+              <span
+                className={`inline-flex items-center gap-1 h-[18px] w-[68px] rounded-[5px] px-2 py-1 text-[11px] font-semibold ${isCurrentlyOpen
+                  ? (isDarkTheme ? 'border border-[#0E9620]/20 bg-[#0E9620]/15 text-[#0E9620]/90' : 'border border-[#0E9620]/20 bg-[#0E9620]/10 text-[#0E9620]')
+                  : (isDarkTheme ? 'bg-rose-900/40 text-rose-300' : 'bg-rose-100 text-rose-700')}`}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`h-2 w-2 rounded-full ${isCurrentlyOpen ? (isDarkTheme ? 'bg-[#0E9620]/85' : 'bg-[#0E9620]') : 'bg-rose-500'}`}
+                />
+                {isCurrentlyOpen ? t('explorer.open', 'Ouvert') : t('explorer.closed', 'Fermé')}
+              </span>
+              <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium text-[#FFD700]`}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M10 15l-5.878 3.09 1.122-6.545L.488 6.91l6.561-.955L10 0l2.951 5.955 6.561.955-4.756 4.635 1.122 6.545z" />
                 </svg>
                 {laundry.rating ?? '--'} / 5 ({laundry.reviewCount} {t('laundry.reviews')})
               </span>
             </div>
-            //boutons appel et itinéraire (waze ou google maps)
+            {/* boutons appel et itineraire (Waze ou Google Maps) */}
             <div className='flex mt-4 space-x-4'>
               {laundry.phone && (
                 <a

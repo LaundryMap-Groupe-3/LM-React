@@ -1,6 +1,6 @@
 import './App.css'
 import PublicLaundryDetails from './components/public/PublicLaundryDetails';
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { usePreferences } from './context/PreferencesContext'
 import Register from './components/auth/Register'
@@ -66,6 +66,11 @@ const ProtectedNonAdminRoute = ({ isLoggedIn, userType, children }) => {
     return <Navigate to="/" replace />
   }
   return children
+}
+
+const LegacyPublicLaundryRedirect = () => {
+  const { id } = useParams();
+  return <Navigate to={`/laundries/${id}`} replace />;
 }
 
 function App() {
@@ -264,6 +269,7 @@ function App() {
               <ProfessionalLaundryDetails isDarkTheme={isDarkTheme} />
             </ProtectedNonAdminRoute>
           }/>
+          <Route path="/laundry/:id" element={<LegacyPublicLaundryRedirect />} />
           <Route path="/laundries/:id" element={<PublicLaundryDetails isDarkTheme={isDarkTheme} />} />
           <Route path="/admin/laundries" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>

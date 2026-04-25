@@ -397,6 +397,10 @@
     "filters_title": "Filtres",
     "filters_placeholder": "Ici, vous pourrez filtrer les laveries par équipements, horaires, services, etc. (à implémenter)"
   },
+  "laundry": {
+    "unavailable_title": "Laverie introuvable",
+    "unavailable_message": "La fiche demandée est indisponible ou inaccessible."
+  },
   "errors": {
     "404_title": "Page non trouvée",
     "404_description": "Désolé, la page que vous recherchez n'existe pas ou a été déplacée.",

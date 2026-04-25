@@ -399,6 +399,10 @@
     "filters_title": "Filters",
     "filters_placeholder": "Here you will be able to filter laundries by equipment, hours, services, etc. (to be implemented)"
   },
+  "laundry": {
+    "unavailable_title": "Laundry not found",
+    "unavailable_message": "The requested page is unavailable or inaccessible."
+  },
   "errors": {
     "404_title": "Page Not Found",
     "404_description": "Sorry, the page you are looking for does not exist or has been moved.",
