@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import StarIcon from '../../assets/images/icons/Star-yellow.svg';
 import AddressIcon from '../../assets/images/icons/Map.svg';
 import EyeIcon from '../../assets/images/icons/Eye-white.svg';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../../context/I18nContext';
 import { usePreferences } from '../../context/PreferencesContext';
 const parseOpeningHours = (openingHours) => {
   if (!openingHours || typeof openingHours !== 'string') {

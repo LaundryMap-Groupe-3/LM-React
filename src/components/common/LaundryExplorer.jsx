@@ -14,7 +14,7 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
 // import demoLaundries from '../../data/demoLaundries';
 import LaundryCard from './LaundryCard';
 import React, { useEffect, useState, useRef } from "react";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../../context/I18nContext';
 import laundryService from '../../services/laundryService';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -28,7 +28,7 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import WashingMachineIcon from '../../assets/images/icons/Washing-Machine.svg';
 import AdressIcon from '../../assets/images/icons/Address.svg';
 import Logo from '../../assets/images/logos/logo-laundrymap.svg';
-import SearchIcon from '../../assets/images/icons/search.svg';
+import SearchIcon from '../../assets/images/icons/Search.svg';
 
 
 // Icône personnalisée pour les laveries
