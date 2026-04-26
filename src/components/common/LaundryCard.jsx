@@ -161,7 +161,7 @@ const LaundryCard = ({
                   aria-hidden="true"
                   className={`h-2 w-2 rounded-full ${isCurrentlyOpen ? (isDarkTheme ? 'bg-[#0E9620]/85' : 'bg-[#0E9620]') : 'bg-rose-500'}`}
                 />
-                {isCurrentlyOpen ? t('common.open', 'Ouvert') : t('common.closed', 'Fermé')}
+                {isCurrentlyOpen ? t('explorer.open', 'Ouvert') : t('explorer.closed', 'Fermé')}
               </span>
               <button
                 type="button"
