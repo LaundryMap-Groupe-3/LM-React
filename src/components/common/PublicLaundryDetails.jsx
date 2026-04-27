@@ -1,9 +1,28 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useTranslation } from '../../context/I18nContext';
-import usePageTitle from '../../hooks/usePageTitle';
-import Toast from '../common/Toast.jsx';
-import publicLaundryService from '../../services/publicLaundryService';
+import { useTranslation } from '../../context/I18nContext.jsx';
+import usePageTitle from '../../hooks/usePageTitle.js';
+import Toast from './Toast.jsx';
+import publicLaundryService from '../../services/publicLaundryService.js';
+import GoogleMapsIcon from '../../assets/images/icons/Google-Maps.svg';
+import WazeIcon from '../../assets/images/icons/Waze.svg';
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import WashingMachineIcon from '../../assets/images/icons/machine.png';
+import AdressIcon from '../../assets/images/icons/Address.svg';
+import MachineIcon from '../../assets/images/icons/Washing-Machine.svg';
+
+const laundryIcon = L.icon({
+  iconUrl: WashingMachineIcon,
+  iconSize: [30, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowUrl: markerShadow,
+  shadowSize: [41, 41],
+  shadowAnchor: [13, 41],
+});
 
 const PublicLaundryDetails = ({ isDarkTheme }) => {
   const navigate = useNavigate();
@@ -161,74 +180,108 @@ const resolveOpenState = (laundry) => {
             </div>
             {/* boutons appel et itineraire (Waze ou Google Maps) */}
             <div className='flex mt-4 space-x-4'>
-              {laundry.phone && (
-                <a
-                  href={`tel:${laundry.phone}`}
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${isDarkTheme ? 'bg-gray-700 text-gray-100' : 'bg-gray-200 text-gray-900'}`}
-                  title={t('laundry.call', 'Appeler')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a2 2 0 011.94 1.515l.516 2.064a2 2 0 01-.436 1.947l-1.27 1.27a16.001 16.001 0 006.586 6.586l1.27-1.27a2 2 0 011.947-.436l2.064.516A2 2 0 0121 18.72V21a2 2 0 01-2 2h-1C9.163 23 1 14.837 1 5V5a2 2 0 012-2z" /></svg>
-                  {t('laundry.call', 'Appeler')}
-                </a>
-              )}
               {laundry.latitude && laundry.longitude && (
                 <>
                   <a
                     href={`https://www.google.com/maps/search/?api=1&query=${laundry.latitude},${laundry.longitude}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${isDarkTheme ? 'bg-blue-700 text-white' : 'bg-blue-100 text-blue-800'}`}
+                    className={`inline-flex items-center justify-center rounded-[12px] px-3 py-1 w-[66px] h-[30px] bg-[#4285F4]`}
                     title={t('laundry.directions_google', 'Google Maps')}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z" /></svg>
+                    <img src={GoogleMapsIcon} alt="Google Maps" className="h-[22px] w-[22px] block" />
                   </a>
                   <a
                     href={`https://waze.com/ul?ll=${laundry.latitude},${laundry.longitude}&navigate=yes`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${isDarkTheme ? 'bg-indigo-700 text-white' : 'bg-indigo-100 text-indigo-800'}`}
+                    className={`inline-flex items-center justify-center rounded-[12px] px-3 py-1 w-[66px] h-[30px] bg-[#33CCFF]`}
                     title={t('laundry.directions_waze', 'Waze')}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 2.08.8 4.01 2.13 5.5-.09.5-.18 1.01-.18 1.5 0 .83.67 1.5 1.5 1.5.41 0 .78-.16 1.06-.42C8.13 21.36 9.99 22 12 22c2.01 0 3.87-.64 5.49-1.92.28.26.65.42 1.06.42.83 0 1.5-.67 1.5-1.5 0-.49-.09-1-.18-1.5C21.2 16.01 22 14.08 22 12c0-5.52-4.48-10-10-10zm-4 13c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm8 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-4 3c-2.33 0-4.31-1.46-5.11-3.5.31-.03.61-.07.92-.13C8.36 16.36 10.09 17 12 17s3.64-.64 5.19-1.63c.31.06.61.1.92.13C20.31 16.54 18.33 18 16 18z" /></svg>
-
+                    <img src={WazeIcon} alt="Waze" className="h-[22px] w-[22px] block" />
                   </a>
                 </>
               )}
             </div>
           </div>
         </div>
-        <section className={`rounded-[18px] p-6 shadow-lg ${isDarkTheme ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-slate-200'}`}>
-          <h2 className="text-lg font-semibold text-[#3B82F6]">{t('laundry.description')}</h2>
-          <p className="mt-2 text-base">{laundry.description || '--'}</p>
+        <section className="rounded-[12px] p-6 border border-[#D9E6F2] text-left">
+          <h2 className="text-[12px] font-semibold text-[#3B82F6] text-left">{t('laundry.description', 'Description')}</h2>
+          <p className="mt-2 text-[8px] text-left">
+            {laundry.description && laundry.description !== 'laundry.description'
+              ? laundry.description
+              : 'Description'}
+          </p>
         </section>
-        <section className={`rounded-[18px] p-6 shadow-lg ${isDarkTheme ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-slate-200'}`}>
-          <h2 className="text-lg font-semibold text-[#3B82F6]">{t('laundry.photos')}</h2>
-          {laundry.medias && laundry.medias.length > 0 ? (
-            <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-              {laundry.medias.map((media) => (
-                <img
-                  key={media.id}
-                  src={media.location}
-                  alt={media.originalName || laundry.establishmentName}
-                  className="h-28 w-full rounded-xl object-cover"
-                  loading="lazy"
-                />
+        {laundry.latitude && laundry.longitude && (
+          <section className="rounded-[12px] overflow-hidden" style={{ height: '300px' }}>
+            <h2 className="text-[16px] font-semibold text-left">
+              <img src={AdressIcon} alt="Map" className="inline-block h-[26px] w-[26px] mr-1" />
+              {t('laundry.map', 'Nous trouver')}
+            </h2>
+            <MapContainer
+              center={[laundry.latitude, laundry.longitude]}
+              zoom={15}
+              style={{ height: "100%", width: "100%" }}
+              scrollWheelZoom={false}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Marker position={[laundry.latitude, laundry.longitude]} icon={laundryIcon}>
+                <Popup>
+                  <strong>{laundry.establishmentName}</strong><br />
+                  {laundry.address || `${laundry.street || ''} ${laundry.city || ''}`.trim()}
+                </Popup>
+              </Marker>
+            </MapContainer>
+          </section>
+        )}
+        {laundry.equipment && laundry.equipment.length > 0 && (
+          <section className={`rounded-[18px] p-6 shadow-lg ${isDarkTheme ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-slate-200'}`}>
+            <h2 className="text-[12px] text-left font-semibold mb-4">
+              <img src={MachineIcon} alt="Equipment" className="inline-block h-[26px] w-[26px] mr-1" />
+              {t('laundry.equipment', 'Machines disponibles')}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {laundry.equipment.map((eq, index) => (
+                <div
+                  key={eq.id ?? index}
+                  className={`flex items-start gap-3 rounded-[12px] p-4 border ${isDarkTheme ? 'bg-gray-700 border-gray-600' : 'bg-slate-50 border-[#D9E6F2]'}`}
+                >
+                  {/* Icône selon le type */}
+                  <div className="flex-shrink-0 w-9 h-9 rounded-full bg-[#3B82F6]/10 flex items-center justify-center">
+                    {eq.type === 'washing_machine' ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#3B82F6]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <circle cx="12" cy="12" r="4" strokeWidth="2"/>
+                        <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="2"/>
+                        <line x1="3" y1="7" x2="21" y2="7" strokeWidth="2"/>
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#3B82F6]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m8-9h1M3 12H2m15.07-6.07l.71-.71M6.22 17.78l-.71.71M17.78 17.78l.71.71M6.22 6.22l-.71-.71M12 7a5 5 0 100 10A5 5 0 0012 7z"/>
+                      </svg>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-semibold text-[#3B82F6] truncate">{eq.name}</p>
+                    <p className={`text-[11px] mt-0.5 ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
+                      {eq.type === 'washing_machine'
+                        ? t('laundry.equipment_type_washer', 'Machine à laver')
+                        : t('laundry.equipment_type_dryer', 'Sèche-linge')}
+                    </p>
+                    <div className={`flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[11px] ${isDarkTheme ? 'text-gray-300' : 'text-slate-600'}`}>
+                      <span>⚖️ {eq.capacity} kg</span>
+                      <span>💶 {eq.price} €</span>
+                      <span>⏱ {eq.duration} min</span>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
-          ) : (
-            <p className="mt-4 text-base">{t('laundry.no_media', 'Aucune photo')}</p>
-          )}
-        </section>
-        <section className={`rounded-[18px] p-6 shadow-lg ${isDarkTheme ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-slate-200'}`}>
-          <h2 className="text-lg font-semibold text-[#3B82F6]">{t('laundry.infos')}</h2>
-          <ul className="mt-2 text-base space-y-2">
-            <li><strong>{t('laundry.city')}:</strong> {laundry.city}</li>
-            <li><strong>{t('laundry.postal_code')}:</strong> {laundry.postalCode}</li>
-            <li><strong>{t('laundry.country')}:</strong> {laundry.country}</li>
-            <li><strong>{t('laundry.rating')}:</strong> {laundry.rating ?? '--'} / 5 ({laundry.reviewCount} {t('laundry.reviews')})</li>
-            <li><strong>{t('laundry.created_at')}:</strong> {laundry.createdAt ? new Date(laundry.createdAt).toLocaleString('fr-FR') : '--'}</li>
-          </ul>
-        </section>
+          </section>
+        )}
       </div>
     </div>
   );

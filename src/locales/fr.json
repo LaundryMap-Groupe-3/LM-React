@@ -398,8 +398,11 @@
     "filters_placeholder": "Ici, vous pourrez filtrer les laveries par équipements, horaires, services, etc. (à implémenter)"
   },
   "laundry": {
+    "description": "Description",
     "unavailable_title": "Laverie introuvable",
-    "unavailable_message": "La fiche demandée est indisponible ou inaccessible."
+    "unavailable_message": "La fiche demandée est indisponible ou inaccessible.",
+    "map": "Nous trouver",
+    "equipment": "Machines disponibles"
   },
   "errors": {
     "404_title": "Page non trouvée",

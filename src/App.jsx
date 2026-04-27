@@ -1,5 +1,5 @@
 import './App.css'
-import PublicLaundryDetails from './components/public/PublicLaundryDetails';
+import PublicLaundryDetails from './components/common/PublicLaundryDetails';
 import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { usePreferences } from './context/PreferencesContext'
