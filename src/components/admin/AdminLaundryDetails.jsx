@@ -178,6 +178,7 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
 
   const isApproved = laundry.status === 'approved' || laundry.status === 'validated';
   const isRejected = laundry.status === 'rejected';
+  const isAddressPending = laundry.address?.geolocalizationStatus === 'pending';
   const isRejectFlowActive = showRejectModal || rejectionReason.trim().length > 0;
   const laundryLocation = laundry.address
     ? `${laundry.address.street}, ${laundry.address.postalCode} ${laundry.address.city}`
@@ -337,10 +338,15 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
                 <img src={EmailIcon} alt="Email Icon" className="inline-block w-[13px] h-[13px] mr-1" />
                 {laundry.contactEmail || owner.email || '-'}
               </p>
-              <p className="text-[12px] text-[#111827] mt-1">
+              <p className={`text-[12px] mt-1 ${isAddressPending ? 'text-red-600 font-semibold' : 'text-[#111827]'}`}>
                 <img src={LocationIcon} alt="Location Icon" className="inline-block w-[13px] h-[13px] mr-1" />
                 {laundryLocation}
               </p>
+              {isAddressPending && (
+                <p className="text-[11px] text-red-600 mt-1 ml-[18px]">
+                  {t('admin.address_geolocation_pending')}
+                </p>
+              )}
               <p className="text-[12px] text-[#111827] mt-1">
                 {laundry.description || '-'}
               </p>

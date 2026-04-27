@@ -2,6 +2,28 @@ import authService from './authService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+function toQueryString(params = {}) {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') {
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        return;
+      }
+      searchParams.set(key, value.join(','));
+      return;
+    }
+
+    searchParams.set(key, String(value));
+  });
+
+  return searchParams.toString();
+}
+
 const laundryService = {
   async getPendingLaudries(page = 1, limit = 10) {
     const response = await fetch(
@@ -26,6 +48,110 @@ const laundryService = {
 
     return await response.json();
   },
-};
+  async getNearbyLaundries({
+    latitude,
+    longitude,
+    radius = 20,
+    limit = 50,
+    query = '',
+    city = '',
+    services = [],
+    payments = [],
+    openAt = '',
+    closeAt = '',
+  } = {}) {
+    const queryString = toQueryString({
+      lat: latitude,
+      lng: longitude,
+      radius,
+      limit,
+      query,
+      city: city && city !== 'all' ? city : '',
+      services,
+      payments,
+      openAt,
+      closeAt,
+    })
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/laundries/nearby?${queryString}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      const text = await response.text()
+      let data
+      try {
+        data = JSON.parse(text)
+      } catch (e) {
+        throw new Error('Réponse non JSON du serveur')
+      }
+      if (!response.ok) {
+        throw {
+          status: response.status,
+          body: data,
+        }
+      }
+      return data
+    } catch (err) {
+      throw err
+    }
+  },
+
+  async addFavorite(laundryId) {
+    try {
+      // Unifie la récupération du token (jwt_token ou token)
+      const token = localStorage.getItem('jwt_token') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/laundries/${laundryId}/favorite`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          data = text;
+        }
+        throw { status: response.status, body: data };
+      }
+      return true;
+    } catch (err) {
+      throw err;
+    }
+  },
+
+  async removeFavorite(laundryId) {
+    try {
+      // Unifie la récupération du token (jwt_token ou token)
+      const token = localStorage.getItem('jwt_token') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/laundries/${laundryId}/favorite`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          data = text;
+        }
+        throw { status: response.status, body: data };
+      }
+      return true;
+    } catch (err) {
+      throw err;
+    }
+  },
+}
 
 export default laundryService;

@@ -1,8 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { useTranslation } from './context/I18nContext'
 import { usePreferences } from './context/PreferencesContext'
-import usePageTitle from './hooks/usePageTitle'
 import Register from './components/auth/Register'
 import ProfessionalRegister from './components/auth/ProfessionalRegister'
 import Login from './components/auth/Login'
@@ -20,61 +18,26 @@ import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import Page404 from './components/common/Page404'
 import Page500 from './components/common/Page500'
+import LegalNotice from './components/common/LegalNotice'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import authService from './services/authService'
 import './App.css'
 import ProfessionalDashboard from './components/professional/ProfessionalDashboard'
 import ProfessionalLaundryForm from './components/professional/ProfessionalLaundryForm'
 import ProfessionalLaundryDetails from './components/professional/ProfessionalLaundryDetails'
+import LaundryExplorer from './components/common/LaundryExplorer'
+import { useTranslation } from './context/I18nContext'
+import usePageTitle from './hooks/usePageTitle'
 
 // Composant pour la page d'accueil
-const Home = ({ isDarkTheme, isLoggedIn }) => {
+const Home = ({ isDarkTheme }) => {
   const { t } = useTranslation()
-  const [user, setUser] = useState(null)
   usePageTitle('page_titles.home', t)
 
-  useEffect(() => {
-    if (isLoggedIn) {
-      const fetchUser = async () => {
-        const currentUser = await authService.getCurrentUser()
-        if (currentUser) {
-          setUser(currentUser)
-        }
-      }
-      fetchUser()
-    }
-  }, [isLoggedIn])
-
-  const getRoleLabel = (type) => {
-    const roleMap = {
-      'admin': 'Administrateur',
-      'professional': 'Professionnel',
-      'user': 'Utilisateur'
-    }
-    return roleMap[type] || type
-  }
-
   return (
-    <div className={`min-h-screen flex items-center justify-center ${isDarkTheme ? 'bg-[#1E293B]' : 'bg-white'}`}>
-      <div className="flex flex-col items-center justify-center gap-6">
-        <h1 className="text-3xl font-bold text-[#3B82F6]">{t('common.welcome')} {t('common.app_name')}</h1>
-        
-        {isLoggedIn && user && (
-          <div className={`p-6 rounded-lg border ${isDarkTheme ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
-            <div className={`text-center ${isDarkTheme ? 'text-gray-100' : 'text-gray-800'}`}>
-              <p className="text-lg font-semibold">
-                {user.firstName && user.lastName 
-                  ? `${user.firstName} ${user.lastName}` 
-                  : user.email}
-              </p>
-              <p className="text-sm mt-2">
-                <span className="inline-block px-3 py-1 rounded-full bg-[#3B82F6] text-white font-medium">
-                  {getRoleLabel(user.type)}
-                </span>
-              </p>
-            </div>
-          </div>
-        )}
+    <div className={`min-h-screen ${isDarkTheme ? 'bg-[#0F172A] text-slate-100' : ' text-slate-900'}`}>
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 md:px-8 lg:px-10 lg:py-8">
+        <LaundryExplorer isDarkTheme={isDarkTheme} />
       </div>
     </div>
   )
@@ -181,7 +144,7 @@ function App() {
       />
       <ErrorBoundary isDarkTheme={isDarkTheme}>
         <Routes>
-          <Route path="/" element={<Home isDarkTheme={isDarkTheme} isLoggedIn={isLoggedIn} />} />
+          <Route path="/" element={<Home isDarkTheme={isDarkTheme} />} />
           <Route path="/register" element={
             isLoggedIn ? <Navigate to="/profile" replace /> :
             <Register 
@@ -323,6 +286,7 @@ function App() {
           <Route path="/admin/pending-laundries" element={
             <Navigate to="/admin/laundries" replace />
           }/>
+          <Route path="/mentions-legales" element={<LegalNotice isDarkTheme={isDarkTheme} />} />
           <Route path="*" element={<Page404 isDarkTheme={isDarkTheme} />} />
         </Routes>
       </ErrorBoundary>

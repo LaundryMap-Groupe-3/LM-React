@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
 import LogoFacebook from '../../assets/images/logos/logo-facebook.svg';
 import LogoTwitter from '../../assets/images/logos/logo-twitter.svg';
@@ -103,9 +104,9 @@ const Footer = ({ isDarkTheme, isLoggedIn }) => {
           </p>
           {/* Liens légaux */}
           <div className="flex sm:flex-row justify-center items-center gap-2 sm:gap-6 mb-4">
-            <a href="#" className={`text-[10px] font-regular transition duration-300 ${isDarkTheme ? 'text-[#CBD5E1] hover:text-[#3B82F6]' : 'text-[#64748B] hover:text-[#3B82F6]'}`}>
+            <Link to="/mentions-legales" className={`text-[10px] font-regular transition duration-300 ${isDarkTheme ? 'text-[#CBD5E1] hover:text-[#3B82F6]' : 'text-[#64748B] hover:text-[#3B82F6]'}`}>
               {t('footer.legal')}
-            </a>
+            </Link>
             <a href="#" className={`text-[10px] font-regular transition duration-300 ${isDarkTheme ? 'text-[#CBD5E1] hover:text-[#3B82F6]' : 'text-[#64748B] hover:text-[#3B82F6]'}`}>
               {t('footer.cgu')}
             </a>

@@ -1,3 +1,9 @@
+/* Animation douce pour le marker surligné */
+.leaflet-marker-icon.marker-animated {
+  transition: transform 0.2s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s;
+  transform: scale(1.2);
+  box-shadow: 0 0 16px 4px #3B82F6;
+}
 #root {
   margin: 0 auto;
   text-align: center;

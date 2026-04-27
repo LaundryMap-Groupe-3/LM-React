@@ -46,15 +46,36 @@ export const I18nProvider = ({ children }) => {
     }
   };
 
-  const t = (key) => {
-    const keys = key.split('.');
-    let value = translations[language];
-    
-    for (const k of keys) {
-      value = value?.[k];
+  const t = (key, fallback) => {
+    const langTranslations = translations[language] || {};
+
+    // 1) Clé directe à la racine
+    if (Object.prototype.hasOwnProperty.call(langTranslations, key)) {
+      return langTranslations[key];
     }
-    
-    return value || key;
+
+    // 2) Clé imbriquée de type "common.close"
+    const keys = key.split('.');
+    let nestedValue = langTranslations;
+    for (const k of keys) {
+      nestedValue = nestedValue?.[k];
+    }
+    if (nestedValue !== undefined && nestedValue !== null) {
+      return nestedValue;
+    }
+
+    // 3) Clé "plate" stockée dans un namespace, ex: common["explorer.popup_rating_label"]
+    for (const namespaceValue of Object.values(langTranslations)) {
+      if (
+        namespaceValue &&
+        typeof namespaceValue === 'object' &&
+        Object.prototype.hasOwnProperty.call(namespaceValue, key)
+      ) {
+        return namespaceValue[key];
+      }
+    }
+
+    return fallback ?? key;
   };
 
   return (
