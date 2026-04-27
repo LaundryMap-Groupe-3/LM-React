@@ -344,8 +344,25 @@
     "create_laundry": "Ajouter une laverie - LaundryMap",
     "edit_laundry": "Modifier une laverie - LaundryMap",
     "admin_pending_laundries": "Laveries en attente - Administration",
+    "legal_notice": "Mentions légales - LaundryMap",
     "404": "404 - Page non trouvée",
     "500": "500 - Erreur serveur"
+  },
+  "legal_notice": {
+    "title": "Mentions légales",
+    "updated": "Dernière mise à jour : 27 avril 2026",
+    "publisher_title": "Éditeur du site",
+    "publisher_body": "Le site LaundryMap est édité par LaundryMap SAS, au capital social de 10 000 euros, immatriculée au RCS de Paris sous le numéro 123 456 789, dont le siège social est situé 10 rue de la Laverie, 75001 Paris, France. Directeur de la publication : Jean Dupont.",
+    "host_title": "Hébergement",
+    "host_body": "Le site est hébergé par OVHcloud, 2 rue Kellermann, 59100 Roubaix, France. Téléphone : 1007.",
+    "intellectual_property_title": "Propriété intellectuelle",
+    "intellectual_property_body": "L'ensemble du contenu présent sur ce site (textes, visuels, logos, éléments graphiques, structure et code source) est protégé par les dispositions du Code de la propriété intellectuelle. Toute reproduction, représentation, adaptation ou exploitation, totale ou partielle, sans autorisation écrite préalable est interdite.",
+    "liability_title": "Responsabilité",
+    "liability_body": "LaundryMap s'efforce de fournir des informations exactes et à jour. Toutefois, l'éditeur ne saurait être tenu responsable des omissions, inexactitudes ou indisponibilités du service. L'utilisateur reste responsable de l'usage qu'il fait des informations publiées sur le site.",
+    "personal_data_title": "Données personnelles",
+    "personal_data_body": "Les traitements de données personnelles réalisés via le site sont décrits dans la Politique de confidentialité. Vous disposez de droits d'accès, de rectification, d'effacement, d'opposition, de limitation et de portabilité dans les conditions prévues par la réglementation applicable.",
+    "contact_title": "Contact",
+    "contact_body": "Pour toute question relative au site ou à son contenu, vous pouvez nous contacter à l'adresse suivante : contact@laundrymap.fr"
   },
   "explorer": {
     "badge": "Trouver une laverie proche",

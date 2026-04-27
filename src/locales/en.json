@@ -345,8 +345,25 @@
     "admin_laundry_details": "Administration - Laundry Validation",
     "create_laundry": "Add a laundry - LaundryMap",
     "edit_laundry": "Edit a laundry - LaundryMap",
+    "legal_notice": "Legal Notice - LaundryMap",
     "404": "404 - Page Not Found",
     "500": "500 - Server Error"
+  },
+  "legal_notice": {
+    "title": "Legal Notice",
+    "updated": "Last updated: April 27, 2026",
+    "publisher_title": "Website publisher",
+    "publisher_body": "The LaundryMap website is published by LaundryMap SAS, with a share capital of EUR 10,000, registered with the Paris Trade and Companies Register under number 123 456 789, with its registered office at 10 rue de la Laverie, 75001 Paris, France. Publication director: Jean Dupont.",
+    "host_title": "Hosting provider",
+    "host_body": "The website is hosted by OVHcloud, 2 rue Kellermann, 59100 Roubaix, France. Phone: 1007.",
+    "intellectual_property_title": "Intellectual property",
+    "intellectual_property_body": "All content available on this website (texts, visuals, logos, graphics, structure, and source code) is protected by intellectual property laws. Any reproduction, representation, adaptation, or exploitation, in whole or in part, without prior written authorization is prohibited.",
+    "liability_title": "Liability",
+    "liability_body": "LaundryMap strives to provide accurate and up-to-date information. However, the publisher cannot be held liable for omissions, inaccuracies, or service unavailability. Users remain responsible for how they use the information published on the website.",
+    "personal_data_title": "Personal data",
+    "personal_data_body": "Personal data processing carried out through the website is described in the Privacy Policy. You have rights of access, rectification, erasure, objection, restriction, and portability under applicable regulations.",
+    "contact_title": "Contact",
+    "contact_body": "For any question regarding the website or its content, you can contact us at: contact@laundrymap.com"
   },
   "explorer": {
     "badge": "Find a nearby laundry",

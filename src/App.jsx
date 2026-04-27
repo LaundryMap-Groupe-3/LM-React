@@ -18,6 +18,7 @@ import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import Page404 from './components/common/Page404'
 import Page500 from './components/common/Page500'
+import LegalNotice from './components/common/LegalNotice'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import authService from './services/authService'
 import './App.css'
@@ -285,6 +286,7 @@ function App() {
           <Route path="/admin/pending-laundries" element={
             <Navigate to="/admin/laundries" replace />
           }/>
+          <Route path="/mentions-legales" element={<LegalNotice isDarkTheme={isDarkTheme} />} />
           <Route path="*" element={<Page404 isDarkTheme={isDarkTheme} />} />
         </Routes>
       </ErrorBoundary>

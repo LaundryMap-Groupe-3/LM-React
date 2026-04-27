@@ -42,17 +42,47 @@ const isOpenNow = (openingHours) => {
   return currentMinutes >= schedule.start || currentMinutes <= schedule.end
 }
 
+const coerceOpenState = (value) => {
+  if (typeof value === 'boolean') {
+    return value
+  }
+
+  if (typeof value === 'number') {
+    if (value === 1) {
+      return true
+    }
+    if (value === 0) {
+      return false
+    }
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase()
+    if (['true', '1', 'open', 'opened', 'ouvert'].includes(normalized)) {
+      return true
+    }
+    if (['false', '0', 'closed', 'close', 'ferme', 'fermé'].includes(normalized)) {
+      return false
+    }
+  }
+
+  return null
+}
+
 const resolveOpenState = (laundry) => {
-  if (typeof laundry?.isOpenNow === 'boolean') {
-    return laundry.isOpenNow
+  const directState = coerceOpenState(laundry?.isOpenNow)
+  if (directState !== null) {
+    return directState
   }
 
-  if (typeof laundry?.openNow === 'boolean') {
-    return laundry.openNow
+  const openNowState = coerceOpenState(laundry?.openNow)
+  if (openNowState !== null) {
+    return openNowState
   }
 
-  if (typeof laundry?.isOpen === 'boolean') {
-    return laundry.isOpen
+  const isOpenState = coerceOpenState(laundry?.isOpen)
+  if (isOpenState !== null) {
+    return isOpenState
   }
 
   const fromHours = isOpenNow(laundry?.openingHours)

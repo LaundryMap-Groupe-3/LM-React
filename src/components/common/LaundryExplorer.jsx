@@ -223,7 +223,7 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 				setError(null);
 			})
 			.catch((err) => {
-				setError(t('explorer.load_error', 'Impossible de charger les laveries depuis le serveur.'));
+				setError(null);
 				// eslint-disable-next-line no-console
 				console.error('[LaundryExplorer] Erreur récupération laveries:', err);
 			});
