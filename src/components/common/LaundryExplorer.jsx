@@ -21,6 +21,8 @@ import Logo from '../../assets/images/logos/logo-laundrymap.svg';
 import SearchIcon from '../../assets/images/icons/Search.svg';
 import SystemIcon from '../../assets/images/icons/system.svg';
 import EraseIcon from '../../assets/images/icons/Erase.svg';
+import GoogleMapsIcon from '../../assets/images/icons/Google-Maps.svg';
+import WazeIcon from '../../assets/images/icons/Waze.svg';
 
 // Fonction utilitaire pour calculer la distance entre deux points (Haversine)
 function getDistanceKm(lat1, lon1, lat2, lon2) {
@@ -696,8 +698,27 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 									   >
 										   <Popup>
 											   <strong>{laundry.establishmentName}</strong><br />
-											   {laundry.address}<br />
-											   {t('explorer.popup_rating_label', 'Note')} : {laundry.rating} ⭐ ({laundry.reviews} {t('explorer.popup_reviews_label', 'avis')})
+											   {laundry.address}, {laundry.city}<br />
+											   <div style={{marginTop: 8, display: 'flex', alignItems: 'center', gap: 4}}>
+												   {/* Boutons itinéraire avec vrais logos */}
+												   <a
+													   href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(laundry.address + ', ' + laundry.city)}${laundry.latitude && laundry.longitude ? `&destination_place_id=&destination_lat=${laundry.latitude}&destination_lng=${laundry.longitude}` : ''}`}
+													   target="_blank"
+													   rel="noopener noreferrer"
+													   className="inline-flex mt-1 w-[50px] h-[38px] items-center justify-center rounded bg-[#4285F4] hover:bg-blue-700"
+													   style={{marginBottom: 4}}
+												   >
+													   <img src={GoogleMapsIcon} alt="Google Maps" style={{height: 22, width: 22, display: 'block'}} />
+												   </a>
+												   <a
+													   href={`https://waze.com/ul?ll=${laundry.latitude},${laundry.longitude}&navigate=yes`}
+													   target="_blank"
+													   rel="noopener noreferrer"
+													   className="inline-flex w-[50px] h-[38px] items-center justify-center rounded bg-[#33CCFF] hover:bg-indigo-700"
+												   >
+													   <img src={WazeIcon} alt="Waze" style={{height: 22, width: 22, display: 'block'}} />
+												   </a>
+											   </div>
 										   </Popup>
 									   </Marker>
 								   ))}

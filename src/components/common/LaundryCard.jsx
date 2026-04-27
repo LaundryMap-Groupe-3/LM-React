@@ -266,7 +266,7 @@ const LaundryCard = forwardRef(({
                 className="inline-flex h-[25px] w-[85px] lg:h-[30px] lg:w-[95px] items-center justify-center gap-[5px] rounded-lg bg-[#3B82F6] px-2 py-1 text-[10px] lg:text-[12px] xl:text-[13px] font-semibold text-white transition hover:bg-blue-700"
                 style={{ textDecoration: 'none' }}
               >
-                <img src={EyeIcon} alt={t('explorer.see_icon_alt', 'Voir')} className="h-[13px] w-[13px]" />
+                <img src={EyeIcon} alt={t('explorer.see_icon_alt', 'Voir')} className="h-[15px] w-[15px]" />
                 {t('explorer.see_laundry', 'Consulter')}
               </Link>
             </div>
