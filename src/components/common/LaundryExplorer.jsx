@@ -154,8 +154,27 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 	}
 
 	function handleTimeChange(value, setter) {
-		const sanitized = value.replace(/[^0-9:]/g, '').slice(0, 5);
-		setter(sanitized);
+		const digitsOnly = value.replace(/\D/g, '').slice(0, 4);
+		if (digitsOnly.length <= 2) {
+			setter(digitsOnly);
+			return;
+		}
+
+		setter(`${digitsOnly.slice(0, 2)}:${digitsOnly.slice(2)}`);
+	}
+
+	function normalizeTimeOnBlur(value, setter) {
+		const trimmed = value.trim();
+		if (!/^\d{1,2}$/.test(trimmed)) {
+			return;
+		}
+
+		const hours = Number.parseInt(trimmed, 10);
+		if (Number.isNaN(hours) || hours < 0 || hours > 23) {
+			return;
+		}
+
+		setter(`${String(hours).padStart(2, '0')}:00`);
 	}
 
 	function getRadiusKm() {
@@ -169,6 +188,51 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 
 	function isValidTimeHHMM(value) {
 		return /^([01]\d|2[0-3]):([0-5]\d)$/.test(value);
+	}
+
+	function toMinutes(value) {
+		if (!isValidTimeHHMM(value)) {
+			return null;
+		}
+
+		const [hours, minutes] = value.split(':').map(Number);
+		return (hours * 60) + minutes;
+	}
+
+	function getTimeFilterState() {
+		const start = startTimeValue.trim();
+		const end = endTimeValue.trim();
+		const hasStart = start.length > 0;
+		const hasEnd = end.length > 0;
+		const startIsValid = !hasStart || isValidTimeHHMM(start);
+		const endIsValid = !hasEnd || isValidTimeHHMM(end);
+
+		if (!startIsValid || !endIsValid) {
+			return {
+				openAt: '',
+				closeAt: '',
+				errorKey: null,
+			};
+		}
+
+		if (hasStart && hasEnd) {
+			const startMinutes = toMinutes(start);
+			const endMinutes = toMinutes(end);
+
+			if (startMinutes !== null && endMinutes !== null && startMinutes > endMinutes) {
+				return {
+					openAt: '',
+					closeAt: '',
+					errorKey: 'explorer.filter_time_invalid_range',
+				};
+			}
+		}
+
+		return {
+			openAt: hasStart ? start : '',
+			closeAt: hasEnd ? end : '',
+			errorKey: null,
+		};
 	}
 
 	function looksLikeAddress(value) {
@@ -206,19 +270,18 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 
    // Chargement des laveries depuis l'API
 	useEffect(() => {
-		const shouldLoadNearestFromLocation = isLocationSearch && Array.isArray(searchLocation);
-		const hasFullTimeRange = isValidTimeHHMM(startTimeValue) && isValidTimeHHMM(endTimeValue);
+		const { openAt, closeAt } = getTimeFilterState();
 
 		laundryService.getNearbyLaundries({
 			latitude: undefined,
 			longitude: undefined,
-			radius: undefined,
+			radius: getRadiusKm(),
 			limit: 100,
 			query: '',
-			services: shouldLoadNearestFromLocation ? [] : selectedServices,
-			payments: shouldLoadNearestFromLocation ? [] : selectedPayments,
-			openAt: shouldLoadNearestFromLocation ? '' : (hasFullTimeRange ? startTimeValue : ''),
-			closeAt: shouldLoadNearestFromLocation ? '' : (hasFullTimeRange ? endTimeValue : ''),
+			services: selectedServices,
+			payments: selectedPayments,
+			openAt,
+			closeAt,
 		})
 			.then(data => {
 				setLaundries(Array.isArray(data.laundries) ? data.laundries : []);
@@ -229,7 +292,7 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 				// eslint-disable-next-line no-console
 				console.error('[LaundryExplorer] Erreur récupération laveries:', err);
 			});
-	}, [t, searchLocation, isLocationSearch, selectedServices, selectedPayments, startTimeValue, endTimeValue]);
+	}, [t, selectedServices, selectedPayments, startTimeValue, endTimeValue, radiusValue]);
 
 	// Ouvre/ferme la modal de filtre
 	function openFilterModal() {
@@ -382,18 +445,6 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 		}
 	}, [position, mapCenter]);
 
-	// Fonction pour filtrer les laveries dans un rayon de 10km autour d'un centre donné
-	   function laundriesInRadius(center, radiusKm = 10) {
-		   if (!center) return [];
-		   return laundries
-			   .map(laundry => {
-				   const distance = getDistanceKm(center[0], center[1], laundry.latitude, laundry.longitude);
-				   return { ...laundry, distance };
-			   })
-			   .filter(laundry => laundry.distance <= radiusKm)
-			   .sort((a, b) => a.distance - b.distance);
-	   }
-
 	// Toutes les laveries
 	   function allLaundries() {
 		   return laundries.map(laundry => ({ ...laundry, distance: null }));
@@ -428,6 +479,8 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 		   }
 		   return { ...laundry, distance };
 	   });
+	   const radiusKm = getRadiusKm();
+
 	   if (isLocationSearch && Array.isArray(searchLocation)) {
 		   const [searchLat, searchLng] = searchLocation;
 		   laundriesVisible = allLaundries()
@@ -438,6 +491,7 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 				   const distance = getDistanceKm(searchLat, searchLng, laundry.latitude, laundry.longitude);
 				   return { ...laundry, distance };
 			   })
+			   .filter(laundry => laundry.distance !== null && laundry.distance <= radiusKm)
 			   .sort((a, b) => {
 				   if (a.distance === null && b.distance === null) return 0;
 				   if (a.distance === null) return 1;
@@ -446,11 +500,12 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 			   });
 	   } else if (position) {
 		   laundriesVisible = laundriesVisible
-			   .filter(laundry => typeof laundry.distance === 'number')
+			   .filter(laundry => typeof laundry.distance === 'number' && laundry.distance <= radiusKm)
 			   .sort((a, b) => a.distance - b.distance);
 	   }
 
 	   const isPositionNearestMode = !isLocationSearch && !!position;
+	   const timeFilterState = getTimeFilterState();
 
 	   // En recherche ville/adresse ou en géolocalisation, n'afficher que les plus proches.
 	   const laundriesToDisplay = isLocationSearch
@@ -566,6 +621,7 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 											setSelectedPayments([]);
 											setStartTimeValue('');
 											setEndTimeValue('');
+											setShowAll(false);
 										}}
 										className="mb-4 px-3 py-1 rounded-lg w-[120px] h-[25px] bg-[#3B82F6] text-white text-[10px] font-semibold hover:bg-[#2563EB]"
 										style={{display: 'inline-block'}}
@@ -613,6 +669,7 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 													pattern="[0-9]{2}:[0-9]{2}"
 													value={startTimeValue}
 													onChange={(e) => handleTimeChange(e.target.value, setStartTimeValue)}
+													onBlur={(e) => normalizeTimeOnBlur(e.target.value, setStartTimeValue)}
 													className={`flex-1 w-full text-center rounded px-2 py-1 placeholder-gray-400 ${effectiveDarkTheme ? 'bg-slate-900 text-slate-100 placeholder-slate-500' : 'bg-white text-slate-900'}`}
 													placeholder={t('explorer.filter_time_start_placeholder', '11:00')}
 												/>
@@ -622,10 +679,16 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 													pattern="[0-9]{2}:[0-9]{2}"
 													value={endTimeValue}
 													onChange={(e) => handleTimeChange(e.target.value, setEndTimeValue)}
+													onBlur={(e) => normalizeTimeOnBlur(e.target.value, setEndTimeValue)}
 													className={`flex-1 w-full text-center rounded px-2 py-1 placeholder-gray-400 ${effectiveDarkTheme ? 'bg-slate-900 text-slate-100 placeholder-slate-500' : 'bg-white text-slate-900'}`}
 													placeholder={t('explorer.filter_time_end_placeholder', '18:00')}
 												/>
 											</div>
+										{timeFilterState.errorKey === 'explorer.filter_time_invalid_range' && (
+											<p className={`mt-2 text-xs ${effectiveDarkTheme ? 'text-red-300' : 'text-red-600'}`}>
+												{t('explorer.filter_time_invalid_range', "L'heure de fin doit être supérieure ou égale à l'heure de début.")}
+											</p>
+										)}
 										</div>
 										{/* Service (boutons sélectionnables) */}
 										<div>
