@@ -85,23 +85,23 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
   };
 
   return (
-    <div className={`min-h-screen p-[12px] md:p-12 lg:px-32 lg:py-16 overflow-x-hidden max-w-full  mx-auto ${effectiveDarkTheme ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
+    <div className={`min-h-screen p-[12px] md:p-12 lg:px-32 lg:py-16 overflow-x-hidden max-w-full mx-auto font-semibold ${effectiveDarkTheme ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
       {/* Header section */}
-      <div className={`${effectiveDarkTheme ? 'bg-[#1E3A8A]/50' : 'bg-[#3B82F6]/50'} flex flex-col items-start rounded-[10px] p-4 md:p-8 mb-6 text-left md:text-left md:flex-col md:items-center md:justify-center md:text-center`}>
+      <div className={`${effectiveDarkTheme ? 'bg-[#1E3A8A]' : 'bg-[#3B82F6]'} flex flex-col items-start rounded-[10px] p-4 md:p-8 mb-6 md:flex-col md:items-center md:justify-center md:text-center`}>
         <div>
-          <h1 className={`text-[20px] font-bold mb-0 md:text-[28px] ${effectiveDarkTheme ? 'text-blue-200' : 'text-[#1B4965]'}`}>{t('dashboard.title', 'Tableau de bord professionnel')}</h1>
-          <p className="text-white text-[9px] mt-2 md:text-[13px]">{t('dashboard.subtitle', 'Gérez efficacement vos laveries référencées sur LaundryMap.')}</p>
+          <h1 className={`text-[20px] font-semibold mb-0 md:text-[28px] ${effectiveDarkTheme ? 'text-blue-200' : 'text-white'}`}>{t('dashboard.title', 'Tableau de bord professionnel')}</h1>
+          <p className="text-white text-[14px] mt-2 md:text-[14px]">{t('dashboard.subtitle', 'Gérez efficacement vos laveries référencées sur LaundryMap.')}</p>
         </div>
         <div className="bg-[#FFFFFF]/20 rounded-[10px] w-[282px] md:w-[350px] h-[57px] md:h-[120px] p-[9px] md:p-4 mt-4 text-left flex flex-row md:flex-col justify-center md:justify-center md:items-center md:mx-auto">
           <div className="flex flex-row md:flex-col gap-[10px] md:gap-[2px] items-center w-full h-full justify-center md:justify-center">
             <img src={UserShield} alt="User Shield" className="mx-auto md:mx-auto" />
             <div className="flex flex-col items-start text-left w-full md:justify-center md:h-full md:items-center">
               {user && (
-                <p className="text-white text-[12px] font-regular md:text-[15px] text-left md:text-center md:items-center">
+                <p className="text-white text-[14px] font-semibold md:text-[15px] text-left md:text-center md:items-center">
                   {user.firstName} {user.lastName}
                 </p>
               )}
-              <p className="text-white text-[12px] md:text-[13px] text-left md:text-center">
+              <p className="text-white text-[14px] md:text-[14px] text-left md:text-center">
                 {t('dashboard.last_login', 'Dernière connexion :')} {user?.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '--'}
               </p>
             </div>
@@ -120,8 +120,8 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                 <img src={Star} alt="Note Icon" className="mx-auto w-[21px] h-[21px]" />
               </div>
               <div className="flex flex-col items-start">
-                <span className="text-[10px] md:text-[14px] font-semibold">{stats.averageNote ?? '--'}/5 ({stats.reviewCount ?? 0} {t('dashboard.reviews', 'avis')})</span>
-                <span className={`text-[9px] md:text-[12px] ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#4B5563]'}`}>{t('dashboard.average_note', 'Note moyenne')}</span>
+                <span className="text-[14px] md:text-[14px] font-semibold">{stats.averageNote ?? '--'}/5 ({stats.reviewCount ?? 0} {t('dashboard.reviews', 'avis')})</span>
+                <span className={`text-[14px] md:text-[14px] ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#4B5563]'}`}>{t('dashboard.average_note', 'Note moyenne')}</span>
               </div>
             </div>
             {/* Laveries validées */}
@@ -130,8 +130,8 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                 <img src={LaundryIcon} alt="Laverie Icon" className="mx-auto w-[21px] h-[21px]" />
               </div>
               <div className="flex flex-col items-start">
-                <span className="text-[10px] md:text-[14px] font-semibold">{stats.total}</span>
-                <span className={`text-[9px] md:text-[12px] ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#4B5563]'}`}>{t('dashboard.validated_laundries', 'Laveries validées')}</span>
+                <span className="text-[14px] md:text-[14px] font-semibold">{stats.total}</span>
+                <span className={`text-[14px] md:text-[14px] ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#4B5563]'}`}>{t('dashboard.validated_laundries', 'Laveries validées')}</span>
               </div>
             </div>
             {/* Laveries en attente */}
@@ -140,8 +140,8 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                 <img src={PendingIcon} alt="Pending Icon" className="mx-auto w-[21px] h-[21px]" />
               </div>
               <div className="flex flex-col items-start">
-                <span className="text-[10px] md:text-[14px] font-semibold">{stats.pending}</span>
-                <span className={`text-[9px] md:text-[12px] ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#4B5563]'}`}>{t('dashboard.pending_laundries', 'Laveries en attente')}</span>
+                <span className="text-[14px] md:text-[14px] font-semibold">{stats.pending}</span>
+                <span className={`text-[14px] md:text-[14px] ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#4B5563]'}`}>{t('dashboard.pending_laundries', 'Laveries en attente')}</span>
               </div>
             </div>
             {/* Laveries totales */}
@@ -150,8 +150,8 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                 <img src={TotalIcon} alt="Total Icon" className="mx-auto w-[21px] h-[21px]" />
               </div>
               <div className="flex flex-col items-start">
-                <span className="text-[10px] md:text-[14px] font-semibold">{stats.all}</span>
-                <span className={`text-[9px] md:text-[12px] ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#4B5563]'}`}>{t('dashboard.total_laundries', 'Laveries totales')}</span>
+                <span className="text-[14px] md:text-[14px] font-semibold">{stats.all}</span>
+                <span className={`text-[14px] md:text-[14px] ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#4B5563]'}`}>{t('dashboard.total_laundries', 'Laveries totales')}</span>
               </div>
             </div>
           </div>
@@ -218,12 +218,12 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                       {/* Corps de carte */}
                       <div className="flex flex-col gap-3 min-w-0">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                          <span className={`text-xs md:text-base font-medium ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#0F172A]'}`}>
+                          <span className={`text-sm md:text-base font-semibold ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#0F172A]'}`}>
                             <img src={AddressIcon} alt="Address Icon" className="w-4 h-4 inline-block mr-2" />
                             {laundry.address}
                           </span>
                           {laundry.status === 'approved' && (
-                            <span className="text-xs md:text-base font-semibold text-[#FFD700]">
+                            <span className="text-sm md:text-base font-semibold text-[#FFD700]">
                               <img src={StarIcon} alt="Star Icon" className="w-4 h-4 inline-block mr-2" />
                               {stats.averageNote ?? '--'}/5 ({stats.reviewCount ?? 0} {t('dashboard.reviews', 'avis')})
                             </span>
@@ -232,7 +232,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
 
                         {(laundry.status === 'pending' || laundry.status === 'rejected') && (
                           <div className={`w-full px-3 py-2 ${laundry.status === 'pending' ? 'bg-[#F59E0B]/20 border-l-2 border-[#F59E0B]' : 'bg-red-100 border-l-2 border-[#E11D48]'} rounded-[6px] flex items-center`}>
-                            <span className={`text-xs md:text-sm gap-2 flex items-center font-semibold ${laundry.status === 'pending' ? 'text-[#F59E42]' : 'text-[#E11D48]'}`}>
+                            <span className={`text-sm md:text-sm gap-2 flex items-center font-semibold ${laundry.status === 'pending' ? 'text-[#F59E42]' : 'text-[#E11D48]'}`}>
                               <img src={laundry.status === 'pending' ? InfoIcon : WarningIcon} alt={laundry.status === 'pending' ? 'Info Icon' : t('dashboard.warning', 'Avertissement')} className="w-4 h-4 inline-block" />
                               {laundry.status === 'pending'
                                 ? t('dashboard.pending_validation', 'En cours de validation par nos équipes')
@@ -245,23 +245,23 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                           <div className="flex flex-col min-w-0 gap-1">
                             {laundry.status === 'approved' ? (
                               <>
-                                <span className={`text-xs md:text-sm font-medium ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#6B7280]'}`}>{t('dashboard.created_at', 'Créée le :')} {laundry.createdAt ? new Date(laundry.createdAt).toLocaleDateString('fr-FR') : '--'}</span>
-                                <span className={`text-xs md:text-sm font-medium ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#6B7280]'}`}>{t('dashboard.updated_at', 'Modifiée le :')} {laundry.updatedAt ? new Date(laundry.updatedAt).toLocaleDateString('fr-FR') : '--'}</span>
+                                <span className={`text-sm md:text-sm font-semibold ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#6B7280]'}`}>{t('dashboard.created_at', 'Créée le :')} {laundry.createdAt ? new Date(laundry.createdAt).toLocaleDateString('fr-FR') : '--'}</span>
+                                <span className={`text-sm md:text-sm font-semibold ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#6B7280]'}`}>{t('dashboard.updated_at', 'Modifiée le :')} {laundry.updatedAt ? new Date(laundry.updatedAt).toLocaleDateString('fr-FR') : '--'}</span>
                               </>
                             ) : laundry.status === 'rejected' ? (
                               <>
-                                <span className={`text-xs md:text-sm font-medium ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#6B7280]'}`}>{t('dashboard.rejected_at', 'Refusée le :')} {laundry.createdAt ? new Date(laundry.createdAt).toLocaleDateString('fr-FR') : '--'}</span>
+                                <span className={`text-sm md:text-sm font-semibold ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#6B7280]'}`}>{t('dashboard.rejected_at', 'Refusée le :')} {laundry.createdAt ? new Date(laundry.createdAt).toLocaleDateString('fr-FR') : '--'}</span>
                               </>
                             ) : (
                               <>
-                                <span className={`text-xs md:text-sm font-medium ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#6B7280]'}`}>{t('dashboard.submitted_at', 'Soumise le :')} {laundry.createdAt ? new Date(laundry.createdAt).toLocaleDateString('fr-FR') : '--'}</span>
+                                <span className={`text-sm md:text-sm font-semibold ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#6B7280]'}`}>{t('dashboard.submitted_at', 'Soumise le :')} {laundry.createdAt ? new Date(laundry.createdAt).toLocaleDateString('fr-FR') : '--'}</span>
                               </>
                             )}
                           </div>
 
                           <div className="flex flex-row gap-2 w-full">
                             <button
-                              className="flex-1 flex items-center justify-center gap-1 px-2 h-8 md:h-10 bg-[#3B82F6] text-white text-xs md:text-sm font-medium rounded-[6px] whitespace-nowrap"
+                              className="flex-1 flex items-center justify-center gap-1 px-2 h-8 md:h-10 bg-[#3B82F6] text-white text-sm md:text-sm font-semibold rounded-[6px] whitespace-nowrap"
                               title={t('dashboard.edit', 'Modifier')}
                               type="button"
                               onClick={() => navigate(`/edit-laundry/${laundry.id}`)}
@@ -270,7 +270,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                               {t('dashboard.edit', 'Modifier')}
                             </button>
                             <button
-                              className="flex-1 flex items-center justify-center gap-1 px-2 h-8 md:h-10 bg-[#4B5563] text-white text-xs md:text-sm font-medium rounded-[6px] whitespace-nowrap"
+                              className="flex-1 flex items-center justify-center gap-1 px-2 h-8 md:h-10 bg-[#4B5563] text-white text-sm md:text-sm font-semibold rounded-[6px] whitespace-nowrap"
                               title={t('dashboard.view_sheet', 'Voir la fiche')}
                               type="button"
                               onClick={() => navigate(`/laundry-details/${laundry.id}`)}

@@ -72,18 +72,18 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
             <div className={`fixed top-0 left-0 h-full w-70 rounded-[0_12px_0_12px] ${isDarkTheme ? 'bg-[#1E293B]' : 'bg-white'} shadow-lg z-[2000] transform transition-transform duration-300 ease-in-out ${
               isMenuOpen ? 'translate-x-0' : '-translate-x-full'
             }`}>
-              <div className={`p-4 border-b ${isDarkTheme ? 'border-[#334155]' : 'border-[#E5E7EB]'} flex items-center justify-between`}>
+              <div className={`p-4 border-b ${isDarkTheme ? 'border-[#334155]' : 'border-[#E5E7EB]'} flex items-stretch justify-between gap-3`}>
                 {/* Logo dans la sidebar */}
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-[#3B82F6] rounded-lg justify-center items-center flex">
+                <div className="flex min-h-12 items-center">
+                  <div className="w-8 h-8 bg-[#3B82F6] rounded-lg justify-center items-center flex shrink-0">
                     <img src={Logo} alt='LaundryMap Logo' className="w-5 h-5 object-contain" />
                   </div>
-                  <div className="ml-3 text-[18px] font-semibold text-[#3B82F6]">LaundryMap</div>
+                  <div className="ml-3 text-[18px] font-semibold text-[#3B82F6] leading-none">LaundryMap</div>
                 </div>
                 {/* Bouton de fermeture */}
                 <button 
                   onClick={toggleMenu}
-                  className={`p-2 rounded-md transition-colors ${isDarkTheme ? 'hover:bg-[#334155]' : 'hover:bg-gray-100'}`}
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-md transition-colors ${isDarkTheme ? 'hover:bg-[#334155]' : 'hover:bg-gray-100'}`}
                   aria-label="Fermer le menu"
                 >
                   <svg className={`w-6 h-6 ${isDarkTheme ? 'text-[#E2E8F0]' : 'text-[#374151]'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,12 +94,6 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
               
               {/* Navigation dans la sidebar */}
               <nav className="flex flex-col p-4 space-y-2">
-                <div className="flex items-center justify-between pb-4">
-                  <h3 className="font-semibold text-[14px] text-[#3B82F6]">
-                    {isLoggedIn ? getConnectedSpaceLabel() : t('navigation.main_pages')}
-                  </h3>
-                  <LanguageSwitcher iconsOnly={true} />
-                </div>
                 <div className="flex flex-col space-y-2 text-left">
                     <Link to="/" onClick={toggleMenu} className={`px-3 text-[12px] ${isActivePage('/') ? 'bg-[#3B82F6] text-white' : (isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white')} rounded-[5px] transition-colors font-medium flex items-center h-[38px] group`}>
                         <img src={IconAccueil} alt={t('navigation.home')} className={`w-4 h-4 mr-2 filter transition-all ${getMenuIconClassName(isActivePage('/'))}`} />
@@ -143,6 +137,9 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
                             {t('common.logout')}
                         </button>
                     )}
+                </div>
+                <div className="pb-4 justify-end flex">
+                  <LanguageSwitcher iconsOnly={true} />
                 </div>
 
               </nav>
