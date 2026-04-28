@@ -46,7 +46,28 @@ export const I18nProvider = ({ children }) => {
     }
   };
 
-  const t = (key) => {
+  const interpolate = (template, params) => {
+    if (typeof template !== 'string' || !params) return template;
+    return template.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (_match, rawKey) => {
+      const path = String(rawKey || '').split('.');
+      let value = params;
+      for (const segment of path) {
+        value = value?.[segment];
+      }
+      if (value === null || value === undefined) return '';
+      return String(value);
+    });
+  };
+
+  const t = (key, fallbackOrParams, maybeParams) => {
+    const fallback = typeof fallbackOrParams === 'string' ? fallbackOrParams : undefined;
+    const params =
+      fallback && maybeParams && typeof maybeParams === 'object'
+        ? maybeParams
+        : !fallback && fallbackOrParams && typeof fallbackOrParams === 'object'
+          ? fallbackOrParams
+          : undefined;
+
     const keys = key.split('.');
     let value = translations[language];
     
@@ -54,7 +75,8 @@ export const I18nProvider = ({ children }) => {
       value = value?.[k];
     }
     
-    return value || key;
+    const resolved = value ?? fallback ?? key;
+    return interpolate(resolved, params);
   };
 
   return (

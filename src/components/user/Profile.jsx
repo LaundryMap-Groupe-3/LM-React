@@ -1,6 +1,6 @@
 import Edit from '../../assets/images/icons/Edit.svg';
 import User from '../../assets/images/icons/User-Shield.svg';
-import Error from '../../assets/images/icons/Error.svg';
+import Error from '../../assets/images/icons/Error-orange.svg';
 import Remove from '../../assets/images/icons/Remove.svg';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';

@@ -401,7 +401,9 @@
   },
   "laundry": {
     "unavailable_title": "Laundry not found",
-    "unavailable_message": "The requested page is unavailable or inaccessible."
+    "unavailable_message": "The requested page is unavailable or inaccessible.",
+    "review_response": "Professional reply",
+    "review_response_by": "Reply from {{name}}"
   },
   "errors": {
     "404_title": "Page Not Found",
