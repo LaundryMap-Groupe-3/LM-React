@@ -87,12 +87,12 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
   return (
     <div className={`min-h-screen p-[12px] md:p-12 lg:px-32 lg:py-16 overflow-x-hidden max-w-full mx-auto font-semibold ${effectiveDarkTheme ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
       {/* Header section */}
-      <div className={`${effectiveDarkTheme ? 'bg-[#1E3A8A]' : 'bg-[#3B82F6]'} flex flex-col items-start rounded-[10px] p-4 md:p-8 mb-6 md:flex-col md:items-center md:justify-center md:text-center`}>
+      <div className={`${effectiveDarkTheme ? 'bg-[#1E3A8A]' : 'bg-[#3B82F6]'} flex flex-col items-start gap-4 rounded-[10px] p-4 md:p-8 mb-6 md:items-center md:justify-center md:text-center`}>
         <div>
           <h1 className={`text-[20px] font-semibold mb-0 md:text-[28px] ${effectiveDarkTheme ? 'text-blue-200' : 'text-white'}`}>{t('dashboard.title', 'Tableau de bord professionnel')}</h1>
           <p className="text-white text-[14px] mt-2 md:text-[14px]">{t('dashboard.subtitle', 'Gérez efficacement vos laveries référencées sur LaundryMap.')}</p>
         </div>
-        <div className="bg-[#FFFFFF]/20 rounded-[10px] w-[282px] md:w-[350px] h-[57px] md:h-[120px] p-[9px] md:p-4 mt-4 text-left flex flex-row md:flex-col justify-center md:justify-center md:items-center md:mx-auto">
+        <div className="bg-[#FFFFFF]/20 rounded-[10px] w-full md:w-[350px] max-w-full min-h-[57px] md:min-h-[120px] p-[9px] md:p-4 text-left flex flex-row md:flex-col justify-center md:items-center md:mx-auto">
           <div className="flex flex-row md:flex-col gap-[10px] md:gap-[2px] items-center w-full h-full justify-center md:justify-center">
             <img src={UserShield} alt="User Shield" className="mx-auto md:mx-auto" />
             <div className="flex flex-col items-start text-left w-full md:justify-center md:h-full md:items-center">
@@ -113,7 +113,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
         {/* Statistiques principales */}
         <div className={`text-left flex flex-col justify-between h-full rounded-[10px] p-4 md:p-8 min-w-0 ${effectiveDarkTheme ? 'bg-gray-800/70' : 'bg-white/70 md:bg-transparent'}`}>
           <h2 className="text-[18px] md:text-[26px] font-semibold text-[#3B82F6] mb-4 md:mb-6">{t('dashboard.stats_title', 'Mes Statistiques')}</h2>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-2 md:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-4">
             {/* Note moyenne */}
             <div className={`shadow rounded-[10px] p-4 md:p-6 flex items-center min-w-0 ${effectiveDarkTheme ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
               <div className="bg-[#FFD700] rounded-[4px] w-[30px] h-[30px] flex items-center justify-center mr-4">
@@ -158,7 +158,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
         </div>
         {/* Mes laveries */}
         <div className={`flex flex-col h-full p-4 md:p-8 rounded-[10px] min-w-0 ${effectiveDarkTheme ? 'bg-gray-800/70' : 'bg-white/70'}`}>
-          <div className="flex justify-between items-center mb-4 gap-2 md:mb-6">
+          <div className="flex flex-wrap justify-between items-center mb-4 gap-2 md:mb-6">
             <h2 className="text-[18px] md:text-[26px] text-[#3B82F6] font-semibold mb-2 md:mb-0">{t('dashboard.my_laundries', 'Mes laveries')}</h2>
             <button
               type="button"
@@ -186,11 +186,11 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                     >
                       {/* Header: nom + statut */}
                       <div className="flex items-start justify-between gap-3 min-w-0">
-                        <span className={`font-bold text-base md:text-xl leading-tight truncate max-w-[65%] ${effectiveDarkTheme ? 'text-blue-200' : 'text-[#1B4965]'}`}>
+                        <span className={`font-bold text-base md:text-xl leading-tight truncate max-w-[60%] sm:max-w-[70%] ${effectiveDarkTheme ? 'text-blue-200' : 'text-[#1B4965]'}`}>
                           {laundry.establishmentName}
                         </span>
                         <span
-                          className={`inline-flex items-center justify-center uppercase text-[7px] md:text-[12px] font-semibold rounded-[6px] px-2 py-1 h-[20px]
+                          className={`inline-flex items-center justify-center uppercase text-[9px] md:text-[12px] font-semibold rounded-[6px] px-2 py-1 h-[22px] whitespace-nowrap
                             ${laundry.status === 'approved' ? 'text-[#008236] border border-[#0E9620]/20 bg-[#DCFCE7]'
                             : laundry.status === 'pending' ? 'text-[#F59E0B] border border-[#F59E0B]/20 bg-[#FFF7ED]'
                             : 'text-red-700 border border-red-200 bg-red-100'}
@@ -218,9 +218,9 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                       {/* Corps de carte */}
                       <div className="flex flex-col gap-3 min-w-0">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                          <span className={`text-sm md:text-base font-semibold ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#0F172A]'}`}>
-                            <img src={AddressIcon} alt="Address Icon" className="w-4 h-4 inline-block mr-2" />
-                            {laundry.address}
+                          <span className={`text-sm md:text-base font-semibold ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#0F172A]'} flex items-start gap-2`}>
+                            <img src={AddressIcon} alt="Address Icon" className="w-4 h-4 mt-[2px] shrink-0" />
+                            <span className="break-words">{laundry.address}</span>
                           </span>
                           {laundry.status === 'approved' && (
                             <span className="text-sm md:text-base font-semibold text-[#FFD700]">
@@ -231,7 +231,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                         </div>
 
                         {(laundry.status === 'pending' || laundry.status === 'rejected') && (
-                          <div className={`w-full px-3 py-2 ${laundry.status === 'pending' ? 'bg-[#F59E0B]/20 border-l-2 border-[#F59E0B]' : 'bg-red-100 border-l-2 border-[#E11D48]'} rounded-[6px] flex items-center`}>
+                          <div className={`hidden sm:flex w-full px-3 py-2 ${laundry.status === 'pending' ? 'bg-[#F59E0B]/20 border-l-2 border-[#F59E0B]' : 'bg-red-100 border-l-2 border-[#E11D48]'} rounded-[6px] items-center`}>
                             <span className={`text-sm md:text-sm gap-2 flex items-center font-semibold ${laundry.status === 'pending' ? 'text-[#F59E42]' : 'text-[#E11D48]'}`}>
                               <img src={laundry.status === 'pending' ? InfoIcon : WarningIcon} alt={laundry.status === 'pending' ? 'Info Icon' : t('dashboard.warning', 'Avertissement')} className="w-4 h-4 inline-block" />
                               {laundry.status === 'pending'
@@ -261,25 +261,25 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
 
                           <div className="flex flex-row gap-2 w-full">
                             <button
-                              className="flex-1 flex items-center justify-center gap-1 px-2 h-8 md:h-10 bg-[#3B82F6] text-white text-sm md:text-sm font-semibold rounded-[6px] whitespace-nowrap"
+                              className="flex-1 flex items-center justify-center gap-1 px-2 h-10 md:h-10 bg-[#3B82F6] text-white text-xs sm:text-sm font-semibold rounded-[8px] whitespace-nowrap"
                               title={t('dashboard.edit', 'Modifier')}
                               type="button"
                               onClick={() => navigate(`/edit-laundry/${laundry.id}`)}
                             >
-                              <img src={EditIcon} alt={t('dashboard.edit', 'Modifier')} className="w-3 h-3 md:w-4 md:h-4" />
+                              <img src={EditIcon} alt={t('dashboard.edit', 'Modifier')} className="hidden sm:inline-block w-3 h-3 md:w-4 md:h-4" />
                               {t('dashboard.edit', 'Modifier')}
                             </button>
                             <button
-                              className="flex-1 flex items-center justify-center gap-1 px-2 h-8 md:h-10 bg-[#4B5563] text-white text-sm md:text-sm font-semibold rounded-[6px] whitespace-nowrap"
+                              className="flex-1 flex items-center justify-center gap-1 px-2 h-10 md:h-10 bg-[#4B5563] text-white text-xs sm:text-sm font-semibold rounded-[8px] whitespace-nowrap"
                               title={t('dashboard.view_sheet', 'Voir la fiche')}
                               type="button"
                               onClick={() => navigate(`/laundry-details/${laundry.id}`)}
                             >
-                              <img src={EyeIcon} alt={t('dashboard.view_sheet', 'Voir la fiche')} className="w-3 h-3 md:w-4 md:h-4" />
+                              <img src={EyeIcon} alt={t('dashboard.view_sheet', 'Voir la fiche')} className="hidden sm:inline-block w-3 h-3 md:w-4 md:h-4" />
                               {t('dashboard.view_sheet', 'Voir la fiche')}
                             </button>
                             <button
-                              className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 bg-[#EF4444] text-white text-xs md:text-sm font-medium rounded-[6px]"
+                              className="flex items-center justify-center w-10 h-10 md:w-10 md:h-10 bg-[#EF4444] text-white text-xs md:text-sm font-medium rounded-[6px]"
                               title={t('dashboard.delete', 'Supprimer')}
                               type="button"
                               onClick={async () => {
@@ -307,7 +307,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                         <button
                           onClick={() => handlePageChange(currentPage - 1)}
                           disabled={currentPage === 1}
-                          className={`w-9 h-9 flex rounded-lg items-center justify-center text-lg font-medium ${
+                          className={`w-10 h-10 flex rounded-lg items-center justify-center text-base font-medium ${
                             currentPage === 1
                               ? 'border border-[#CBD5E1] text-black cursor-not-allowed bg-gray-50'
                               : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
@@ -320,7 +320,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                           <button
                             key={page}
                             onClick={() => handlePageChange(page)}
-                            className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-medium ${
+                            className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-medium ${
                               currentPage === page
                                 ? 'bg-[#3B82F6] text-white'
                                 : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
@@ -333,7 +333,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                         <button
                           onClick={() => handlePageChange(currentPage + 1)}
                           disabled={currentPage === totalPages}
-                          className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg font-medium ${
+                          className={`w-10 h-10 rounded-lg flex items-center justify-center text-base font-medium ${
                             currentPage === totalPages
                               ? 'border border-[#CBD5E1] text-gray-400 cursor-not-allowed bg-gray-50'
                               : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
