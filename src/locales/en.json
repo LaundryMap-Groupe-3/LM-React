@@ -29,7 +29,7 @@
     "home": "Home",
     "profile": "My Profile",
     "laundries": "Laundries",
-    "favorites_laundries": "Favorites Laundries",
+    "favorites_laundries": "My Favorite Laundries",
     "dashboard": {
       "title": "Professional Dashboard",
       "subtitle": "Efficiently manage your laundries listed on LaundryMap.",
@@ -347,6 +347,7 @@
     "create_laundry": "Add a laundry - LaundryMap",
     "edit_laundry": "Edit a laundry - LaundryMap",
     "legal_notice": "Legal Notice - LaundryMap",
+    "favorites": "My Favorite Laundries - LaundryMap",
     "404": "404 - Page Not Found",
     "500": "500 - Server Error"
   },
@@ -672,7 +673,8 @@
   "laundry_favorite": {
     "add_success": "Laundry has been added to your favorites successfully.",
     "remove_success": "Laundry has been removed from your favorites successfully.",
-    "title": "Favorites Laundries",
-    "subtitle": "Find and manage all your saved laundries"
+    "title": "My Favorite Laundries",
+    "subtitle": "Find and manage all your saved laundries",
+    "empty": "No favorite laundries yet."
   }
 }

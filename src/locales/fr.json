@@ -42,7 +42,7 @@
     "dashboard_menu": "Tableau de bord",
     "pending_professionals": "Professionnels en attente",
     "pending_laundries": "Laveries en attente",
-    "favorites_laundries": "Laveries Favorites"
+    "favorites_laundries": "Mes laveries favorites"
   },
   "auth": {
     "login": "Se connecter",
@@ -346,6 +346,7 @@
     "edit_laundry": "Modifier une laverie - LaundryMap",
     "admin_pending_laundries": "Laveries en attente - Administration",
     "legal_notice": "Mentions légales - LaundryMap",
+    "favorites": "Mes laveries favorites - LaundryMap",
     "404": "404 - Page non trouvée",
     "500": "500 - Erreur serveur"
   },
@@ -671,7 +672,8 @@
   "laundry_favorite": {
     "add_success": "La laverie a été ajoutée à vos favoris avec succès.",
     "remove_success": "La laverie a été retirée de vos favoris avec succès.",
-    "title": "Laveries Favorites",
-    "subtitle": "Retrouvez et gérez toutes vos laveries sauvegardées"
+    "title": "Mes laveries favorites",
+    "subtitle": "Retrouvez et gérez toutes vos laveries sauvegardées",
+    "empty": "Aucune laverie favorite pour le moment."
   }
 }

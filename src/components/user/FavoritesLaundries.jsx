@@ -3,9 +3,11 @@ import authService from "../../services/authService";
 import laundryService from "../../services/laundryService";
 import { useTranslation } from '../../context/I18nContext';
 import LaundryFavoriteCard from "../common/LaundryFavoriteCard";
+import usePageTitle from '../../hooks/usePageTitle';
 
 const FavoritesLaundries = ({ isDarkTheme, userType }) => {
   const { t } = useTranslation();
+  usePageTitle('page_titles.favorites', t);
   const [laundries, setLaundries] = useState([]);
   const [favoriteIds, setFavoriteIds] = useState([]);
   const [loadingFavorites, setLoadingFavorites] = useState(false);
@@ -83,21 +85,26 @@ const FavoritesLaundries = ({ isDarkTheme, userType }) => {
         </div>
       </div>
 
-      {/* Grid of Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {laundries.map((laundry) => (
-          <LaundryFavoriteCard
-            key={laundry.id}
-            laundry={laundry}
-            userType={userType}
-            isHighlighted={false}
-            isFavorite={favoriteIds.includes(laundry.id)}
-            onToggleFavorite={() => handleToggleFavorite(laundry.id)}
-            isDarkTheme={isDarkTheme}
-            ref={el => { cardRefs.current[laundry.id] = el; }}
-          />
-        ))}
-      </div>
+      {laundries.length === 0 ? (
+        <div className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-6 text-center text-[14px] text-[#6B7280]">
+          {t('laundry_favorite.empty')}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {laundries.map((laundry) => (
+            <LaundryFavoriteCard
+              key={laundry.id}
+              laundry={laundry}
+              userType={userType}
+              isHighlighted={false}
+              isFavorite={favoriteIds.includes(laundry.id)}
+              onToggleFavorite={() => handleToggleFavorite(laundry.id)}
+              isDarkTheme={isDarkTheme}
+              ref={el => { cardRefs.current[laundry.id] = el; }}
+            />
+          ))}
+        </div>
+      )}
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="mt-8 flex justify-center">
