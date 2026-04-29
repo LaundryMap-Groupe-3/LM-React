@@ -16,6 +16,7 @@ import LaundryCard from './LaundryCard';
 // 4. Assets/images
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import WashingMachineIcon from '../../assets/images/icons/machine.png';
+import UserPositionIcon from '../../assets/images/icons/Marker.svg';
 import AdressIcon from '../../assets/images/icons/Address.svg';
 import Logo from '../../assets/images/logos/logo-laundrymap.svg';
 import SearchIcon from '../../assets/images/icons/Search.svg';
@@ -56,6 +57,16 @@ const laundryIconHighlighted = L.icon({
 	shadowUrl: markerShadow,
 	shadowSize: [52, 52],
 	shadowAnchor: [16, 52],
+});
+
+const userPositionIcon = L.icon({
+	iconUrl: UserPositionIcon,
+	iconSize: [30, 41],
+	iconAnchor: [15, 41],
+	popupAnchor: [0, -36],
+	shadowUrl: markerShadow,
+	shadowSize: [41, 41],
+	shadowAnchor: [13, 41],
 });
 
 function SetViewOnCenter({ target }) {
@@ -603,7 +614,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 						/>
 
 						{position && (
-							<Marker position={position}>
+							<Marker position={position} icon={userPositionIcon}>
 								<Popup>Vous êtes ici</Popup>
 							</Marker>
 						)}
