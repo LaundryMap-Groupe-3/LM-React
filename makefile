@@ -9,7 +9,6 @@ start: up vendor db cc
 up:
 	docker kill $$(docker ps -q) || true
 	docker network create crm_extranet_network || true
-	git submodule update --remote --merge --recursive
 	${COMPOSE} build --force-rm
 	${COMPOSE} up -d --remove-orphans
 
