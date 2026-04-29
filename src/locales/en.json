@@ -29,6 +29,7 @@
     "home": "Home",
     "profile": "My Profile",
     "laundries": "Laundries",
+    "favorites_laundries": "My Favorite Laundries",
     "dashboard": {
       "title": "Professional Dashboard",
       "subtitle": "Efficiently manage your laundries listed on LaundryMap.",
@@ -346,6 +347,7 @@
     "create_laundry": "Add a laundry - LaundryMap",
     "edit_laundry": "Edit a laundry - LaundryMap",
     "legal_notice": "Legal Notice - LaundryMap",
+    "favorites": "My Favorite Laundries - LaundryMap",
     "404": "404 - Page Not Found",
     "500": "500 - Server Error"
   },
@@ -488,7 +490,12 @@
     "wiline_configuration_missing": "Missing WI-LINE server configuration.",
     "wiline_auth_failed": "WI-LINE authentication failed.",
     "wiline_client_not_found": "WI-LINE client code not found.",
-    "wiline_fetch_failed": "Unable to fetch WI-LINE machines."
+    "wiline_fetch_failed": "Unable to fetch WI-LINE machines.",
+    "laundry_already_in_favorites": "This laundry is already in your favorites.",
+    "laundry_not_found": "Laundry not found.",
+    "laundry_not_found_in_favorites": "This laundry is not in your favorites.",
+    "during_add_favorite_laundry": "An error occurred while adding the laundry to your favorites.",
+    "during_remove_favorite_laundry": "An error occurred while removing the laundry from your favorites."
   },
   "validation": {
     "email_required": "Email is required",
@@ -661,5 +668,13 @@
     "delete": "Delete",
     "delete_confirm": "Are you sure you want to delete this laundry? This action is irreversible.",
     "delete_error": "Error while deleting the laundry."
+  }
+  ,
+  "laundry_favorite": {
+    "add_success": "Laundry has been added to your favorites successfully.",
+    "remove_success": "Laundry has been removed from your favorites successfully.",
+    "title": "My Favorite Laundries",
+    "subtitle": "Find and manage all your saved laundries",
+    "empty": "No favorite laundries yet."
   }
 }

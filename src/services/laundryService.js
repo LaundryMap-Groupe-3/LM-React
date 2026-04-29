@@ -99,59 +99,109 @@ const laundryService = {
     }
   },
 
-  async addFavorite(laundryId) {
+  addFavorite: async (laundryId) => {
     try {
-      // Unifie la récupération du token (jwt_token ou token)
-      const token = localStorage.getItem('jwt_token') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/laundries/${laundryId}/favorite`, {
+      const response = await fetch(`${API_BASE_URL}/api/laundries/${laundryId}/favorite/add`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${authService.getToken()}`,
           'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
       });
+
+      const data = await response.json();
+
       if (!response.ok) {
-        const text = await response.text();
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (e) {
-          data = text;
-        }
-        throw { status: response.status, body: data };
+        throw {
+          status: response.status,
+          body: data,
+        };
       }
-      return true;
+
+      return data;
     } catch (err) {
       throw err;
     }
   },
 
-  async removeFavorite(laundryId) {
+  removeFavorite: async (laundryId) => {
     try {
-      // Unifie la récupération du token (jwt_token ou token)
-      const token = localStorage.getItem('jwt_token') || localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/laundries/${laundryId}/favorite`, {
+      const response = await fetch(`${API_BASE_URL}/api/laundries/${laundryId}/favorite/remove`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          'Authorization': `Bearer ${authService.getToken()}`,
         },
       });
+
+      const data = await response.json();
+
       if (!response.ok) {
-        const text = await response.text();
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (e) {
-          data = text;
-        }
-        throw { status: response.status, body: data };
+        throw {
+          status: response.status,
+          body: data,
+        };
       }
-      return true;
+
+      return data;
     } catch (err) {
       throw err;
     }
   },
+
+  getFavoritesIds: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/laundries/favorite/ids`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw {
+          status: response.status,
+          body: data,
+        };
+      }
+
+      return data;
+    } catch (err) {
+      throw err;
+    }
+  },
+
+  getFavorites: async (page, limit) => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/user/favorites?page=${page}&limit=${limit}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authService.getToken()}`,
+          },
+        }
+      );
+
+      if (response.status === 403) {
+        throw new Error('Unauthorized - authentication required');
+      }
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to fetch favorites laundries');
+      }
+
+      return await response.json();
+
+    } catch (err) {
+      throw err;
+    }
+  }
 }
 
 export default laundryService;

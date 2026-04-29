@@ -7,6 +7,7 @@ import IconConnexion from '../../assets/images/icons/Login-white.svg';
 import IconSpeedometer from '../../assets/images/icons/Speedometer.svg';
 import IconUtilisateur from '../../assets/images/icons/User-black.svg';
 import LanguageSwitcher from './LanguageSwitcher';
+import Heart from '../../assets/images/icons/Heart.svg';
 
 const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogout, userType }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -109,6 +110,12 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
                         <Link to="/profile" onClick={toggleMenu} className={`px-3 text-[12px] ${isActivePage('/profile') ? 'bg-[#3B82F6] text-white' : (isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white')} rounded-[5px] transition-colors font-medium flex items-center h-[38px] group`}>
                             <img src={IconUtilisateur} alt={t('navigation.profile')} className={`w-4 h-4 mr-2 filter transition-all ${getMenuIconClassName(isActivePage('/profile'))}`} />
                             {t('navigation.profile')}
+                        </Link>
+                    )}
+                    {isLoggedIn && userType !== 'admin' && (
+                        <Link to="/favorites" onClick={toggleMenu} className={`px-3 text-[12px] ${isActivePage('/favorites') ? 'bg-[#3B82F6] text-white' : (isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white')} rounded-[5px] transition-colors font-medium flex items-center h-[38px] group`}>
+                            <img src={Heart} alt={t('navigation.favorites_laundries')} className={`w-3 h-3 mr-3 filter transition-all ${getMenuIconClassName(isActivePage('/favorites'))}`} />
+                            {t('navigation.favorites_laundries')}
                         </Link>
                     )}
                     {isLoggedIn && userType === 'admin' && (

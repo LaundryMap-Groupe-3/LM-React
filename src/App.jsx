@@ -28,16 +28,17 @@ import ProfessionalLaundryDetails from './components/professional/ProfessionalLa
 import LaundryExplorer from './components/common/LaundryExplorer'
 import { useTranslation } from './context/I18nContext'
 import usePageTitle from './hooks/usePageTitle'
+import FavoritesLaundries from './components/user/FavoritesLaundries'
 
 // Composant pour la page d'accueil
-const Home = ({ isDarkTheme }) => {
+const Home = ({ isDarkTheme, userType }) => {
   const { t } = useTranslation()
   usePageTitle('page_titles.home', t)
 
   return (
     <div className={`min-h-screen ${isDarkTheme ? 'bg-[#0F172A] text-slate-100' : ' text-slate-900'}`}>
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-6 md:px-8 lg:px-10 lg:py-8">
-        <LaundryExplorer isDarkTheme={isDarkTheme} />
+        <LaundryExplorer isDarkTheme={isDarkTheme} userType={userType} />
       </div>
     </div>
   )
@@ -142,9 +143,9 @@ function App() {
         toggleDarkTheme={toggleTheme}
         onLogout={handleLogout}
       />
-      <ErrorBoundary isDarkTheme={isDarkTheme}>
+      <ErrorBoundary isDarkTheme={isDarkTheme} userType={userType}>
         <Routes>
-          <Route path="/" element={<Home isDarkTheme={isDarkTheme} />} />
+          <Route path="/" element={<Home isDarkTheme={isDarkTheme} userType={userType} />} />
           <Route path="/register" element={
             isLoggedIn ? <Navigate to="/profile" replace /> :
             <Register 
@@ -197,6 +198,15 @@ function App() {
                 onLogout={handleLogout}
               />
             </ProtectedAdminRoute>
+          }/>
+          <Route path='/favorites' element={
+            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <FavoritesLaundries
+                isDarkTheme={isDarkTheme}
+                isLoggedIn={isLoggedIn}
+                userType={userType}
+              />
+            </ProtectedNonAdminRoute>
           }/>
           <Route path="/edit-profile" element={
             <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>

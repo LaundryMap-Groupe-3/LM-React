@@ -1,5 +1,5 @@
 // 1. Librairies externes
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import L from "leaflet";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -8,6 +8,7 @@ import "leaflet/dist/leaflet.css";
 import { useTranslation } from '../../context/I18nContext';
 import { usePreferences } from '../../context/PreferencesContext';
 import laundryService from '../../services/laundryService';
+import authService from "../../services/authService";
 
 // 3. Composants locaux
 import LaundryCard from './LaundryCard';
@@ -96,8 +97,8 @@ function MapEventsSync({ mapRef, setMapBounds }) {
 	return null;
 }
 
-const LaundryExplorer = ({ isDarkTheme }) => {
-	const LIST_INITIAL_LIMIT    = 3;
+const LaundryExplorer = ({ isDarkTheme, userType }) => {
+	const LIST_INITIAL_LIMIT = 3;
 	const LOCATION_SEARCH_LIMIT = 5;
 	const POSITION_NEAREST_LIMIT = 5;
 
@@ -126,45 +127,37 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 	const mapRef   = useRef(null);
 	const cardRefs = useRef({});
 
-	useEffect(() => {
-		const token = localStorage.getItem('jwt_token') || localStorage.getItem('token');
-		if (!token) return;
-		setLoadingFavorites(true);
-		fetch((import.meta.env.VITE_API_URL || 'http://localhost:8000') + '/api/user/favorites', {
-			headers: { Authorization: `Bearer ${token}` },
-		})
-			.then(res => {
-				if (!res.ok) throw new Error('Erreur API favoris: ' + res.status);
-				return res.json();
-			})
-			.then(data => {
-				setFavoriteIds(
-					Array.isArray(data.favorites)
-						? data.favorites.map(fav => fav.laundryId || fav.id || fav.laundry_id)
-						: []
-				);
-			})
-			.catch(err => {
-				setFavoriteIds([]);
-				console.warn('Impossible de charger les favoris utilisateur:', err);
-			})
-			.finally(() => setLoadingFavorites(false));
-	}, []);
+	const fetchFavorites = useCallback(async () => {
+        setLoadingFavorites(true);
+        try {
+            const favoritesLaundries = await laundryService.getFavoritesIds();
+            setFavoriteIds(favoritesLaundries.favorites);
+        } catch (err) {
+            console.error('Erreur chargement favoris:', err);
+        } finally {
+            setLoadingFavorites(false);
+        }
+    }, []);
 
-	const handleToggleFavorite = async (laundryId) => {
-		const isFav = favoriteIds.includes(laundryId);
-		try {
-			if (isFav) {
-				await laundryService.removeFavorite(laundryId);
-				setFavoriteIds(ids => ids.filter(id => id !== laundryId));
-			} else {
-				await laundryService.addFavorite(laundryId);
-				setFavoriteIds(ids => [...ids, laundryId]);
-			}
-		} catch {
-			window.alert(t('explorer.favorite_error', 'Erreur lors de la mise à jour du favori.'));
-		}
-	};
+    useEffect(() => {
+        if (authService.isAuthenticated()) {
+            fetchFavorites();
+        }
+    }, [fetchFavorites]);
+
+    const handleToggleFavorite = async (laundryId) => {
+        const isFav = favoriteIds.includes(laundryId);
+        try {
+            if (isFav) {
+                await laundryService.removeFavorite(laundryId);
+            } else {
+                await laundryService.addFavorite(laundryId);
+            }
+            await fetchFavorites();
+        } catch (err) {
+            window.alert(t('explorer.favorite_error', 'Erreur lors de la mise à jour du favori.'));
+        }
+    };
 
 	function handleRadiusChange(e) {
 		setRadiusValue(e.target.value.replace(/[^0-9]/g, ''));
@@ -248,7 +241,7 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 			closeAt,
 		})
 			.then(data => {
-				setLaundries(Array.isArray(data.laundries) ? data.laundries : []);
+				setLaundries(data.laundries);
 				setError(null);
 			})
 			.catch(err => {
@@ -689,6 +682,7 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 								<LaundryCard
 									key={laundry.id}
 									laundry={laundry}
+									userType={userType}
 									isHighlighted={highlightedLaundryId === laundry.id}
 									isFavorite={favoriteIds.includes(laundry.id)}
 									onToggleFavorite={() => handleToggleFavorite(laundry.id)}
