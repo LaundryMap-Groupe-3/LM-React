@@ -1,5 +1,5 @@
 // 1. Librairies externes
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import L from "leaflet";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -8,6 +8,7 @@ import "leaflet/dist/leaflet.css";
 import { useTranslation } from '../../context/I18nContext';
 import { usePreferences } from '../../context/PreferencesContext';
 import laundryService from '../../services/laundryService';
+import authService from "../../services/authService";
 
 // 3. Composants locaux
 import LaundryCard from './LaundryCard';
@@ -96,6 +97,8 @@ function MapEventsSync({ mapRef, setMapBounds }) {
 	return null;
 }
 
+const LaundryExplorer = ({ isDarkTheme, userType }) => {
+	const LIST_INITIAL_LIMIT = 3;
 const LaundryExplorer = ({ isDarkTheme }) => {
 	const LIST_INITIAL_LIMIT    = 3;
 	const LOCATION_SEARCH_LIMIT = 5;
@@ -248,7 +251,7 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 			closeAt,
 		})
 			.then(data => {
-				setLaundries(Array.isArray(data.laundries) ? data.laundries : []);
+				setLaundries(data.laundries);
 				setError(null);
 			})
 			.catch(err => {

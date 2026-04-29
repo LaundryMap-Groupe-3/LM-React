@@ -41,7 +41,8 @@
     "my_space": "Mon espace",
     "dashboard_menu": "Tableau de bord",
     "pending_professionals": "Professionnels en attente",
-    "pending_laundries": "Laveries en attente"
+    "pending_laundries": "Laveries en attente",
+    "favorites_laundries": "Laveries Favorites"
   },
   "auth": {
     "login": "Se connecter",
@@ -669,6 +670,8 @@
   },
   "laundry_favorite": {
     "add_success": "La laverie a été ajoutée à vos favoris avec succès.",
-    "remove_success": "La laverie a été retirée de vos favoris avec succès."
+    "remove_success": "La laverie a été retirée de vos favoris avec succès.",
+    "title": "Laveries Favorites",
+    "subtitle": "Retrouvez et gérez toutes vos laveries sauvegardées"
   }
 }

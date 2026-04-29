@@ -137,6 +137,7 @@ const distanceInKm = (lat1, lng1, lat2, lng2) => {
 const LaundryCard = forwardRef(({
   laundry,
   userPosition = null,
+  userType,
   isDarkTheme,
   isHighlighted = false,
   isFavorite = false,
@@ -196,24 +197,22 @@ const LaundryCard = forwardRef(({
                 />
                 {isCurrentlyOpen ? t('explorer.open', 'Ouvert') : t('explorer.closed', 'Fermé')}
               </span>
-              <button
-                type="button"
-                aria-label={isFavorite ? t('explorer.remove_favorite', 'Retirer des favoris') : t('explorer.add_favorite', 'Ajouter aux favoris')}
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  if (!isAuthenticated) {
-                    window.alert(t('explorer.favorite_login_required', 'Vous devez être connecté ou inscrit pour ajouter une laverie en favori.'));
-                    return;
-                  }
-                  if (onToggleFavorite) {
-                    onToggleFavorite();
-                  }
-                }}
-                className={`inline-flex h-8 w-8 items-center justify-center transition ${isFavorite ? 'text-rose-500' : (effectiveDarkTheme ? 'text-rose-300 hover:text-rose-200' : 'text-rose-500 hover:text-rose-600')}`}
-              >
-                <Heart className={`h-3.5 w-3.5 ${isFavorite ? 'fill-current' : ''}`} />
-              </button>
+              {(isAuthenticated && userType !== 'admin' ) && (
+                  <button
+                      type="button"
+                      aria-label={isFavorite ? t('explorer.remove_favorite', 'Retirer des favoris') : t('explorer.add_favorite', 'Ajouter aux favoris')}
+                      onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          if (onToggleFavorite) {
+                              onToggleFavorite();
+                          }
+                      }}
+                      className={`inline-flex h-8 w-6 items-center justify-center transition ${isFavorite ? 'text-rose-500' : (effectiveDarkTheme ? 'text-rose-300 hover:text-rose-200' : 'text-rose-500 hover:text-rose-600')}`}
+                  >
+                      <Heart className={`h-3.5 w-3.5 ${isFavorite ? 'fill-current' : ''}`} />
+                  </button>
+              )}
             </div>
           </div>
         </div>
