@@ -154,6 +154,12 @@ const LaundryExplorer = ({ isDarkTheme }) => {
 			.finally(() => setLoadingFavorites(false));
 	}, []);
 
+	useEffect(() => {
+		if (authService.isAuthenticated()) {
+			fetchFavorites();
+		}
+	}, [fetchFavorites]);
+
 	const handleToggleFavorite = async (laundryId) => {
 		const isFav = favoriteIds.includes(laundryId);
 		try {

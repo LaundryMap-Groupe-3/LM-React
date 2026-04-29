@@ -47,16 +47,15 @@ const LaundryFavoriteCard = forwardRef(({
   const reviewCount = Number.isFinite(reviewCountValue) ? reviewCountValue : null
   const isCurrentlyOpen = isOpened(laundry.laundryClosures);
 
+
   useEffect(() => {
     if (!laundry.laundryNotes?.length) return;
     
     const total = laundry.laundryNotes.reduce((sum, note) => sum + note.value, 0);
     const average = total / laundry.laundryNotes.length;
     
-    setAverageNote(average.toFixed(1));
+    setRatingValue(average.toFixed(1));
   }, [laundry.laundryNotes]);
-
-  console.log(laundry);
 
   return (
     <article
