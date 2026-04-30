@@ -22,7 +22,9 @@
     "previous": "Précédent",
     "next": "Suivant",
     "yes": "Oui",
-    "no": "Non"
+    "no": "Non",
+    "add": "Ajouter",
+    "actions": "Actions"
   },
   "navigation": {
     "home": "Accueil",
@@ -342,6 +344,7 @@
     "create_laundry": "Ajouter une laverie - LaundryMap",
     "edit_laundry": "Modifier une laverie - LaundryMap",
     "admin_pending_laundries": "Laveries en attente - Administration",
+    "admin_offensive_words": "Gestion des mots offensants - Administration",
     "404": "404 - Page non trouvée",
     "500": "500 - Erreur serveur"
   },
@@ -420,6 +423,7 @@
     "review_response_by": "Réponse de {{name}}",
     "comment_placeholder": "Partagez votre expérience, vos conseils ou vos suggestions pour aider les autres utilisateurs.",  
     "submit_review": "Publier mon avis",
+    "review_invalid": "Votre avis est invalide.",
     "report_title": "Signaler un commentaire",
     "report_description": "Signalez un commentaire inapproprié ou frauduleux. Notre équipe examinera votre signalement.",
     "report_sent": "Signalement envoyé, merci !",
@@ -482,7 +486,13 @@
     "wiline_configuration_missing": "Configuration WI-LINE manquante côté serveur.",
     "wiline_auth_failed": "Échec d'authentification WI-LINE.",
     "wiline_client_not_found": "Code client WI-LINE introuvable.",
-    "wiline_fetch_failed": "Impossible de récupérer les machines WI-LINE."
+    "wiline_fetch_failed": "Impossible de récupérer les machines WI-LINE.",
+    "load_error": "Erreur lors du chargement",
+    "save_error": "Erreur lors de l'enregistrement",
+    "delete_error": "Erreur lors de la suppression",
+    "not_found": "Non trouvé",
+    "unauthorized": "Non autorisé",
+    "invalid_payload": "Données invalides"
   },
   "validation": {
     "email_required": "L'email est requis",
@@ -490,6 +500,10 @@
     "password_required": "Le mot de passe est requis",
     "password_too_short": "Le mot de passe doit contenir au moins 12 caractères",
     "password_weak": "Le mot de passe doit contenir une minuscule, une majuscule, un chiffre et un caractère spécial",
+    "rating_invalid": "La note est invalide",
+    "comment_required": "Le commentaire est requis",
+    "comment_max_length": "Le commentaire ne doit pas dépasser 500 caractères",
+    "offensive_comment": "Les commentaires offensants sont interdits",
     "first_name_required": "Le prénom est requis",
     "first_name_empty": "Le prénom ne peut pas être vide",
     "last_name_required": "Le nom est requis",
@@ -523,7 +537,9 @@
     "wiline_client_code_required": "Le code client WI-LINE est requis.",
     "wiline_client_code_invalid": "Le code client WI-LINE doit contenir uniquement des chiffres.",
     "language_not_found": "Langue non trouvée",
-    "invalid_theme": "Thème invalide"
+    "invalid_theme": "Thème invalide",
+    "offensive_word_required": "Le mot est requis",
+    "offensive_word_max_length": "Le mot ne doit pas dépasser 255 caractères"
   },
   "admin": {
     "admin_title": "Administration - Validations des comptes professionnels",
@@ -580,7 +596,18 @@
     "rejecting": "Rejet en cours...",
     "approval_success": "Compte approuvé avec succès",
     "rejection_success": "Compte rejeté avec succès",
-    "loading_details": "Chargement des détails du professionnel..."
+    "loading_details": "Chargement des détails du professionnel...",
+    "offensive_words_title": "Gestion des mots offensants",
+    "offensive_words_description": "Gérez la liste des mots qui seront bloqués dans les commentaires",
+    "offensive_words_subtitle": "Modération des commentaires",
+    "offensive_words_full_description": "Cette section est dédiée à l'identification des termes proscrits, c'est-à-dire ceux qui ne sont pas conformes à nos règles et directives.",
+    "word_placeholder": "Ajouter un mot à la liste noir...",
+    "words_list_title": "Mots offensants",
+    "no_offensive_words": "Aucun mot offensant pour le moment",
+    "word_label": "Mot",
+    "confirm_delete_word": "Êtes-vous sûr de vouloir supprimer ce mot ?",
+    "offensive_word_added": "Mot ajouté avec succès",
+    "offensive_word_deleted": "Mot supprimé avec succès"
   },
   "success": {
     "profile_updated": "Profil mis à jour avec succès",

@@ -220,7 +220,12 @@ setLaundry(data);
         setToastMessage(t('auth.login_required', 'Vous devez être connecté pour laisser un avis.'));
       } else if (status === 400) {
         setToastType('error');
-        setToastMessage(t('laundry.review_invalid', 'Votre avis est invalide.'));
+        const validationErrors = error?.body?.errors;
+        if (validationErrors && typeof validationErrors === 'object') {
+          setToastMessage(Object.values(validationErrors).map((message) => t(message)).join(' '));
+        } else {
+          setToastMessage(t('laundry.review_invalid', 'Votre avis est invalide.'));
+        }
       } else {
         setToastType('error');
         setToastMessage(t('laundry.review_send_error', 'Impossible d\'envoyer votre avis pour le moment.'));

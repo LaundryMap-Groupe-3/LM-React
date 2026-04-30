@@ -21,7 +21,9 @@
     "previous": "Previous",
     "next": "Next",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "add": "Add",
+    "actions": "Actions"
   },
   "navigation": {
     "home": "Home",
@@ -343,6 +345,7 @@
     "admin_laundry_details": "Administration - Laundry Validation",
     "create_laundry": "Add a laundry - LaundryMap",
     "edit_laundry": "Edit a laundry - LaundryMap",
+    "admin_offensive_words": "Manage Offensive Words - Administration",
     "404": "404 - Page Not Found",
     "500": "500 - Server Error"
   },
@@ -402,6 +405,7 @@
   "laundry": {
     "unavailable_title": "Laundry not found",
     "unavailable_message": "The requested page is unavailable or inaccessible.",
+    "review_invalid": "Your review is invalid.",
     "review_response": "Professional reply",
     "review_response_by": "Reply from {{name}}"
   },
@@ -451,7 +455,13 @@
     "wiline_configuration_missing": "Missing WI-LINE server configuration.",
     "wiline_auth_failed": "WI-LINE authentication failed.",
     "wiline_client_not_found": "WI-LINE client code not found.",
-    "wiline_fetch_failed": "Unable to fetch WI-LINE machines."
+    "wiline_fetch_failed": "Unable to fetch WI-LINE machines.",
+    "load_error": "Error loading data",
+    "save_error": "Error saving data",
+    "delete_error": "Error deleting data",
+    "not_found": "Not found",
+    "unauthorized": "Unauthorized",
+    "invalid_payload": "Invalid data"
   },
   "validation": {
     "email_required": "Email is required",
@@ -459,6 +469,10 @@
     "password_required": "Password is required",
     "password_too_short": "Password must be at least 12 characters long",
     "password_weak": "Password must contain one lowercase letter, one uppercase letter, one number, and one special character",
+    "rating_invalid": "The rating is invalid",
+    "comment_required": "Comment is required",
+    "comment_max_length": "Comment must not exceed 500 characters",
+    "offensive_comment": "Offensive comments are not allowed",
     "first_name_required": "First name is required",
     "first_name_empty": "First name cannot be empty",
     "last_name_required": "Last name is required",
@@ -492,7 +506,9 @@
     "wiline_client_code_required": "WI-LINE client code is required.",
     "wiline_client_code_invalid": "WI-LINE client code must contain digits only.",
     "language_not_found": "Language not found",
-    "invalid_theme": "Invalid theme"
+    "invalid_theme": "Invalid theme",
+    "offensive_word_required": "Word is required",
+    "offensive_word_max_length": "Word must not exceed 255 characters"
   },
   "admin": {
     "admin_title": "Administration - Professional Account Validations",
@@ -558,7 +574,19 @@
     "rejecting": "Rejecting...",
     "approval_success": "Account approved successfully",
     "rejection_success": "Account rejected successfully",
-    "loading_details": "Loading professional details..."
+    "loading_details": "Loading professional details...",
+    "offensive_words_title": "Manage Offensive Words",
+    "offensive_words_description": "Manage the list of words that will be blocked in comments",
+    "offensive_words_subtitle": "Prohibited Terms",
+    "offensive_words_full_description": "This section is dedicated to identifying prohibited terms, that is, those that do not comply with our rules and guidelines.",
+    "add_offensive_word": "Add Word",
+    "word_placeholder": "Enter a word...",
+    "words_list_title": "Offensive Words",
+    "no_offensive_words": "No offensive words at this time",
+    "word_label": "Word",
+    "confirm_delete_word": "Are you sure you want to delete this word?",
+    "offensive_word_added": "Word added successfully",
+    "offensive_word_deleted": "Word deleted successfully"
   },
   "success": {
     "profile_updated": "Profile updated successfully",

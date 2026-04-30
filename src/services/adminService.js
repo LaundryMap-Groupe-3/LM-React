@@ -249,6 +249,73 @@ const adminService = {
 
     return await response.json();
   },
+
+  getOffensiveWords: async () => {
+    const token = localStorage.getItem('jwt_token');
+    if (!token) {
+      throw { status: 401, body: { error: 'Token required' } };
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/admin/offensive-words`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw { status: response.status, body: data };
+    }
+
+    return data;
+  },
+
+  createOffensiveWord: async (label) => {
+    const token = localStorage.getItem('jwt_token');
+    if (!token) {
+      throw { status: 401, body: { error: 'Token required' } };
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/admin/offensive-words`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ label }),
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw { status: response.status, body: data };
+    }
+
+    return data;
+  },
+
+  deleteOffensiveWord: async (id) => {
+    const token = localStorage.getItem('jwt_token');
+    if (!token) {
+      throw { status: 401, body: { error: 'Token required' } };
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/admin/offensive-words/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw { status: response.status, body: data };
+    }
+
+    return data;
+  },
 };
 
 export default adminService;

@@ -6,7 +6,8 @@ import IconAccueil from '../../assets/images/icons/Home-black.svg';
 import IconConnexion from '../../assets/images/icons/Login-white.svg';
 import IconSpeedometer from '../../assets/images/icons/Speedometer.svg';
 import IconUtilisateur from '../../assets/images/icons/User-black.svg';
-import ChatIcon from '../../assets/images/icons/Chat.svg';
+import ChatIcon from '../../assets/images/icons/Popular.svg';
+import OffensiveIcon from '../../assets/images/icons/Speaker-Notes-off.svg';
 import LanguageSwitcher from './LanguageSwitcher';
 
 const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogout, userType }) => {
@@ -135,6 +136,12 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
                       <img src={IconSpeedometer} alt={t('navigation.dashboard_menu')} className={`w-4 h-4 mr-2 filter transition-all ${getMenuIconClassName(isActivePage('/admin/dashboard'))}`} />
                         {t('navigation.dashboard_menu')}
                         </Link>
+                    )}
+                    {isLoggedIn && userType === 'admin' && (
+                      <Link to="/admin/offensive-words" onClick={toggleMenu} className={`px-3 text-[12px] ${isActivePage('/admin/offensive-words') ? 'bg-[#3B82F6] text-white' : (isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white')} rounded-[5px] transition-colors font-medium flex items-center h-[38px] group`}>
+                        <img src={OffensiveIcon} alt={t('admin.offensive_words_title', 'Mots offensants')} className={`w-4 h-4 mr-2 filter transition-all ${getMenuIconClassName(isActivePage('/admin/offensive-words'))}`} />
+                        {t('admin.offensive_words_title', 'Mots offensants')}
+                      </Link>
                     )}
                     {isLoggedIn && (
                       <Link to="/my-reviews" onClick={toggleMenu} className={`px-3 text-[12px] ${isActivePage('/my-reviews') ? 'bg-[#3B82F6] text-white' : (isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white')} rounded-[5px] transition-colors font-medium flex items-center h-[38px] group`}>
