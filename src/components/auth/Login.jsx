@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
@@ -25,7 +25,23 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMessage, setResendMessage] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState(false);
+  const [successUserType, setSuccessUserType] = useState(null);
   const registrationSuccessMessage = location.state?.successMessage;
+
+  // Auto-navigate on successful login
+  useEffect(() => {
+    if (loginSuccess && successUserType) {
+      const routes = {
+        admin: '/admin/dashboard',
+        professional: '/professional-dashboard',
+      };
+      const redirectPath = routes[successUserType] || '/profile';
+      // Use a small delay to ensure parent state is updated
+      const timer = setTimeout(() => navigate(redirectPath), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [loginSuccess, successUserType, navigate]);
 
   // Validation messages
   const validationMessages = {
@@ -44,17 +60,15 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
         return;
       }
 
-      if (onLoginSuccess) {
-        onLoginSuccess();
-      }
-
       const user = await authService.getCurrentUser();
-      if (user) {
-        if (user.type === 'professional') {
-          navigate('/professional-dashboard');
-        } else {
-          navigate('/');
-        }
+      if (user?.type && onLoginSuccess) {
+        // Pass user type to parent component to update state
+        onLoginSuccess(user.type);
+        // Trigger navigation via useEffect
+        setSuccessUserType(user.type);
+        setLoginSuccess(true);
+      } else if (onLoginSuccess) {
+        onLoginSuccess();
       }
     },
     onError: () => {
@@ -109,19 +123,16 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
         localStorage.setItem('jwt_token', responseData.token);
       }
 
-      // Call onLoginSuccess callback if provided
-      if (onLoginSuccess) {
-        onLoginSuccess();
-      }
-
-      // Get user info and redirect
+      // Get user info and pass to parent component
       const user = await authService.getCurrentUser();
-      if (user) {
-        if (user.type === 'professional') {
-          navigate('/professional-dashboard');
-        } else {
-          navigate('/');
-        }
+      if (user?.type && onLoginSuccess) {
+        // Pass user type to parent component to update state
+        onLoginSuccess(user.type);
+        // Trigger navigation via useEffect
+        setSuccessUserType(user.type);
+        setLoginSuccess(true);
+      } else if (onLoginSuccess) {
+        onLoginSuccess();
       }
     } catch (error) {
       let errorMessage = t('errors.invalid_email_password');
@@ -158,7 +169,7 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
         }),
       });
 
-      const data = await response.json();
+      await response.json();
 
       if (response.ok) {
         setResendMessage({
@@ -171,7 +182,7 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
           text: t('auth.resend_error'),
         });
       }
-    } catch (error) {
+    } catch {
       setResendMessage({
         type: 'error',
         text: t('auth.resend_error'),

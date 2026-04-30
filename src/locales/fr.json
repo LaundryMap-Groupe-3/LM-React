@@ -340,6 +340,7 @@
     "admin_pending_professionals": "Professionnels en attente - Administration",
     "admin_professional_details": "Administration - Validation du professionnel",
     "admin_laundry_details": "Administration - Validation de la laverie",
+    "admin_dashboard": "Tableau de bord administrateur",
     "professional_dashboard": "Tableau de bord professionnel - LaundryMap",
     "create_laundry": "Ajouter une laverie - LaundryMap",
     "edit_laundry": "Modifier une laverie - LaundryMap",
@@ -607,7 +608,19 @@
     "word_label": "Mot",
     "confirm_delete_word": "Êtes-vous sûr de vouloir supprimer ce mot ?",
     "offensive_word_added": "Mot ajouté avec succès",
-    "offensive_word_deleted": "Mot supprimé avec succès"
+    "offensive_word_deleted": "Mot supprimé avec succès",
+    "dashboard_title": "Tableau de bord administrateur",
+    "dashboard_subtitle": "Vue d'ensemble de votre plateforme",
+    "total_users": "Utilisateurs totaux",
+    "total_laundries": "Blanchisseries totales",
+    "pending_professionals": "Professionnels en attente",
+    "pending_laundries": "Blanchisseries en attente",
+    "total_reports": "Signalements totaux",
+    "awaiting_review": "En attente de révision",
+    "quick_actions": "Actions rapides",
+    "review_professionals": "Examiner les professionnels",
+    "review_laundries": "Examiner les blanchisseries",
+    "manage_content": "Gérer les contenus signalés"
   },
   "success": {
     "profile_updated": "Profil mis à jour avec succès",

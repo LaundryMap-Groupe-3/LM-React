@@ -316,6 +316,82 @@ const adminService = {
 
     return data;
   },
+
+  async getTotalUsersCount() {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/users/count`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      return { count: 0 };
+    }
+
+    return await response.json();
+  },
+
+  async getTotalLaundriesCount() {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/laundries/count`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      return { count: 0 };
+    }
+
+    return await response.json();
+  },
+
+  async getTotalReportsCount() {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/reviews/reports/count`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      return { count: 0 };
+    }
+
+    return await response.json();
+  },
+
+  async getPendingProfessionalsCount() {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/professionals/pending/count`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      return { count: 0 };
+    }
+
+    return await response.json();
+  },
 };
 
 export default adminService;

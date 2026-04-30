@@ -17,6 +17,7 @@ import AdminPendingLaundries from './components/admin/AdminPendingLaundries'
 import AdminProfessionalDetails from './components/admin/AdminProfessionalDetails'
 import AdminLaundryDetails from './components/admin/AdminLaundryDetails'
 import AdminOffensiveWords from './components/admin/AdminOffensiveWords'
+import AdminDashboard from './components/admin/AdminDashboard'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import Page404 from './components/common/Page404'
@@ -81,6 +82,18 @@ function App() {
   const [userType, setUserType] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const getAuthenticatedHomeRoute = (type) => {
+    if (type === 'admin') {
+      return '/admin/dashboard';
+    }
+    if (type === 'professional') {
+      return '/professional-dashboard';
+    }
+    return '/profile';
+  };
+
+  const authenticatedHomeRoute = getAuthenticatedHomeRoute(userType);
+
   // Check if user is already logged in on mount
   useEffect(() => {
     const checkAuthentication = async () => {
@@ -104,17 +117,25 @@ function App() {
     checkAuthentication();
   }, []);
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = (loggedInUserType = null) => {
+    if (loggedInUserType) {
+      setUserType(loggedInUserType);
+    }
+
     setIsLoggedIn(true);
+
     // Reload user preferences after successful login (non-await to avoid blocking)
     setTimeout(() => {
       reloadUserPreferences();
-      // Fetch user type after login
-      authService.getCurrentUser().then(user => {
-        if (user) {
-          setUserType(user.type);
-        }
-      });
+
+      // If user type is unknown, fetch it after login.
+      if (!loggedInUserType) {
+        authService.getCurrentUser().then(user => {
+          if (user) {
+            setUserType(user.type);
+          }
+        });
+      }
     }, 0);
   };
 
@@ -148,7 +169,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home isDarkTheme={isDarkTheme} />} />
           <Route path="/register" element={
-            isLoggedIn ? <Navigate to="/profile" replace /> :
+            isLoggedIn ? <Navigate to={authenticatedHomeRoute} replace /> :
             <Register 
               isDarkTheme={isDarkTheme}
               isLoggedIn={isLoggedIn}
@@ -156,25 +177,25 @@ function App() {
             />
           } />
           <Route path="/register/professional" element={
-            isLoggedIn ? <Navigate to="/profile" replace /> :
+            isLoggedIn ? <Navigate to={authenticatedHomeRoute} replace /> :
             <ProfessionalRegister 
               isDarkTheme={isDarkTheme}
               isLoggedIn={isLoggedIn}
             />
           } />
           <Route path="/login" element={
-            isLoggedIn ? <Navigate to="/profile" replace /> :
+            isLoggedIn ? <Navigate to={authenticatedHomeRoute} replace /> :
             <Login 
               isDarkTheme={isDarkTheme}
               onLoginSuccess={handleLoginSuccess}
             />
           } />
           <Route path="/forgot-password" element={
-            isLoggedIn ? <Navigate to="/profile" replace /> :
+            isLoggedIn ? <Navigate to={authenticatedHomeRoute} replace /> :
             <ForgotPassword isDarkTheme={isDarkTheme} />
           } />
           <Route path="/reset-password" element={
-            isLoggedIn ? <Navigate to="/profile" replace /> :
+            isLoggedIn ? <Navigate to={authenticatedHomeRoute} replace /> :
             <ResetPassword isDarkTheme={isDarkTheme} />
           } />
           <Route path="/verify-email" element={<VerifyEmail />} />
@@ -220,7 +241,9 @@ function App() {
           }/>
           <Route path="/admin/dashboard" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
-              <Navigate to="/admin/professionals" replace />
+              <AdminDashboard 
+                isDarkTheme={isDarkTheme}
+              />
             </ProtectedAdminRoute>
           } />
           <Route path="/admin/professionals" element={
