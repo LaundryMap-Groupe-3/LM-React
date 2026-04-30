@@ -6,6 +6,7 @@ import IconAccueil from '../../assets/images/icons/Home-black.svg';
 import IconConnexion from '../../assets/images/icons/Login-white.svg';
 import IconSpeedometer from '../../assets/images/icons/Speedometer.svg';
 import IconUtilisateur from '../../assets/images/icons/User-black.svg';
+import ChatIcon from '../../assets/images/icons/Chat.svg';
 import LanguageSwitcher from './LanguageSwitcher';
 
 const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogout, userType }) => {
@@ -134,6 +135,12 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
                       <img src={IconSpeedometer} alt={t('navigation.dashboard_menu')} className={`w-4 h-4 mr-2 filter transition-all ${getMenuIconClassName(isActivePage('/admin/dashboard'))}`} />
                         {t('navigation.dashboard_menu')}
                         </Link>
+                    )}
+                    {isLoggedIn && (
+                      <Link to="/my-reviews" onClick={toggleMenu} className={`px-3 text-[12px] ${isActivePage('/my-reviews') ? 'bg-[#3B82F6] text-white' : (isDarkTheme ? 'text-[#E2E8F0] hover:bg-[#3B82F6] hover:text-white' : 'text-[#0F172A] hover:bg-[#3B82F6] hover:text-white')} rounded-[5px] transition-colors font-medium flex items-center h-[38px] group`}>
+                        <img src={ChatIcon} alt={t('navigation.my_reviews', 'Mes avis et commentaires')} className={`w-4 h-4 mr-2 filter transition-all ${isActivePage('/my-reviews') ? 'brightness-0 invert' : 'brightness-0'}`} />
+                        {t('navigation.my_reviews', 'Mes avis et commentaires')}
+                      </Link>
                     )}
                     {isLoggedIn && (
                         <button onClick={() => { onLogout(); toggleMenu(); }} className={`px-3 text-[12px] rounded-[5px] transition-colors font-medium flex items-center h-[38px] group w-full ${isDarkTheme ? 'text-[#E2E8F0] hover:bg-red-600 hover:text-white' : 'text-[#0F172A] hover:bg-red-600 hover:text-white'}`}>

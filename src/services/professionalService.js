@@ -115,6 +115,81 @@ const professionalService = {
   },
 
   /**
+   * Récupère les avis d'une laverie du professionnel
+   */
+  getLaundryReviews: async (laundryId) => {
+    try {
+      const token = localStorage.getItem('jwt_token');
+      if (!token) {
+        throw { status: 401, body: { message: 'Token required' } };
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/professional/laundries/${laundryId}/reviews`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('jwt_token');
+          window.location.href = '/login';
+        }
+        throw {
+          status: response.status,
+          body: data,
+        };
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Publie ou met à jour la réponse du professionnel à un avis
+   */
+  updateLaundryReviewResponse: async (laundryId, reviewId, responseText) => {
+    try {
+      const token = localStorage.getItem('jwt_token');
+      if (!token) {
+        throw { status: 401, body: { message: 'Token required' } };
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/professional/laundries/${laundryId}/reviews/${reviewId}/response`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ response: responseText }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('jwt_token');
+          window.location.href = '/login';
+        }
+        throw {
+          status: response.status,
+          body: data,
+        };
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
    * Récupère les machines WI-LINE à partir d'un code client
    */
   fetchWiLineClientMachines: async (clientCode) => {

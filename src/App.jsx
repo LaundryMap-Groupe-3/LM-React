@@ -26,6 +26,7 @@ import ProfessionalDashboard from './components/professional/ProfessionalDashboa
 import ProfessionalLaundryForm from './components/professional/ProfessionalLaundryForm'
 import ProfessionalLaundryDetails from './components/professional/ProfessionalLaundryDetails'
 import LaundryExplorer from './components/common/LaundryExplorer'
+import MyReviews from './components/common/MyReviews'
 
 // Composant pour la page d'accueil
 const Home = ({ isDarkTheme }) => {
@@ -257,6 +258,11 @@ function App() {
           <Route path="/create-laundry" element={
             <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <ProfessionalLaundryForm isDarkTheme={isDarkTheme} />
+            </ProtectedNonAdminRoute>
+          }/>
+          <Route path="/my-reviews" element={
+            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <MyReviews isDarkTheme={isDarkTheme} />
             </ProtectedNonAdminRoute>
           }/>
           <Route path="/edit-laundry/:id" element={
