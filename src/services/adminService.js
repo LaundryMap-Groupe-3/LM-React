@@ -392,6 +392,46 @@ const adminService = {
 
     return await response.json();
   },
+
+  async getUsers(page = 1, limit = 10) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/users?page=${page}&limit=${limit}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch users');
+    }
+
+    return await response.json();
+  },
+
+  async getUserDetails(userId) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/users/${userId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch user details');
+    }
+
+    return await response.json();
+  },
 };
 
 export default adminService;

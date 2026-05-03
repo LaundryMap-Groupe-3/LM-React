@@ -18,6 +18,7 @@ import AdminProfessionalDetails from './components/admin/AdminProfessionalDetail
 import AdminLaundryDetails from './components/admin/AdminLaundryDetails'
 import AdminOffensiveWords from './components/admin/AdminOffensiveWords'
 import AdminDashboard from './components/admin/AdminDashboard'
+import AdminUsers from './components/admin/AdminUsers'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import Page404 from './components/common/Page404'
@@ -242,6 +243,13 @@ function App() {
           <Route path="/admin/dashboard" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <AdminDashboard 
+                isDarkTheme={isDarkTheme}
+              />
+            </ProtectedAdminRoute>
+          } />
+          <Route path="/admin/users" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminUsers 
                 isDarkTheme={isDarkTheme}
               />
             </ProtectedAdminRoute>

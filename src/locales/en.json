@@ -586,7 +586,10 @@
     "word_label": "Word",
     "confirm_delete_word": "Are you sure you want to delete this word?",
     "offensive_word_added": "Word added successfully",
-    "offensive_word_deleted": "Word deleted successfully"
+    "offensive_word_deleted": "Word deleted successfully",
+    "dashboard_title": "Admin dashboard",
+    "dashboard_subtitle": "Platform overview",
+    "last_login": "Last login:"
   },
   "success": {
     "profile_updated": "Profile updated successfully",
