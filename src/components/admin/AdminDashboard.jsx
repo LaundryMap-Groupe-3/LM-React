@@ -5,7 +5,7 @@ import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import adminService from '../../services/adminService';
 import Toast from '../common/Toast';
-import { Users, Flag, ArrowRight } from 'lucide-react';
+// SVG icons removed per request
 import { usePreferences } from '../../context/PreferencesContext';
 import UserShield from '../../assets/images/icons/User-Shield-white.svg';
 
@@ -27,6 +27,9 @@ const AdminDashboard = ({ isDarkTheme }) => {
     pendingProfessionals: 0,
     pendingLaundries: 0,
     totalReports: 0,
+    newUsersThisMonth: 0,
+    newLaundriesThisMonth: 0,
+    newReportsThisMonth: 0,
   });
 
   useEffect(() => {
@@ -47,12 +50,15 @@ const AdminDashboard = ({ isDarkTheme }) => {
   const fetchDashboardStats = async () => {
     try {
       setLoading(true);
-      const [usersRes, laundriesRes, professionalsRes, laundriesCountRes, reportsRes] = await Promise.all([
+      const [usersRes, laundriesRes, professionalsRes, laundriesCountRes, reportsRes, newUsersRes, newLaundriesRes, newReportsRes] = await Promise.all([
         adminService.getTotalUsersCount(),
         adminService.getTotalLaundriesCount(),
         adminService.getPendingProfessionalsCount(),
         adminService.getPendingLaundriesCount(),
         adminService.getTotalReportsCount(),
+        adminService.getNewUsersThisMonth?.() || Promise.resolve({ count: 0 }),
+        adminService.getNewLaundriesThisMonth?.() || Promise.resolve({ count: 0 }),
+        adminService.getNewReportsThisMonth?.() || Promise.resolve({ count: 0 }),
       ]);
 
       setStats({
@@ -61,6 +67,9 @@ const AdminDashboard = ({ isDarkTheme }) => {
         pendingProfessionals: professionalsRes?.count ?? professionalsRes?.total ?? 0,
         pendingLaundries: laundriesCountRes?.count ?? laundriesCountRes?.total ?? 0,
         totalReports: reportsRes?.count ?? 0,
+        newUsersThisMonth: newUsersRes?.count ?? 0,
+        newLaundriesThisMonth: newLaundriesRes?.count ?? 0,
+        newReportsThisMonth: newReportsRes?.count ?? 0,
       });
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
@@ -87,71 +96,65 @@ const AdminDashboard = ({ isDarkTheme }) => {
     );
   }
 
-  const StatCard = ({ icon: Icon, title, value, color, description, onClick, isClickable = false }) => (
+  const StatCard = ({
+    title,
+    subtitle,
+    value,
+    color,
+    borderColor = 'border-l-[#3B82F6]',
+    description,
+    onClick,
+    isClickable = false,
+    children,
+    newThisMonth,
+  }) => (
     <div
-      className={`rounded-lg border p-6 transition-all duration-300 ${
+      className={`rounded-lg border-l-4 ${borderColor} p-6 transition-all duration-300 ${
         effectiveDarkTheme
-          ? 'border-gray-700 bg-gray-800'
-          : 'border-gray-200 bg-white'
-      } ${isClickable && effectiveDarkTheme ? 'hover:bg-gray-750' : ''} ${isClickable && !effectiveDarkTheme ? 'hover:shadow-md' : ''} flex flex-col h-full`}
+          ? 'bg-gray-800'
+          : 'bg-white'
+      } shadow-md hover:shadow-lg ${isClickable && effectiveDarkTheme ? 'hover:bg-gray-750' : ''} flex flex-col h-full`}
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1">
+      <div className="flex flex-col w-full">
+        <div className="flex items-center justify-between mb-1">
           <p
-            className={`text-sm font-medium mb-2 ${
+            className={`text-sm font-medium ${
               effectiveDarkTheme ? 'text-gray-400' : 'text-gray-600'
             }`}
           >
             {title}
           </p>
-          <p className={`text-3xl font-bold mb-1 ${color}`}>{value}</p>
-          {description && (
-            <p className={`text-xs ${effectiveDarkTheme ? 'text-gray-500' : 'text-gray-500'}`}>
-              {description}
-            </p>
+          {isClickable && (
+            <button
+              onClick={onClick}
+              className="text-sm text-[#3B82F6] hover:underline flex items-center gap-1"
+            >
+              <span>{t('admin.view_all', 'Voir tout')}</span>
+              <span className="inline-block">→</span>
+            </button>
           )}
         </div>
-        <div
-          className={`p-3 rounded-lg ${
-            color === 'text-[#3B82F6]'
-              ? effectiveDarkTheme
-                ? 'bg-blue-900/30'
-                : 'bg-blue-100'
-              : color === 'text-[#10B981]'
-              ? effectiveDarkTheme
-                ? 'bg-green-900/30'
-                : 'bg-green-100'
-              : color === 'text-[#F59E0B]'
-              ? effectiveDarkTheme
-                ? 'bg-amber-900/30'
-                : 'bg-amber-100'
-              : effectiveDarkTheme
-              ? 'bg-red-900/30'
-              : 'bg-red-100'
-          }`}
-        >
-          <Icon
-            size={24}
-            className={color}
-            strokeWidth={1.5}
-          />
-        </div>
+        {subtitle && (
+          <p className={`text-xs mb-4 text-left ${
+            effectiveDarkTheme ? 'text-gray-500' : 'text-gray-500'
+          }`}>
+            {subtitle}
+          </p>
+        )}
+        <p className={`text-3xl font-bold mb-2 ${color}`}>{value}</p>
+        {description && (
+          <p className={`text-xs ${effectiveDarkTheme ? 'text-gray-500' : 'text-gray-500'}`}>
+            {description}
+          </p>
+        )}
+        {newThisMonth !== undefined && (
+          <p className={`text-xs mt-2 ${effectiveDarkTheme ? 'text-blue-400' : 'text-blue-600'}`}>
+            +{newThisMonth} ce mois
+          </p>
+        )}
+        {children}
       </div>
-      {isClickable && (
-        <button
-          onClick={onClick}
-          className={`mt-auto w-full p-2 rounded-lg text-white font-medium transition-colors flex items-center justify-between text-sm ${
-            color === 'text-[#3B82F6]'
-              ? 'bg-[#3B82F6] hover:bg-blue-700'
-              : color === 'text-[#10B981]'
-              ? 'bg-[#10B981] hover:bg-emerald-700'
-              : 'bg-gray-500 hover:bg-gray-600'
-          }`}
-        >
-          <span>{t('admin.view_all', 'Voir tout')}</span>
-          <ArrowRight size={16} />
-        </button>
-      )}
+      {/* bouton déplacé en haut à droite du titre pour alignement */}
     </div>
   );
 
@@ -197,61 +200,66 @@ const AdminDashboard = ({ isDarkTheme }) => {
       {!loading && (
         <>
           {/* Indicateurs Globaux */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <StatCard
-              icon={Users}
-              title={t('admin.total_users', 'Utilisateurs totaux')}
-              value={stats.totalUsers}
-              color="text-[#3B82F6]"
-              onClick={() => navigate('/admin/users')}
+              title={t('admin.pending_validations', 'En attente de validation')}
+              subtitle="Comptes professionnels et laveries à valider"
+              color="text-[#F59E0B]"
+              borderColor="border-l-[#F59E0B]"
+              onClick={() => navigate('/admin/professionals')}
               isClickable={true}
-            />
-
-            {/* Blanchisseries & Professionnels en attente */}
-            <div
-              className={`rounded-lg border p-6 transition-all duration-300 ${
-                effectiveDarkTheme
-                  ? 'border-gray-700 bg-gray-800'
-                  : 'border-gray-200 bg-white'
-              } flex flex-col h-full`}
             >
-              {/* Titre de la section validations */}
-              <h2 className={`text-lg font-semibold mb-4 ${
-                effectiveDarkTheme ? 'text-white' : 'text-gray-900'
-              }`}>
-                {t('admin.pending_validations', 'En attente de validation')}
-              </h2>
-
-              <div className="flex ">
-                <div className="mb-6">
-                  <p className="text-2xl font-bold text-[#10B981]">{stats.pendingLaundries}</p>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="p-3">
+                  <p className="text-2xl font-bold text-[#F59E0B]">{stats.pendingProfessionals}</p>
                   <p className={`text-xs ${effectiveDarkTheme ? 'text-gray-500' : 'text-gray-500'}`}>
-                    {t('admin.awaiting_approval', 'En attente d\'approbation')}
+                    {t('admin.awaiting_approval', 'Comptes en attente')}
                   </p>
                 </div>
 
-                <div>
-                  <p className="text-2xl font-bold text-[#F59E0B]">{stats.pendingProfessionals}</p>
+                <div className="p-3">
+                  <p className="text-2xl font-bold text-[#F59E0B]">{stats.pendingLaundries}</p>
                   <p className={`text-xs ${effectiveDarkTheme ? 'text-gray-500' : 'text-gray-500'}`}>
-                    {t('admin.awaiting_review', 'En attente')}
+                    {t('admin.awaiting_review', 'Laveries en attente')}
                   </p>
                 </div>
               </div>
-
-              <button
-                onClick={() => navigate('/admin/professionals')}
-                className="mt-6 w-full p-2 rounded-lg bg-[#10B981] hover:bg-emerald-700 text-white font-medium transition-colors flex items-center justify-between text-sm"
-              >
-                <span>{t('admin.view_all', 'Voir tout')}</span>
-                <ArrowRight size={16} />
-              </button>
-            </div>
+            </StatCard>
 
             <StatCard
-              icon={Flag}
-              title={t('admin.total_reports', 'Signalements')}
+              title={t('admin.total_reports', 'Avis signalés')}
+              subtitle="Avis clients signalés à examiner"
               value={stats.totalReports}
               color="text-[#EF4444]"
+              borderColor="border-l-[#EF4444]"
+              description="Signalements à examiner"
+              newThisMonth={stats.newReportsThisMonth}
+              onClick={() => navigate('/admin/reports')}
+              isClickable={true}
+            />
+
+            <StatCard
+              title={t('admin.total_laundries', 'Liste des laveries')}
+              subtitle="Voir et gérer toutes les laveries"
+              value={stats.totalLaundries}
+              color="text-[#3B82F6]"
+              borderColor="border-l-[#3B82F6]"
+              description="Laveries référencées"
+              newThisMonth={stats.newLaundriesThisMonth}
+              onClick={() => navigate('/admin/laundries')}
+              isClickable={true}
+            />
+
+            <StatCard
+              title={t('admin.total_users', 'Liste des utilisateurs')}
+              subtitle="Voir et gérer toutes les utilisateurs"
+              value={stats.totalUsers}
+              color="text-[#3B82F6]"
+              borderColor="border-l-[#3B82F6]"
+              description="Utilisateurs inscrits"
+              newThisMonth={stats.newUsersThisMonth}
+              onClick={() => navigate('/admin/users')}
+              isClickable={true}
             />
           </div>
         </>
