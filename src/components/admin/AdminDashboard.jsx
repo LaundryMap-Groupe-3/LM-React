@@ -5,6 +5,7 @@ import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import adminService from '../../services/adminService';
 import Toast from '../common/Toast';
+import DashboardHeader from '../common/dashboard/DashboardHeader';
 // SVG icons removed per request
 import { usePreferences } from '../../context/PreferencesContext';
 import UserShield from '../../assets/images/icons/User-Shield-white.svg';
@@ -163,33 +164,17 @@ const AdminDashboard = ({ isDarkTheme }) => {
       <Toast message={toastMessage} type={toastType} />
 
       {/* Header section */}
-            <div className={`${effectiveDarkTheme ? 'bg-[#1E3A8A]/50' : 'bg-[#3B82F6]/50'} flex flex-col items-start rounded-[10px] p-4 md:p-8 mb-6 text-left md:text-left md:flex-col md:items-center md:justify-center md:text-center`}>
-              <div>
-                <h1 className={`text-[20px] font-bold mb-0 md:text-[28px] ${effectiveDarkTheme ? 'text-blue-200' : 'text-[#1B4965]'}`}>{t('admin.dashboard_title', 'Tableau de bord administrateur')}</h1>
-                <p className="text-white text-[9px] mt-2 md:text-[13px]">{t('admin.dashboard_subtitle', 'Vue d\'ensemble de votre plateforme')}</p>
-              </div>
-              <div className="bg-[#FFFFFF]/20 rounded-[10px] w-[282px] md:w-[350px] h-[57px] md:h-[120px] p-[9px] md:p-4 mt-4 text-left flex flex-row md:flex-col justify-center md:justify-center md:items-center md:mx-auto">
-                <div className="flex flex-row md:flex-col gap-[10px] md:gap-[2px] items-center w-full h-full justify-center md:justify-center">
-                  <img src={UserShield} alt="User Shield" className="mx-auto md:mx-auto" />
-                  <div className="flex flex-col items-start text-left w-full md:justify-center md:h-full md:items-center">
-                    {user && (
-                      <>
-                        <p className="text-white text-[12px] font-regular md:text-[15px] text-left md:text-center md:items-center">
-                          {user.firstName} {user.lastName}
-                        </p>
-                        <p className="text-white text-[12px] md:text-[13px] text-left md:text-center">
-                          {user.email}
-                        </p>
-                        {/* role intentionally hidden per request */}
-                      </>
-                    )}
-                    <p className="text-white text-[12px] md:text-[13px] text-left md:text-center">
-                      {t('admin.last_login', 'Dernière connexion :')} {user?.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '--'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <DashboardHeader
+        containerClassName={effectiveDarkTheme ? 'bg-[#1E3A8A]/50' : 'bg-[#3B82F6]/50'}
+        titleClassName={effectiveDarkTheme ? 'text-blue-200' : 'text-[#1B4965]'}
+        title={t('admin.dashboard_title', 'Tableau de bord administrateur')}
+        subtitle={t('admin.dashboard_subtitle', 'Vue d\'ensemble de votre plateforme')}
+        user={user}
+        iconSrc={UserShield}
+        iconAlt="User Shield"
+        lastLoginLabel={t('admin.last_login', 'Dernière connexion :')}
+        showEmail
+      />
       {/* Loading State */}
       {loading && (
         <div className="flex items-center justify-center py-12">

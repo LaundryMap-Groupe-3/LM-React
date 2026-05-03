@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import usePageTitle from '../../hooks/usePageTitle';
 import { useTranslation } from '../../context/I18nContext';
 import { usePreferences } from '../../context/PreferencesContext';
+import DashboardHeader from '../common/dashboard/DashboardHeader';
 import professionalService from '../../services/professionalService';
 import UserShield  from '../../assets/images/icons/User-Shield-white.svg';
 import Star from '../../assets/images/icons/Star-white.svg';
@@ -87,27 +88,16 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
   return (
     <div className={`min-h-screen p-[12px] md:p-12 lg:px-32 lg:py-16 overflow-x-hidden max-w-full  mx-auto ${effectiveDarkTheme ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
       {/* Header section */}
-      <div className={`${effectiveDarkTheme ? 'bg-[#1E3A8A]/50' : 'bg-[#3B82F6]/50'} flex flex-col items-start rounded-[10px] p-4 md:p-8 mb-6 text-left md:text-left md:flex-col md:items-center md:justify-center md:text-center`}>
-        <div>
-          <h1 className={`text-[20px] font-bold mb-0 md:text-[28px] ${effectiveDarkTheme ? 'text-blue-200' : 'text-[#1B4965]'}`}>{t('dashboard.title', 'Tableau de bord professionnel')}</h1>
-          <p className="text-white text-[9px] mt-2 md:text-[13px]">{t('dashboard.subtitle', 'Gérez efficacement vos laveries référencées sur LaundryMap.')}</p>
-        </div>
-        <div className="bg-[#FFFFFF]/20 rounded-[10px] w-[282px] md:w-[350px] h-[57px] md:h-[120px] p-[9px] md:p-4 mt-4 text-left flex flex-row md:flex-col justify-center md:justify-center md:items-center md:mx-auto">
-          <div className="flex flex-row md:flex-col gap-[10px] md:gap-[2px] items-center w-full h-full justify-center md:justify-center">
-            <img src={UserShield} alt="User Shield" className="mx-auto md:mx-auto" />
-            <div className="flex flex-col items-start text-left w-full md:justify-center md:h-full md:items-center">
-              {user && (
-                <p className="text-white text-[12px] font-regular md:text-[15px] text-left md:text-center md:items-center">
-                  {user.firstName} {user.lastName}
-                </p>
-              )}
-              <p className="text-white text-[12px] md:text-[13px] text-left md:text-center">
-                {t('dashboard.last_login', 'Dernière connexion :')} {user?.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '--'}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <DashboardHeader
+        containerClassName={effectiveDarkTheme ? 'bg-[#1E3A8A]/50' : 'bg-[#3B82F6]/50'}
+        titleClassName={effectiveDarkTheme ? 'text-blue-200' : 'text-[#1B4965]'}
+        title={t('dashboard.title', 'Tableau de bord professionnel')}
+        subtitle={t('dashboard.subtitle', 'Gérez efficacement vos laveries référencées sur LaundryMap.')}
+        user={user}
+        iconSrc={UserShield}
+        iconAlt="User Shield"
+        lastLoginLabel={t('dashboard.last_login', 'Dernière connexion :')}
+      />
       {/* Sections principales : une seule colonne même sur desktop */}
       <div className="flex flex-col gap-y-8">
         {/* Statistiques principales */}
