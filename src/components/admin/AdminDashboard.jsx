@@ -87,9 +87,9 @@ const AdminDashboard = ({ isDarkTheme }) => {
 
   if (!loading && user.type !== 'admin') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="p-8 rounded-lg border-2 border-red-500 bg-red-50">
-          <p className="text-red-600 font-semibold">
+      <div className={`min-h-screen flex items-center justify-center ${effectiveDarkTheme ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className={`${effectiveDarkTheme ? 'bg-red-800 border-red-600 text-red-100' : 'bg-red-50 border-red-500 text-red-600'} p-8 rounded-lg border-2`}>
+          <p className="font-semibold">
             {t('errors.admin_access_required')}
           </p>
         </div>
@@ -108,65 +108,63 @@ const AdminDashboard = ({ isDarkTheme }) => {
     isClickable = false,
     children,
     newThisMonth,
-  }) => (
-    <div
-      className={`rounded-lg border-l-4 ${borderColor} p-6 transition-all duration-300 ${
-        effectiveDarkTheme
-          ? 'bg-gray-800'
-          : 'bg-white'
-      } shadow-md hover:shadow-lg ${isClickable && effectiveDarkTheme ? 'hover:bg-gray-750' : ''} flex flex-col h-full`}
-    >
-      <div className="flex flex-col w-full">
-        <div className="flex items-center justify-between mb-1">
-          <p
-            className={`text-sm font-medium ${
-              effectiveDarkTheme ? 'text-gray-400' : 'text-gray-600'
-            }`}
-          >
-            {title}
-          </p>
-          {isClickable && (
-            <button
-              onClick={onClick}
-              className="text-sm text-[#3B82F6] hover:underline flex items-center gap-1"
-            >
-              <span>{t('admin.view_all', 'Voir tout')}</span>
-              <span className="inline-block">→</span>
-            </button>
+  }) => {
+    const bgClass = effectiveDarkTheme ? 'bg-gray-800' : 'bg-white';
+    const hoverClass = isClickable && effectiveDarkTheme ? 'hover:bg-gray-700' : '';
+    const titleClass = effectiveDarkTheme ? 'text-gray-300' : 'text-gray-600';
+    const subtitleClass = effectiveDarkTheme ? 'text-gray-400' : 'text-gray-500';
+    const descriptionClass = effectiveDarkTheme ? 'text-gray-400' : 'text-gray-500';
+    const newThisMonthClass = effectiveDarkTheme ? 'text-blue-300' : 'text-blue-600';
+
+    return (
+      <div
+        className={`rounded-lg border-l-4 ${borderColor} p-6 transition-all duration-300 ${bgClass} shadow-md hover:shadow-lg ${hoverClass} flex flex-col h-full`}
+      >
+        <div className="flex flex-col w-full">
+          <div className="flex items-center justify-between mb-1">
+            <p className={`text-sm font-medium ${titleClass}`}>
+              {title}
+            </p>
+            {isClickable && (
+              <button
+                onClick={onClick}
+                className="text-sm text-[#3B82F6] hover:underline flex items-center gap-1"
+              >
+                <span>{t('admin.view_all', 'Voir tout')}</span>
+                <span className="inline-block">→</span>
+              </button>
+            )}
+          </div>
+          {subtitle && (
+            <p className={`text-xs mb-4 text-left ${subtitleClass}`}>
+              {subtitle}
+            </p>
           )}
+          <p className={`text-3xl font-bold mb-2 ${color}`}>{value}</p>
+          {description && (
+            <p className={`text-xs ${descriptionClass}`}>
+              {description}
+            </p>
+          )}
+          {newThisMonth !== undefined && (
+            <p className={`text-xs mt-2 ${newThisMonthClass}`}>
+              +{newThisMonth} ce mois
+            </p>
+          )}
+          {children}
         </div>
-        {subtitle && (
-          <p className={`text-xs mb-4 text-left ${
-            effectiveDarkTheme ? 'text-gray-500' : 'text-gray-500'
-          }`}>
-            {subtitle}
-          </p>
-        )}
-        <p className={`text-3xl font-bold mb-2 ${color}`}>{value}</p>
-        {description && (
-          <p className={`text-xs ${effectiveDarkTheme ? 'text-gray-500' : 'text-gray-500'}`}>
-            {description}
-          </p>
-        )}
-        {newThisMonth !== undefined && (
-          <p className={`text-xs mt-2 ${effectiveDarkTheme ? 'text-blue-400' : 'text-blue-600'}`}>
-            +{newThisMonth} ce mois
-          </p>
-        )}
-        {children}
       </div>
-      {/* bouton déplacé en haut à droite du titre pour alignement */}
-    </div>
-  );
+    );
+  };
 
   return (
-    <div className={`min-h-screen max-w-7xl mx-auto px-4 md:px-8 py-6`}>
+    <div className={`min-h-screen max-w-7xl mx-auto px-4 md:px-8 py-6 ${effectiveDarkTheme ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'}`}>
       <Toast message={toastMessage} type={toastType} />
 
       {/* Header section */}
       <DashboardHeader
-        containerClassName={effectiveDarkTheme ? 'bg-[#1E3A8A]/50' : 'bg-[#3B82F6]/50'}
-        titleClassName={effectiveDarkTheme ? 'text-blue-200' : 'text-[#1B4965]'}
+        containerClassName={effectiveDarkTheme ? 'bg-[#1E3A8A]' : 'bg-[#3B82F6]'}
+        titleClassName={effectiveDarkTheme ? 'text-white' : 'text-white'}
         title={t('admin.dashboard_title', 'Tableau de bord administrateur')}
         subtitle={t('admin.dashboard_subtitle', 'Vue d\'ensemble de votre plateforme')}
         user={user}

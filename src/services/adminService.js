@@ -374,6 +374,67 @@ const adminService = {
     return await response.json();
   },
 
+  async getReportedReviews(page = 1, limit = 10) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/reviews/reports?page=${page}&limit=${limit}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch reported reviews');
+    }
+
+    return await response.json();
+  },
+
+  async dismissReviewReports(reviewId) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/reviews/${reviewId}/dismiss-reports`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to dismiss reports');
+    }
+
+    return await response.json();
+  },
+
+  async deleteReportedReviewComment(reviewId, reason = '') {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/reviews/${reviewId}/delete-comment`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+        body: JSON.stringify({ reason }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to delete review comment');
+    }
+
+    return await response.json();
+  },
+
   async getPendingProfessionalsCount() {
     const response = await fetch(
       `${API_BASE_URL}/api/admin/professionals/pending/count`,
