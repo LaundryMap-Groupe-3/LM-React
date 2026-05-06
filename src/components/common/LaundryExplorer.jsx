@@ -626,7 +626,15 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 								!isNaN(l.latitude) &&
 								!isNaN(l.longitude)
 							)
-							.map(laundry => (
+							.map(laundry => {
+								const addressLabel = typeof laundry.address === 'string'
+									? laundry.address
+									: (laundry.address?.address
+										|| [laundry.address?.street, laundry.address?.postalCode, laundry.address?.city]
+											.filter(Boolean)
+											.join(' '));
+
+								return (
 								<Marker
 									key={laundry.id}
 									position={[laundry.latitude, laundry.longitude]}
@@ -647,10 +655,10 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 								>
 									<Popup>
 										<strong>{laundry.establishmentName}</strong><br />
-										{laundry.address}<br />
+											{addressLabel}<br />
 										<div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
 											<a
-												href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(laundry.address)}`}
+													href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addressLabel)}`}
 												target="_blank"
 												rel="noopener noreferrer"
 												className="inline-flex mt-1 w-[50px] h-[38px] items-center justify-center rounded bg-[#4285F4] hover:bg-blue-700"
@@ -668,8 +676,9 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 											</a>
 										</div>
 									</Popup>
-								</Marker>
-							))}
+									</Marker>
+								);
+							})}
 					</MapContainer>
 				</div>
 			</div>

@@ -6,137 +6,32 @@ import AddressIcon from '../../assets/images/icons/Map.svg';
 import EyeIcon from '../../assets/images/icons/Eye-white.svg';
 import { useTranslation } from '../../context/I18nContext';
 import { usePreferences } from '../../context/PreferencesContext';
-const parseOpeningHours = (openingHours) => {
-  if (!openingHours || typeof openingHours !== 'string') {
-    return null
+
+const resolveAddressLabel = (laundry) => {
+  if (!laundry) {
+    return '';
   }
 
-  const match = openingHours.match(/(\d{2}):(\d{2})\s*-\s*(\d{2}):(\d{2})/)
-
-  if (!match) {
-    return null
+  if (typeof laundry.address === 'string') {
+    return laundry.address;
   }
 
-  const [, startHour, startMinute, endHour, endMinute] = match
-
-  return {
-    start: Number(startHour) * 60 + Number(startMinute),
-    end: Number(endHour) * 60 + Number(endMinute),
-  }
-}
-
-const isOpenNow = (openingHours) => {
-  const schedule = parseOpeningHours(openingHours)
-
-  if (!schedule) {
-    return null
+  const addressValue = laundry.address?.address;
+  if (addressValue) {
+    return addressValue;
   }
 
-  const now = new Date()
-  const currentMinutes = now.getHours() * 60 + now.getMinutes()
+  const parts = [
+    laundry.address?.street,
+    laundry.address?.postalCode,
+    laundry.address?.city,
+  ].filter(Boolean);
 
-  if (schedule.start <= schedule.end) {
-    return currentMinutes >= schedule.start && currentMinutes <= schedule.end
-  }
-
-  return currentMinutes >= schedule.start || currentMinutes <= schedule.end
-}
-
-const coerceOpenState = (value) => {
-  if (typeof value === 'boolean') {
-    return value
-  }
-
-  if (typeof value === 'number') {
-    if (value === 1) {
-      return true
-    }
-    if (value === 0) {
-      return false
-    }
-  }
-
-  if (typeof value === 'string') {
-    const normalized = value.trim().toLowerCase()
-    if (['true', '1', 'open', 'opened', 'ouvert'].includes(normalized)) {
-      return true
-    }
-    if (['false', '0', 'closed', 'close', 'ferme', 'fermé'].includes(normalized)) {
-      return false
-    }
-  }
-
-  return null
-}
-
-const resolveOpenState = (laundry) => {
-  const directState = coerceOpenState(laundry?.isOpenNow)
-  if (directState !== null) {
-    return directState
-  }
-
-  const openNowState = coerceOpenState(laundry?.openNow)
-  if (openNowState !== null) {
-    return openNowState
-  }
-
-  const isOpenState = coerceOpenState(laundry?.isOpen)
-  if (isOpenState !== null) {
-    return isOpenState
-  }
-
-  const fromHours = isOpenNow(laundry?.openingHours)
-  if (fromHours !== null) {
-    return fromHours
-  }
-
-  return false
-}
-
-const resolveDistanceKm = (laundry) => {
-  const directDistance = Number(
-    laundry?.distanceKm
-    ?? laundry?.distance_km
-    ?? laundry?.distance
-    ?? laundry?.proximity
-    ?? laundry?.distanceInKm,
-  )
-
-  if (Number.isFinite(directDistance)) {
-    return directDistance
-  }
-
-  const metersDistance = Number(laundry?.distanceMeters ?? laundry?.distance_m)
-  if (Number.isFinite(metersDistance)) {
-    return metersDistance / 1000
-  }
-
-  return null
-}
-
-const distanceInKm = (lat1, lng1, lat2, lng2) => {
-  const values = [lat1, lng1, lat2, lng2].map(Number)
-  if (values.some((value) => Number.isNaN(value))) {
-    return null
-  }
-
-  const [aLat, aLng, bLat, bLng] = values
-  const earthRadiusKm = 6371
-  const dLat = ((bLat - aLat) * Math.PI) / 180
-  const dLng = ((bLng - aLng) * Math.PI) / 180
-  const p1 = (aLat * Math.PI) / 180
-  const p2 = (bLat * Math.PI) / 180
-
-  const a = Math.sin(dLat / 2) ** 2
-    + Math.cos(p1) * Math.cos(p2) * Math.sin(dLng / 2) ** 2
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-
-  return earthRadiusKm * c
-}
+  return parts.join(' ');
+};
 
 const LaundryCard = forwardRef(({
   laundry,
-  userPosition = null,
   userType,
   isDarkTheme,
   isHighlighted = false,
@@ -148,18 +43,22 @@ const LaundryCard = forwardRef(({
 }, ref) => {
   const { t } = useTranslation();
   const { isAuthenticated, isDarkTheme: preferenceDarkTheme } = usePreferences();
-  const effectiveDarkTheme = preferenceDarkTheme ?? isDarkTheme
-  const imageUrl = laundry.imageUrl || laundry.image || laundry.photoUrl || laundry.photo || laundry.coverUrl || ''
-  const ratingValue = Number(laundry.averageNote ?? laundry.rating)
-  const rating = Number.isFinite(ratingValue) ? ratingValue : null
-  const reviewCountValue = Number(laundry.reviewCount)
-  const reviewCount = Number.isFinite(reviewCountValue) ? reviewCountValue : null
-  const apiDistanceKm = resolveDistanceKm(laundry)
-  const fallbackDistanceKm = userPosition
-    ? distanceInKm(userPosition.latitude, userPosition.longitude, laundry.latitude, laundry.longitude)
-    : null
-  const distanceKm = apiDistanceKm ?? fallbackDistanceKm
-  const isCurrentlyOpen = resolveOpenState(laundry)
+  const effectiveDarkTheme = preferenceDarkTheme ?? isDarkTheme;
+  const imageUrl = laundry?.imageUrl
+    || laundry?.image
+    || laundry?.photoUrl
+    || laundry?.photo
+    || laundry?.coverUrl
+    || laundry?.logo?.location
+    || '';
+  const ratingValue = Number(laundry?.rating);
+  const rating = Number.isFinite(ratingValue) ? ratingValue : null;
+  const reviewCountValue = Number(laundry?.reviewCount);
+  const reviewCount = Number.isFinite(reviewCountValue) ? reviewCountValue : null;
+  const distanceValue = Number(laundry?.distanceKm);
+  const distanceKm = Number.isFinite(distanceValue) ? distanceValue : null;
+  const isCurrentlyOpen = Boolean(laundry?.isOpenNow);
+  const addressLabel = resolveAddressLabel(laundry);
 
   return (
     <article
@@ -177,17 +76,17 @@ const LaundryCard = forwardRef(({
           }
         }
       }}
-      className={`w-full cursor-pointer rounded-lg border p-3 sm:p-4 lg:p-5 shadow-sm transition ${isHighlighted ? 'ring-2 ring-sky-500' : ''} ${effectiveDarkTheme ? 'border-slate-700 bg-slate-900/70 text-slate-200' : 'border-[#E5E7EB] bg-white text-slate-700'}`}
+      className={`w-full cursor-pointer rounded-lg border p-4 lg:p-5 shadow-sm transition ${isHighlighted ? 'ring-2 ring-sky-500' : ''} ${effectiveDarkTheme ? 'border-slate-700 bg-slate-900/70 text-slate-200' : 'border-[#E5E7EB] bg-white text-slate-700'}`}
     >
-      <div className="space-y-3">
-        <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <h3 className="text-[12px] sm:text-[12px] lg:text-[13px] xl:text-[14px] font-bold text-center sm:text-left text-[#3B82F6]">
+      <div className="space-y-2">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="text-[12px] xl:text-[14px] font-bold text-[#3B82F6]">
             {laundry.establishmentName}
           </h3>
-          <div className="flex flex-row items-center justify-center gap-2 sm:flex-col sm:items-end sm:justify-start">
+          <div className="flex flex-col items-end gap-1">
             <div className="flex items-center gap-2">
               <span
-                className={`inline-flex items-center gap-1 h-[20px] w-fit lg:h-[22px] lg:w-[72px] rounded-[5px] px-2 py-1 text-[11px] lg:text-[12px] xl:text-[13px] font-semibold ${isCurrentlyOpen
+                className={`inline-flex items-center gap-1 h-[18px] w-[68px] lg:h-[22px] lg:w-[72px] rounded-[5px] px-2 py-1 text-[12px] font-semibold ${isCurrentlyOpen
                   ? (effectiveDarkTheme ? 'border border-[#0E9620]/20 bg-[#0E9620]/15 text-[#0E9620]/90' : 'border border-[#0E9620]/20 bg-[#0E9620]/10 text-[#0E9620]')
                   : (effectiveDarkTheme ? 'bg-rose-900/40 text-rose-300' : 'bg-rose-100 text-rose-700')}`}
               >
@@ -197,26 +96,26 @@ const LaundryCard = forwardRef(({
                 />
                 {isCurrentlyOpen ? t('explorer.open', 'Ouvert') : t('explorer.closed', 'Fermé')}
               </span>
-              {(isAuthenticated && userType !== 'admin' ) && (
-                  <button
-                      type="button"
-                      aria-label={isFavorite ? t('explorer.remove_favorite', 'Retirer des favoris') : t('explorer.add_favorite', 'Ajouter aux favoris')}
-                      onClick={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          if (onToggleFavorite) {
-                              onToggleFavorite();
-                          }
-                      }}
-                      className={`inline-flex h-8 w-6 items-center justify-center transition ${isFavorite ? 'text-rose-500' : (effectiveDarkTheme ? 'text-rose-300 hover:text-rose-200' : 'text-rose-500 hover:text-rose-600')}`}
-                  >
-                      <Heart className={`h-3.5 w-3.5 ${isFavorite ? 'fill-current' : ''}`} />
-                  </button>
+              {(isAuthenticated && userType !== 'admin') && (
+                <button
+                  type="button"
+                  aria-label={isFavorite ? t('explorer.remove_favorite', 'Retirer des favoris') : t('explorer.add_favorite', 'Ajouter aux favoris')}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (onToggleFavorite) {
+                      onToggleFavorite();
+                    }
+                  }}
+                  className={`inline-flex h-8 w-6 items-center justify-center transition ${isFavorite ? 'text-rose-500' : (effectiveDarkTheme ? 'text-rose-300 hover:text-rose-200' : 'text-rose-500 hover:text-rose-600')}`}
+                >
+                  <Heart className={`h-3.5 w-3.5 ${isFavorite ? 'fill-current' : ''}`} />
+                </button>
               )}
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:gap-2">
+        <div className="flex gap-2">
           {imageUrl ? (
             <img
               src={imageUrl}
@@ -225,29 +124,29 @@ const LaundryCard = forwardRef(({
                   ? t('explorer.laundry_photo_alt', undefined, undefined).replace('{{name}}', laundry.establishmentName)
                   : t('explorer.laundry_photo_alt', { name: laundry.establishmentName }, `Photo de ${laundry.establishmentName}`)
               }
-              className="mb-3 hidden h-[70px] w-[70px] rounded-lg object-cover sm:block"
+              className="h-[69px] w-[78px] rounded-lg object-cover"
               loading="lazy"
             />
           ) : (
             <div
-              className={`mb-3 hidden h-[70px] w-[70px] rounded-lg sm:block ${effectiveDarkTheme ? 'bg-slate-800/70' : 'bg-slate-100'}`}
+              className={`h-[69px] w-[78px] rounded-lg ${effectiveDarkTheme ? 'bg-slate-800/70' : 'bg-slate-100'}`}
               aria-hidden="true"
             />
           )}
-          <div className="flex min-w-0 flex-1 flex-col justify-between sm:mb-3 sm:h-[69px]">
+          <div className="flex h-[69px] min-w-0 flex-1 flex-col justify-between">
             <div className="flex flex-col items-start gap-1">
-              <p className={`text-[11px] lg:text-[12px] xl:text-[13px] flex text-left gap-1 font-semibold ${effectiveDarkTheme ? 'text-slate-200' : 'text-black'}`}>
+              <p className={`text-[12px] flex items-center gap-1 font-semibold ${effectiveDarkTheme ? 'text-slate-200' : 'text-black'}`}>
                 <img src={AddressIcon} alt={t('explorer.address_icon_alt', 'Icône de localisation')} className="inline-block h-[13px] w-[13px]" />
-                <span>{laundry.address}</span>
+                {addressLabel}
               </p>
               {rating !== null && (
                 <span
-                  className="inline-flex flex-wrap items-center gap-1 text-[10px] lg:text-[12px] xl:text-[13px] font-semibold text-[#FFD700]"
+                  className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#FFD700]"
                 >
                   <img src={StarIcon} alt={t('explorer.star_icon_alt', 'Étoile')} className="h-[13px] w-[13px]" />
                   {rating.toFixed(1)}/5
                   {reviewCount !== null && (
-                    <span className="text-[#FFD700] text-[10px] lg:text-[12px] xl:text-[13px]">
+                    <span className="text-[#FFD700] text-[12px]">
                       ({reviewCount} {t('explorer.reviews', 'avis')})
                     </span>
                   )}
@@ -256,13 +155,13 @@ const LaundryCard = forwardRef(({
             </div>
             <div className={`flex flex-wrap items-center gap-2 ${distanceKm !== null ? 'justify-between' : 'justify-end'}`}>
               {distanceKm !== null && (
-                <span className={`text-[10px] lg:text-[12px] xl:text-[13px] font-semibold whitespace-nowrap ${effectiveDarkTheme ? 'text-slate-200' : 'text-black'}`}>
+                <span className={`text-[11px] font-semibold whitespace-nowrap ${effectiveDarkTheme ? 'text-slate-200' : 'text-black'}`}>
                   {t('explorer.distance', 'Distance')}: {`${distanceKm.toFixed(1)} km`}
                 </span>
               )}
               <Link
                 to={`/laundry/${laundry.id}`}
-                className="inline-flex h-[28px] w-full sm:w-[85px] lg:h-[30px] lg:w-[95px] items-center justify-center gap-[5px] rounded-lg bg-[#3B82F6] px-2 py-1 text-[11px] lg:text-[12px] xl:text-[13px] font-semibold text-white transition hover:bg-blue-700"
+                className="inline-flex h-[25px] w-25 lg:h-[30px] lg:w-[95px] items-center justify-center gap-[5px] rounded-lg bg-[#3B82F6] px-2 py-1 text-[12px] font-semibold text-white transition hover:bg-blue-700"
                 style={{ textDecoration: 'none' }}
               >
                 <img src={EyeIcon} alt={t('explorer.see_icon_alt', 'Voir')} className="h-[15px] w-[15px]" />

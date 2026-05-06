@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import authService from "../../services/authService";
 import laundryService from "../../services/laundryService";
 import { useTranslation } from '../../context/I18nContext';
-import LaundryFavoriteCard from "../common/LaundryFavoriteCard";
+import LaundryCard from "../common/LaundryCard";
 import usePageTitle from '../../hooks/usePageTitle';
 
 const FavoritesLaundries = ({ isDarkTheme, userType }) => {
@@ -33,7 +33,7 @@ const FavoritesLaundries = ({ isDarkTheme, userType }) => {
     const fetchFavoritesLaundries = async () => {
       try {
         const response = await laundryService.getFavorites(currentPage, pageSize);
-        setLaundries(response.laundries.map(item => item.laundry));
+        setLaundries(response.laundries);
         setTotalLaundries(response.pagination.total);
         setTotalPages(response.pagination.pages);
       } catch (error) {
@@ -92,7 +92,7 @@ const FavoritesLaundries = ({ isDarkTheme, userType }) => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {laundries.map((laundry) => (
-            <LaundryFavoriteCard
+            <LaundryCard
               key={laundry.id}
               laundry={laundry}
               userType={userType}
