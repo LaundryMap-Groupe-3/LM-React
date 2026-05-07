@@ -12,6 +12,7 @@ import authService from "../../services/authService";
 
 // 3. Composants locaux
 import LaundryCard from './LaundryCard';
+import TagFilter from './TagFilter';
 
 // 4. Assets/images
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -140,8 +141,12 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 	const [endTimeValue,       setEndTimeValue]       = useState('');
 	const [favoriteIds,        setFavoriteIds]        = useState([]);
 	const [loadingFavorites,   setLoadingFavorites]   = useState(false);
-	const mapRef   = useRef(null);
-	const cardRefs = useRef({});
+	const [suggestions,        setSuggestions]        = useState([]);
+	const [showSuggestions,    setShowSuggestions]    = useState(false);
+	const mapRef          = useRef(null);
+	const cardRefs        = useRef({});
+	const suggestDebounce = useRef(null);
+	const searchWrapRef   = useRef(null);
 
 	const fetchFavorites = useCallback(async () => {
         setLoadingFavorites(true);
@@ -340,7 +345,54 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 	}
 
 	function handleSearchChange(e) {
-		setSearch(e.target.value);
+		const value = e.target.value;
+		setSearch(value);
+
+		clearTimeout(suggestDebounce.current);
+		if (value.trim().length < 2) {
+			setSuggestions([]);
+			setShowSuggestions(false);
+			return;
+		}
+		suggestDebounce.current = setTimeout(async () => {
+			try {
+				const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=fr&addressdetails=1&q=${encodeURIComponent(value.trim())}`;
+				const res = await fetch(url, { headers: { Accept: 'application/json', 'Accept-Language': 'fr' } });
+				if (!res.ok) return;
+				const data = await res.json();
+				setSuggestions(data.map(item => {
+						const a = item.address || {};
+						const parts = [
+							a.house_number && a.road ? `${a.house_number} ${a.road}` : a.road,
+							a.city || a.town || a.village || a.municipality,
+							a.postcode,
+						].filter(Boolean);
+						return {
+							label: parts.length ? parts.join(', ') : item.display_name.split(',').slice(0, 3).join(',').trim(),
+							fullLabel: item.display_name,
+							lat: parseFloat(item.lat),
+							lng: parseFloat(item.lon),
+							type: item.type,
+						};
+					}));
+				setShowSuggestions(true);
+			} catch {
+				setSuggestions([]);
+			}
+		}, 300);
+	}
+
+	function handleSuggestionSelect(suggestion) {
+		setSearch(suggestion.label);
+		setSuggestions([]);
+		setShowSuggestions(false);
+		const zoom = looksLikeAddress(suggestion.label) ? 15 : 13;
+		setIsLocationSearch(true);
+		setSearchLocation([suggestion.lat, suggestion.lng]);
+		setHighlightedLaundryId(null);
+		setShowAll(false);
+		setFlyToTarget([suggestion.lat, suggestion.lng, zoom]);
+		if (mapRef.current) mapRef.current.closePopup();
 	}
 
 	async function handleSearchSubmit(e) {
@@ -438,19 +490,24 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 						className="py-2 lg:py-3 flex gap-2 lg:gap-3 items-center w-full max-w-xl lg:max-w-3xl xl:max-w-4xl"
 						onSubmit={handleSearchSubmit}
 					>
-						<div className="relative flex-1">
+						<div className="relative flex-1" ref={searchWrapRef}>
 							<input
 								type="text"
 								placeholder={t('explorer.search_placeholder', 'Rechercher une laverie, une ville...')}
 								className={`w-full border rounded-lg h-[38px] lg:h-[46px] pl-3 text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-blue-200 ${effectiveDarkTheme ? 'border-slate-600 bg-slate-900 text-slate-100 placeholder-slate-400' : 'border-[#D1D5DB] bg-white text-slate-900'}`}
 								value={search}
 								onChange={handleSearchChange}
+								onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+								onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+								autoComplete="off"
 							/>
 							{search && (
 								<button
 									type="button"
 									onClick={() => {
 										setSearch('');
+										setSuggestions([]);
+										setShowSuggestions(false);
 										setSearchLocation(null);
 										setIsLocationSearch(false);
 										handleRecenter();
@@ -461,6 +518,21 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 								>
 									×
 								</button>
+							)}
+							{showSuggestions && suggestions.length > 0 && (
+								<ul className={`absolute z-[9999] left-0 right-0 top-full mt-1 rounded-lg shadow-lg border overflow-hidden ${effectiveDarkTheme ? 'bg-slate-800 border-slate-600' : 'bg-white border-[#D1D5DB]'}`}>
+									{suggestions.map((s, i) => (
+										<li key={i}>
+											<button
+												type="button"
+												onMouseDown={() => handleSuggestionSelect(s)}
+												className={`w-full text-left px-3 py-2 text-sm truncate transition-colors ${effectiveDarkTheme ? 'text-slate-100 hover:bg-slate-700' : 'text-slate-800 hover:bg-blue-50'}`}
+											>
+												{s.label}
+											</button>
+										</li>
+									))}
+								</ul>
 							)}
 						</div>
 
@@ -590,7 +662,11 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 										{t('explorer.filter_service', 'Services')}
 										</label>
 										<div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
-										<ServiceFilter t={t} hideLabel selected={selectedServices} onChange={setSelectedServices} />
+										<TagFilter items={[
+											{ value: 'self-service-24-7', label: t('explorer.filter_service_self_service', 'Libre-service 24/7') },
+											{ value: 'ironing-station',   label: t('explorer.filter_service_ironing',       'Poste de repassage') },
+											{ value: 'laundry-folding',   label: t('explorer.filter_service_folding',        'Pliage du linge') },
+										]} selected={selectedServices} onChange={setSelectedServices} />
 										</div>
 									</div>
 
@@ -599,7 +675,11 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 										{t('explorer.filter_payment', 'Moyens de paiement')}
 										</label>
 										<div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
-										<PaymentFilter t={t} hideLabel selected={selectedPayments} onChange={setSelectedPayments} />
+										<TagFilter items={[
+											{ value: 'card',        label: t('explorer.filter_payment_cb',          'Carte bancaire') },
+											{ value: 'cash',        label: t('explorer.filter_payment_cash',         'Espèces') },
+											{ value: 'contactless', label: t('explorer.filter_payment_contactless',  'Sans contact') },
+										]} selected={selectedPayments} onChange={setSelectedPayments} />
 										</div>
 									</div>
 								</div>
@@ -721,6 +801,9 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 									onMouseEnter={() => setHighlightedLaundryId(laundry.id)}
 									onMouseLeave={() => setHighlightedLaundryId(null)}
 									onClick={() => {
+										if (mapRef.current) {
+											mapRef.current.closePopup();
+										}
 										setFlyToTarget([laundry.latitude, laundry.longitude, 16]);
 										setHighlightedLaundryId(laundry.id);
 									}}
@@ -752,89 +835,3 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 };
 
 export default LaundryExplorer;
-
-function ServiceFilter({ t, hideLabel, selected = [], onChange }) {
-	const services = [
-		{ value: 'self-service-24-7', label: t('explorer.filter_service_self_service', 'Libre-service 24/7') },
-		{ value: 'ironing-station',   label: t('explorer.filter_service_ironing',       'Poste de repassage') },
-		{ value: 'laundry-folding',   label: t('explorer.filter_service_folding',        'Pliage du linge') },
-	];
-
-	function toggleService(value) {
-		onChange(sel => sel.includes(value) ? sel.filter(v => v !== value) : [...sel, value]);
-	}
-
-	function removeService(value, e) {
-		e.stopPropagation();
-		onChange(sel => sel.filter(v => v !== value));
-	}
-
-	return (
-		<div>
-			{!hideLabel && (
-				<label className="block text-left font-bold text-[12px] text-[#3B82F6] mb-1">
-					{t('explorer.filter_service', 'Services')}
-				</label>
-			)}
-			<div className="flex flex-wrap gap-2">
-				{services.map(s => (
-					<button
-						type="button"
-						key={s.value}
-						onClick={() => toggleService(s.value)}
-						className={`flex items-center gap-1 px-3 py-1 rounded-full border transition ${
-							selected.includes(s.value)
-								? 'bg-[#3B82F6] text-white border-[#3B82F6] shadow'
-								: 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-blue-100'
-						}`}
-					>
-						{s.label}
-					</button>
-				))}
-			</div>
-		</div>
-	);
-}
-
-function PaymentFilter({ t, hideLabel, selected = [], onChange }) {
-	const payments = [
-		{ value: 'card',        label: t('explorer.filter_payment_cb',          'Carte bancaire') },
-		{ value: 'cash',        label: t('explorer.filter_payment_cash',         'Espèces') },
-		{ value: 'contactless', label: t('explorer.filter_payment_contactless',  'Sans contact') },
-	];
-
-	function togglePayment(value) {
-		onChange(sel => sel.includes(value) ? sel.filter(v => v !== value) : [...sel, value]);
-	}
-
-	function removePayment(value, e) {
-		e.stopPropagation();
-		onChange(sel => sel.filter(v => v !== value));
-	}
-
-	return (
-		<div>
-			{!hideLabel && (
-				<label className="block text-left font-bold text-[12px] text-[#3B82F6] mb-1">
-					{t('explorer.filter_payment', 'Moyen de paiement')}
-				</label>
-			)}
-			<div className="flex flex-wrap gap-2">
-				{payments.map(p => (
-					<button
-						type="button"
-						key={p.value}
-						onClick={() => togglePayment(p.value)}
-						className={`flex items-center gap-1 px-3 py-1 rounded-full border transition ${
-							selected.includes(p.value)
-								? 'bg-[#3B82F6] text-white border-[#3B82F6] shadow'
-								: 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-blue-100'
-						}`}
-					>
-						{p.label}
-					</button>
-				))}
-			</div>
-		</div>
-	);
-}

@@ -8,8 +8,10 @@ import { translateErrorKey, formatValidationErrors } from '../../utils/translate
 import { useGoogleLogin } from '@react-oauth/google';
 import UserBlackIcon from '../../assets/images/icons/add-User-black.svg';
 import AdministratorBlackIcon from '../../assets/images/icons/Administrator-black.svg';
-import EyeIcon from '../../assets/images/icons/Eye.svg';
-import InvisibleIcon from '../../assets/images/icons/Invisible.svg';
+import FormField from '../common/FormField';
+import PasswordField from '../common/PasswordField';
+import Alert from '../common/Alert';
+import Button from '../common/Button';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -24,7 +26,6 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
   const [lastAttemptedEmail, setLastAttemptedEmail] = useState('');
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMessage, setResendMessage] = useState(null);
-  const [showPassword, setShowPassword] = useState(false);
   const registrationSuccessMessage = location.state?.successMessage;
 
   // Validation messages
@@ -198,43 +199,27 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
           {t('auth.login_title', 'Connexion')}
         </h1>
 
-        {registrationSuccessMessage && (
-          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md text-sm whitespace-pre-line">
-            {registrationSuccessMessage}
-          </div>
-        )}
+        <Alert type="success">{registrationSuccessMessage}</Alert>
 
-        {/* Error Alert */}
         {apiError && !resendMessage && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm whitespace-pre-line">
+          <Alert type="error">
             <div className="flex flex-col gap-2">
               <p>{apiError}</p>
-              
-              {/* Resend Email Link for email_not_verified */}
               {errorCode === 'email_not_verified' && (
                 <button
                   onClick={handleResendEmail}
                   disabled={resendLoading}
-                  className={`text-left underline font-semibold hover:no-underline transition-all ${
-                    resendLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                  }`}
+                  className={`text-left underline font-semibold hover:no-underline transition-all ${resendLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   {resendLoading ? t('auth.resend_loading') : t('auth.resend_verification_email')}
                 </button>
               )}
             </div>
-          </div>
+          </Alert>
         )}
 
-        {/* Success Message */}
         {resendMessage && (
-          <div className={`mb-4 p-3 rounded-md text-sm ${
-            resendMessage.type === 'success'
-              ? 'bg-green-100 border border-green-400 text-green-700'
-              : 'bg-red-100 border border-red-400 text-red-700'
-          }`}>
-            {resendMessage.text}
-          </div>
+          <Alert type={resendMessage.type}>{resendMessage.text}</Alert>
         )}
 
         {/* Connexion avec Google */}
@@ -276,71 +261,28 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
 
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
-          {/* Email */}
-          <div>
-            <label htmlFor="email" className={`block text-left text-sm font-medium mb-2 ${
-              isDarkTheme ? 'text-gray-300' : 'text-gray-700'
-            }`}>
-              {t('auth.email')}<span className="text-red-500">*</span>
-            </label>
+          <FormField label={t('auth.email')} error={errors.email?.message} required>
             <input
               type="email"
               id="email"
               {...register('email', {
                 required: validationMessages.emailRequired,
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: validationMessages.emailInvalid,
-                },
+                pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: validationMessages.emailInvalid },
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                 errors.email ? 'border-red-500' : isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-gray-300 bg-white text-gray-900'
               }`}
               placeholder={t('auth.placeholder_email')}
             />
-            {errors.email && (
-              <span className="text-red-500 text-xs mt-1">{errors.email.message}</span>
-            )}
-          </div>
+          </FormField>
 
-          {/* Password */}
-          <div>
-            <label htmlFor="password" className={`block text-left text-sm font-medium mb-2 ${
-              isDarkTheme ? 'text-gray-300' : 'text-gray-700'
-            }`}>
-              {t('auth.password')}<span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                {...register('password', {
-                  required: validationMessages.passwordRequired,
-                })}
-                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                  errors.password ? 'border-red-500' : isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-gray-300 bg-white text-gray-900'
-                }`}
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3"
-                aria-label={showPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
-                aria-pressed={showPassword}
-              >
-                <img
-                  src={showPassword ? InvisibleIcon : EyeIcon}
-                  alt=""
-                  className="w-[17px] h-[17px]"
-                  aria-hidden="true"
-                />
-              </button>
-            </div>
-            {errors.password && (
-              <span className="text-red-500 text-xs mt-1">{errors.password.message}</span>
-            )}
-          </div>
+          <PasswordField
+            label={t('auth.password')}
+            id="password"
+            error={errors.password?.message}
+            required
+            inputProps={register('password', { required: validationMessages.passwordRequired })}
+          />
 
           {/* Forgot password */}
           <div className="flex w-full flex-col gap-2">
@@ -353,18 +295,9 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
             </button>
           </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full py-3 sm:py-2 px-4 rounded-md text-white font-medium transition-colors text-base sm:text-sm ${
-              loading
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-[#3B82F6] hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
-            }`}
-          >
-            {loading ? t('auth.loading') : t('auth.login')}
-          </button>
+          <Button type="submit" loading={loading} loadingLabel={t('auth.loading')} className="w-full py-3 sm:py-2">
+            {t('auth.login')}
+          </Button>
         </form>
 
         {/* Sign up paths */}

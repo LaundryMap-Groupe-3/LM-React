@@ -5,6 +5,8 @@ import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import adminService from '../../services/adminService';
 import Toast from '../common/Toast';
+import Pagination from '../common/Pagination';
+import AdminTabs from './AdminTabs';
 import { Clock } from 'lucide-react';
 
 const AdminPendingLaundries = ({ isDarkTheme }) => {
@@ -129,21 +131,10 @@ const AdminPendingLaundries = ({ isDarkTheme }) => {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex flex-row items-center gap-2 shadow-md bg-white rounded-lg px-4 py-2 mb-8">
-        <a href="/admin/pending-professionals" className="p-3 text-[13px] font-medium text-gray-500 hover:text-gray-700 flex-1 flex items-center justify-center gap-2 whitespace-nowrap">
-          {t('admin.professional_accounts')}
-          <span className="bg-[#F59E0B] text-white text-xs px-2 py-1 h-6 w-6 rounded-full flex items-center justify-center">
-            {pendingProfessionalsCount}
-          </span>
-        </a>
-        <a href="/admin/pending-laundries" className="p-3 text-[13px] font-medium bg-[#3B82F6] rounded-[5px] flex-1 h-9 text-white flex items-center justify-center gap-2 whitespace-nowrap">
-          {t('admin.laundries')}
-          <span className="bg-white/20 text-white text-xs px-2 py-1 h-6 w-6 rounded-full flex items-center justify-center">
-            {pendingLaundriesCount}
-          </span>
-        </a>
-      </div>
+      <AdminTabs tabs={[
+        { href: '/admin/pending-professionals', label: t('admin.professional_accounts'), count: pendingProfessionalsCount, active: false },
+        { href: '/admin/pending-laundries',     label: t('admin.laundries'),             count: pendingLaundriesCount,      active: true  },
+      ]} />
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-0 py-4">
@@ -226,50 +217,7 @@ const AdminPendingLaundries = ({ isDarkTheme }) => {
               ))}
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-8 flex justify-center">
-                <div className="flex items-center space-x-1">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className={`w-9 h-9 flex rounded-lg items-center justify-center text-lg font-medium ${
-                      currentPage === 1
-                        ? 'border border-[#CBD5E1] text-black cursor-not-allowed bg-gray-50'
-                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
-                    }`}
-                  >
-                    &lt;
-                  </button>
-
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-medium ${
-                        currentPage === page
-                          ? 'bg-[#3B82F6] text-white'
-                          : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg font-medium ${
-                      currentPage === totalPages
-                        ? 'border border-[#CBD5E1] text-gray-400 cursor-not-allowed bg-gray-50'
-                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
-                    }`}
-                  >
-                    &gt;
-                  </button>
-                </div>
-              </div>
-            )}
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
           </>
         )}
       </div>

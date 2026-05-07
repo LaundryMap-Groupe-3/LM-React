@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
+import FormField from '../common/FormField';
+import Alert from '../common/Alert';
+import Button from '../common/Button';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -104,21 +107,15 @@ const ForgotPassword = ({ isDarkTheme }) => {
           {t('auth.forgot_password_description')}
         </p>
 
-        {/* Error Alert */}
-        {apiError && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm">
-            {apiError}
-          </div>
-        )}
+        <Alert type="error">{apiError}</Alert>
 
-        {/* Success Message */}
         {successMessage && (
-          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md text-sm">
+          <Alert type="success">
             <p className="font-medium mb-2">{successMessage}</p>
             <p className={`text-xs ${isDarkTheme ? 'text-gray-600' : 'text-gray-700'}`}>
               {t('auth.check_email_for_reset_link')}
             </p>
-          </div>
+          </Alert>
         )}
 
         {emailSubmitted ? (
@@ -131,65 +128,35 @@ const ForgotPassword = ({ isDarkTheme }) => {
               {t('auth.email_sent_to')} <span className="font-semibold">{email}</span>
             </p>
 
-            <button
-              onClick={() => navigate('/login')}
-              className="w-full py-3 px-4 rounded-md text-white font-medium transition-colors bg-[#3B82F6] hover:bg-blue-700"
-            >
+            <Button onClick={() => navigate('/login')} className="w-full py-3">
               {t('auth.back_to_login')}
-            </button>
+            </Button>
           </div>
         ) : (
           /* Email Form */
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <label htmlFor="email" className={`block text-left text-sm font-medium mb-2 ${
-                isDarkTheme ? 'text-gray-300' : 'text-gray-700'
-              }`}>
-                {t('auth.email')}<span className="text-red-500">*</span>
-              </label>
+            <FormField label={t('auth.email')} error={errors.email?.message} required>
               <input
                 type="email"
                 id="email"
                 {...register('email', {
                   required: t('validation.email_required'),
-                  pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: t('validation.email_invalid'),
-                  },
+                  pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: t('validation.email_invalid') },
                 })}
                 className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
                   errors.email ? 'border-red-500' : isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-gray-300 bg-white text-gray-900'
                 }`}
                 placeholder={t('auth.placeholder_email')}
               />
-              {errors.email && (
-                <span className="text-red-500 text-xs mt-1">{errors.email.message}</span>
-              )}
-            </div>
+            </FormField>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full py-3 px-4 rounded-md text-white font-medium transition-colors text-base sm:text-sm ${
-                loading
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-[#3B82F6] hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
-              }`}
-            >
-              {loading ? t('common.loading') : t('auth.send_reset_link')}
-            </button>
+            <Button type="submit" loading={loading} loadingLabel={t('common.loading')} className="w-full py-3">
+              {t('auth.send_reset_link')}
+            </Button>
 
-            <button
-              type="button"
-              onClick={() => navigate('/login')}
-              className={`w-full py-3 px-4 rounded-md font-medium transition-colors text-base sm:text-sm ${
-                isDarkTheme
-                  ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-                  : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-              }`}
-            >
+            <Button type="button" variant="secondary" onClick={() => navigate('/login')} className="w-full py-3">
               {t('common.cancel')}
-            </button>
+            </Button>
           </form>
         )}
       </div>

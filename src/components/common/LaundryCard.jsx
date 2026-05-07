@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import { Heart } from 'lucide-react'
 import StarIcon from '../../assets/images/icons/Star-yellow.svg';
 import AddressIcon from '../../assets/images/icons/Map.svg';
-import EyeIcon from '../../assets/images/icons/Eye-white.svg';
+import ExternalLinkIcon from '../../assets/images/icons/External-Link-white.svg';
 import { useTranslation } from '../../context/I18nContext';
 import { usePreferences } from '../../context/PreferencesContext';
 
@@ -160,7 +160,7 @@ const LaundryCard = forwardRef(({
                 <img src={AddressIcon} alt={t('explorer.address_icon_alt', 'Icône de localisation')} className="inline-block h-[13px] w-[13px]" />
                 {addressLabel}
               </p>
-              {rating !== null && (
+              {reviewCount > 0 && (
                 <span
                   className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#FFD700]"
                 >
@@ -185,7 +185,7 @@ const LaundryCard = forwardRef(({
                 onClick={(e) => { e.stopPropagation(); if (onClick) onClick(); }}
                 className="inline-flex h-[25px] w-25 lg:h-[30px] lg:w-[95px] items-center justify-center gap-[5px] rounded-lg bg-[#3B82F6] px-2 py-1 text-[12px] font-semibold text-white transition hover:bg-blue-700"
               >
-                <img src={EyeIcon} alt={t('explorer.see_icon_alt', 'Voir')} className="h-[15px] w-[15px]" />
+                <img src={ExternalLinkIcon} alt={t('explorer.see_icon_alt', 'Voir')} className="h-[20px] w-[20px]" />
                 {t('explorer.see_laundry', 'Consulter')}
               </button>
             </div>
