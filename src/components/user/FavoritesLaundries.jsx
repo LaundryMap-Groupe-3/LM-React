@@ -37,7 +37,7 @@ const FavoritesLaundries = ({ isDarkTheme, userType }) => {
         setTotalLaundries(response.pagination.total);
         setTotalPages(response.pagination.pages);
       } catch (error) {
-        throw ('Erreur API /api/favorites/laundries', error);
+        console.error('Erreur API /api/favorites/laundries', error);
         setLaundries([]);
         setTotalLaundries(0);
       }
@@ -61,7 +61,7 @@ const FavoritesLaundries = ({ isDarkTheme, userType }) => {
 			}
 			await fetchFavorites();
 		} catch (err) {
-			throw (t('explorer.favorite_error', 'Erreur lors de la mise à jour du favori.'));
+			console.error(t('explorer.favorite_error', 'Erreur lors de la mise à jour du favori.'), err);
 		}
 	};
 

@@ -1,6 +1,5 @@
 import React, { forwardRef } from 'react';
 import { Heart } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import StarIcon from '../../assets/images/icons/Star-yellow.svg';
 import AddressIcon from '../../assets/images/icons/Map.svg';
 import EyeIcon from '../../assets/images/icons/Eye-white.svg';
@@ -30,6 +29,27 @@ const resolveAddressLabel = (laundry) => {
   return parts.join(' ');
 };
 
+const resolveNumberValue = (value) => {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.trim().replace(',', '.');
+    if (!normalized) {
+      return null;
+    }
+    const parsed = Number.parseFloat(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+};
+
 const LaundryCard = forwardRef(({
   laundry,
   userType,
@@ -55,8 +75,9 @@ const LaundryCard = forwardRef(({
   const rating = Number.isFinite(ratingValue) ? ratingValue : null;
   const reviewCountValue = Number(laundry?.reviewCount);
   const reviewCount = Number.isFinite(reviewCountValue) ? reviewCountValue : null;
-  const distanceValue = Number(laundry?.distanceKm);
-  const distanceKm = Number.isFinite(distanceValue) ? distanceValue : null;
+  const distanceKm = resolveNumberValue(
+    laundry?.distance ?? laundry?.distanceKm ?? laundry?.distance_km,
+  );
   const isCurrentlyOpen = Boolean(laundry?.isOpenNow);
   const addressLabel = resolveAddressLabel(laundry);
 
@@ -159,14 +180,14 @@ const LaundryCard = forwardRef(({
                   {t('explorer.distance', 'Distance')}: {`${distanceKm.toFixed(1)} km`}
                 </span>
               )}
-              <Link
-                to={`/laundry/${laundry.id}`}
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); if (onClick) onClick(); }}
                 className="inline-flex h-[25px] w-25 lg:h-[30px] lg:w-[95px] items-center justify-center gap-[5px] rounded-lg bg-[#3B82F6] px-2 py-1 text-[12px] font-semibold text-white transition hover:bg-blue-700"
-                style={{ textDecoration: 'none' }}
               >
                 <img src={EyeIcon} alt={t('explorer.see_icon_alt', 'Voir')} className="h-[15px] w-[15px]" />
                 {t('explorer.see_laundry', 'Consulter')}
-              </Link>
+              </button>
             </div>
           </div>
         </div>

@@ -74,6 +74,17 @@ const ProtectedNonAdminRoute = ({ isLoggedIn, userType, children }) => {
   return children
 }
 
+// Protected Professional Route Component (professional users only)
+const ProtectedProfessionalRoute = ({ isLoggedIn, userType, children }) => {
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />
+  }
+  if (userType !== 'professional') {
+    return <Navigate to="/" replace />
+  }
+  return children
+}
+
 function App() {
   const { isDarkTheme, toggleTheme, reloadUserPreferences } = usePreferences();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -252,32 +263,32 @@ function App() {
             <Navigate to="/admin/laundries" replace />
           }/>
           <Route path="/professional/dashboard" element={
-            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+            <ProtectedProfessionalRoute isLoggedIn={isLoggedIn} userType={userType}>
               <ProfessionalDashboard isDarkTheme={isDarkTheme} />
-            </ProtectedNonAdminRoute>
+            </ProtectedProfessionalRoute>
           } />
           <Route path="/professional-dashboard" element={
-            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
-              <ProfessionalDashboard 
+            <ProtectedProfessionalRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <ProfessionalDashboard
                 isDarkTheme={isDarkTheme}
                 isLoggedIn={isLoggedIn}
               />
-            </ProtectedNonAdminRoute>
+            </ProtectedProfessionalRoute>
           }/>
           <Route path="/create-laundry" element={
-            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+            <ProtectedProfessionalRoute isLoggedIn={isLoggedIn} userType={userType}>
               <ProfessionalLaundryForm isDarkTheme={isDarkTheme} />
-            </ProtectedNonAdminRoute>
+            </ProtectedProfessionalRoute>
           }/>
           <Route path="/edit-laundry/:id" element={
-            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+            <ProtectedProfessionalRoute isLoggedIn={isLoggedIn} userType={userType}>
               <ProfessionalLaundryForm isDarkTheme={isDarkTheme} />
-            </ProtectedNonAdminRoute>
+            </ProtectedProfessionalRoute>
           }/>
           <Route path="/laundry-details/:id" element={
-            <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+            <ProtectedProfessionalRoute isLoggedIn={isLoggedIn} userType={userType}>
               <ProfessionalLaundryDetails isDarkTheme={isDarkTheme} />
-            </ProtectedNonAdminRoute>
+            </ProtectedProfessionalRoute>
           }/>
           <Route path="/admin/laundries" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>

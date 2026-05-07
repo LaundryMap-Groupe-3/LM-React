@@ -92,8 +92,12 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
       setToastMessage(t('success.profile_updated'));
       setToastType('success');
     } catch (error) {
-      const errorKey = error.body?.message || 'errors.profile_update_error';
-      setToastMessage(t(errorKey));
+      if (error.body?.errors) {
+        const messages = Object.values(error.body.errors).map(k => t(k)).join(', ');
+        setToastMessage(messages);
+      } else {
+        setToastMessage(t(error.body?.message || 'errors.profile_update_error'));
+      }
       setToastType('error');
     }
   };
@@ -254,20 +258,15 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
               <input
                 type="email"
                 id="email"
-                {...registerProfile('email', {
-                  required: t('validation.email_required'),
-                  pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: t('validation.email_invalid'),
-                  },
-                })}
-                className={`w-full min-h-[44px] px-3 py-2 text-[11px] font-normal border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                {...registerProfile('email')}
+                className={`w-full min-h-[44px] px-3 py-2 text-[11px] font-normal border border-[#D1D5DB] rounded-md cursor-not-allowed opacity-60 ${
                   isDarkTheme
                     ? 'bg-gray-700 border-[#D1D5DB] text-gray-100'
-                    : 'bg-white border-[#D1D5DB] text-[#111827]'
+                    : 'bg-gray-100 border-[#D1D5DB] text-[#111827]'
                 } placeholder:text-[11px] placeholder:font-normal placeholder:text-black`}
                 placeholder={t('profile.placeholder_email')}
-                disabled={profileLoading || isProfileSubmitting}
+                readOnly
+                disabled
               />
               {profileErrors.email && (
                 <p className="text-red-500 text-xs mt-1">{profileErrors.email.message}</p>

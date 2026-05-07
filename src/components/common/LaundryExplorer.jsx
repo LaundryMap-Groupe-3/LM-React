@@ -543,7 +543,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 									</div>
 
 									<div className="flex flex-wrap items-center gap-2">
-										<div className="flex-1 min-w-[80px] flex flex-col gap-1">
+										<div className="flex-1 min-w-20 flex flex-col gap-1">
 											<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
 											{t('explorer.filter_time_start', 'Ouverture')}
 											</label>
@@ -558,7 +558,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 											/>
 										</div>
 										<span className="text-slate-300 dark:text-slate-600 text-base mt-4">→</span>
-										<div className="flex-1 min-w-[80px] flex flex-col gap-1">
+										<div className="flex-1 min-w-20 flex flex-col gap-1">
 											<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
 											{t('explorer.filter_time_end', 'Fermeture')}
 											</label>

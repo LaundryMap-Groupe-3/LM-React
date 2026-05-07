@@ -36,25 +36,29 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
 
   const loginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      const data = await authService.handleGoogleSuccess(tokenResponse.access_token);
+      try {
+        const data = await authService.handleGoogleSuccess(tokenResponse.access_token);
 
-      if (!data) {
-        console.error('Échec connexion Google');
-        setApiError(t('auth.login_with_google_error'));
-        return;
-      }
-
-      if (onLoginSuccess) {
-        onLoginSuccess();
-      }
-
-      const user = await authService.getCurrentUser();
-      if (user) {
-        if (user.type === 'professional') {
-          navigate('/professional-dashboard');
-        } else {
-          navigate('/');
+        if (!data) {
+          setApiError(t('auth.login_with_google_error'));
+          return;
         }
+
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        }
+
+        const user = await authService.getCurrentUser();
+        if (user) {
+          if (user.type === 'professional') {
+            navigate('/professional-dashboard');
+          } else {
+            navigate('/');
+          }
+        }
+      } catch (err) {
+        console.error('Échec connexion Google', err);
+        setApiError(t('auth.login_with_google_error'));
       }
     },
     onError: () => {

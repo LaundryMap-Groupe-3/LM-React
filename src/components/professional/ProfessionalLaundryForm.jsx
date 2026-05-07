@@ -149,6 +149,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     watch,
     reset,
     setValue,
+    unregister,
     setError,
     clearErrors,
     getValues,
@@ -332,6 +333,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
       ...defaultValues.openingHours,
       ...(laundry?.openingHours ?? {}),
     },
+    openingHoursExtra: laundry?.openingHoursExtra ?? {},
     washingPrice6kg: laundry?.washingPrice6kg ?? '',
     washingPrice8kg: laundry?.washingPrice8kg ?? '',
     washingPrice10kg: laundry?.washingPrice10kg ?? '',
@@ -618,10 +620,15 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
   };
 
   const removeOpeningSlot = (dayKey) => {
-    setAdditionalSlotsByDay((current) => ({
-      ...current,
-      [dayKey]: Math.max(current[dayKey] - 1, 0),
-    }));
+    setAdditionalSlotsByDay((current) => {
+      const newCount = Math.max(current[dayKey] - 1, 0);
+      const removedIndex = current[dayKey] - 1;
+      if (removedIndex >= 0) {
+        unregister(`openingHoursExtra.${dayKey}.${removedIndex}.open`);
+        unregister(`openingHoursExtra.${dayKey}.${removedIndex}.close`);
+      }
+      return { ...current, [dayKey]: newCount };
+    });
   };
 
   const handleDeleteMedia = async (mediaId) => {
@@ -940,7 +947,18 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                               <span className="font-regular">{t(day.labelKey, day.fallbackLabel)}</span>
                               <button
                                 type="button"
-                                onClick={() => setClosedDays((current) => ({ ...current, [day.key]: !current[day.key] }))}
+                                onClick={() => {
+                                const nowClosed = !closedDays[day.key];
+                                setClosedDays((current) => ({ ...current, [day.key]: nowClosed }));
+                                if (nowClosed) {
+                                  setValue(`openingHours.${day.key}.open`, '');
+                                  setValue(`openingHours.${day.key}.close`, '');
+                                  for (let i = 0; i < additionalSlotsByDay[day.key]; i++) {
+                                    setValue(`openingHoursExtra.${day.key}.${i}.open`, '');
+                                    setValue(`openingHoursExtra.${day.key}.${i}.close`, '');
+                                  }
+                                }
+                              }}
                                 className={`text-[12px] w-[58px] h-[18px] rounded-[5px] flex items-center justify-center ${isClosed ? 'bg-[#F97316] text-white hover:bg-[#EA580C]' : 'border border-[#9CA3AF]'}`}
                               >
                                 {t('common.closed', 'Fermé')}

@@ -35,19 +35,20 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
   const totalPages = Math.ceil(laundries.length / pageSize);
   const paginatedLaundries = laundries.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
+  const fetchProfessionalData = async () => {
+    try {
+      const response = await professionalService.getLaundriesStats();
+      setLaundries(response.laundries || []);
+      setStats(response.stats || { averageNote: '--', total: '--', pending: '--' });
+    } catch (error) {
+      console.error('Erreur API /api/professional/laundries', error);
+      setLaundries([]);
+      setStats({ averageNote: '--', total: '--', pending: '--' });
+    }
+  };
+
   // Charger les laveries et statistiques du professionnel
   useEffect(() => {
-    const fetchProfessionalData = async () => {
-      try {
-        const response = await professionalService.getLaundriesStats();
-        setLaundries(response.laundries || []);
-        setStats(response.stats || { averageNote: '--', total: '--', pending: '--' });
-      } catch (error) {
-        console.error('Erreur API /api/professional/laundries', error);
-        setLaundries([]);
-        setStats({ averageNote: '--', total: '--', pending: '--' });
-      }
-    };
     fetchProfessionalData();
   }, []);
 
@@ -222,10 +223,10 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                             <img src={AddressIcon} alt="Address Icon" className="w-4 h-4 mt-[2px] shrink-0" />
                             <span className="break-words">{laundry.address}</span>
                           </span>
-                          {laundry.status === 'approved' && (
+                          {laundry.status === 'approved' && laundry.averageNote != null && (
                             <span className="text-sm md:text-base font-semibold text-[#FFD700]">
                               <img src={StarIcon} alt="Star Icon" className="w-4 h-4 inline-block mr-2" />
-                              {stats.averageNote ?? '--'}/5 ({stats.reviewCount ?? 0} {t('dashboard.reviews', 'avis')})
+                              {Number(laundry.averageNote).toFixed(1)}/5 ({laundry.reviewCount ?? 0} {t('dashboard.reviews', 'avis')})
                             </span>
                           )}
                         </div>
@@ -286,7 +287,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                                 if (window.confirm(t('dashboard.delete_confirm', 'Êtes-vous sûr de vouloir supprimer cette laverie ? Cette action est irréversible.'))) {
                                   try {
                                     await professionalService.deleteLaundry(laundry.id);
-                                    setLaundries((prev) => prev.filter((l) => l.id !== laundry.id));
+                                    await fetchProfessionalData();
                                   } catch (error) {
                                     alert(t('dashboard.delete_error', 'Erreur lors de la suppression de la laverie.'));
                                   }

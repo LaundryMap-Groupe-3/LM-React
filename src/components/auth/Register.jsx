@@ -49,21 +49,25 @@ const Register = ({ onLoginSuccess }) => {
 
   const siginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      const data = await authService.handleGoogleSuccess(tokenResponse.access_token);
+      try {
+        const data = await authService.handleGoogleSuccess(tokenResponse.access_token);
 
-      if (!data) {
-        console.error('Échec connexion Google');
+        if (!data) {
+          setApiError(t('auth.login_with_google_error'));
+          return;
+        }
+
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        }
+
+        const user = await authService.getCurrentUser();
+        if (user) {
+          navigate('/');
+        }
+      } catch (err) {
+        console.error('Échec connexion Google', err);
         setApiError(t('auth.login_with_google_error'));
-        return;
-      }
-
-      if (onLoginSuccess) {
-        onLoginSuccess();
-      }
-
-      const user = await authService.getCurrentUser();
-      if (user) {
-        navigate('/');
       }
     },
     onError: () => {
