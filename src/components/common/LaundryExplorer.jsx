@@ -75,10 +75,15 @@ function SetViewOnCenter({ target }) {
 
 	useEffect(() => {
 		if (!target) return;
-		const key = `${target[0].toFixed(6)},${target[1].toFixed(6)},${target[2] ?? ''}`;
-		if (lastKey.current === key) return;
+		const [lat, lng, zoom] = target;
+		const targetZoom = zoom ?? map.getZoom();
+		const center = map.getCenter();
+		const closeEnough = Math.abs(center.lat - lat) < 1e-6 && Math.abs(center.lng - lng) < 1e-6;
+		const sameZoom = map.getZoom() === targetZoom;
+		const key = `${lat.toFixed(6)},${lng.toFixed(6)},${targetZoom}`;
+		if (lastKey.current === key && closeEnough && sameZoom) return;
 		lastKey.current = key;
-		map.flyTo([target[0], target[1]], target[2] ?? map.getZoom(), {
+		map.flyTo([lat, lng], targetZoom, {
 			animate: true,
 			duration: 1.2,
 		});
@@ -302,6 +307,9 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 	}, [isFilterModalOpen]);
 
 	function handleRecenter() {
+		if (mapRef.current) {
+			mapRef.current.closePopup();
+		}
 		setIsLocationSearch(false);
 		setSearchLocation(null);
 		setShowAll(false);
@@ -337,6 +345,9 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 
 	async function handleSearchSubmit(e) {
 		e.preventDefault();
+		if (mapRef.current) {
+			mapRef.current.closePopup();
+		}
 		const queryRaw = search.trim();
 		if (!queryRaw) {
 			setIsLocationSearch(false);
