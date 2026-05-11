@@ -432,6 +432,184 @@ const adminService = {
 
     return await response.json();
   },
+
+  async getModerationComments(page = 1, limit = 10, reportedOnly = true) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/reviews/reports?page=${page}&limit=${limit}&reportedOnly=${reportedOnly ? '1' : '0'}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch reported comments');
+    }
+
+    return await response.json();
+  },
+
+  async getReportedComments(page = 1, limit = 10) {
+    return await this.getModerationComments(page, limit, true);
+  },
+
+  async getReportedCommentsCount() {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/reviews/reports/count`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch reported comments count');
+    }
+
+    return await response.json();
+  },
+
+  async dismissReviewReports(reviewId) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/reviews/${reviewId}/dismiss-reports`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to dismiss review reports');
+    }
+
+    return await response.json();
+  },
+
+  async deleteReviewComment(reviewId, reason) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/reviews/${reviewId}/delete-comment`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+        body: JSON.stringify({ reason }),
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to delete review comment');
+    }
+
+    return await response.json();
+  },
+
+  async banUser(userId, isPermanent, durationDays, reason) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/users/${userId}/ban`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+        body: JSON.stringify({
+          isPermanent,
+          durationDays,
+          reason,
+        }),
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to ban user');
+    }
+
+    return await response.json();
+  },
+
+  async unbanUser(userId) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/users/${userId}/unban`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to unban user');
+    }
+
+    return await response.json();
+  },
+
+  async getUserBans(userId) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/users/${userId}/bans`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch user bans');
+    }
+
+    return await response.json();
+  },
 };
 
 export default adminService;

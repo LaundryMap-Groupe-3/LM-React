@@ -541,7 +541,10 @@
     "language_not_found": "Langue non trouvée",
     "invalid_theme": "Thème invalide",
     "offensive_word_required": "Le mot est requis",
-    "offensive_word_max_length": "Le mot ne doit pas dépasser 255 caractères"
+    "offensive_word_max_length": "Le mot ne doit pas dépasser 255 caractères",
+    "deletion_reason_required": "Le motif de suppression est requis",
+    "ban_reason_required": "Le motif du blocage est requis",
+    "field_required": "Ce champ est requis"
   },
   "admin": {
     "admin_title": "Administration - Validations des comptes professionnels",
@@ -628,7 +631,42 @@
     "pending_laundries_validation": "Laveries en attente",
     "pending_professionals_validation": "Professionnels en attente",
     "awaiting_approval": "Comptes en attente",
-    "reported_reviews": "Avis signalés",
+    "moderate_comments": "Modération des commentaires",
+    "moderate_comments_title": "Administration - Gestion des avis",
+    "moderate_comments_subtitle": "Visualisez et gérez tous les avis clients de vos laveries",
+    "moderation_tabs_aria_label": "Modération des avis",
+    "total_reported": "Total signalés",
+    "no_reported_comments": "Aucun commentaire signalé pour le moment",
+    "no_comments_found": "Aucun avis trouvé, qu’il soit conservé ou en attente.",
+    "by": "Par",
+    "reports": "Signalements",
+    "report_reasons": "Motifs du signalement",
+    "reporter_comments": "Commentaires des signalataires",
+    "report_reason_equipment_broken": "Équipement cassé",
+    "report_reason_cleanliness_issue": "Problème de propreté",
+    "report_reason_safety_concern": "Problème de sécurité",
+    "report_reason_staff_behavior": "Comportement du personnel",
+    "report_reason_pricing_issue": "Problème de prix",
+    "report_reason_offensive": "Contenu offensant",
+    "report_reason_other": "Autre",
+    "published": "Publié",
+    "reported": "Signalé",
+    "publish_comment": "Publier le commentaire",
+    "moderated_at": "Modéré le",
+    "keep_comment": "Conserver le commentaire",
+    "delete_comment": "Supprimer le commentaire",
+    "block_user": "Bloquer l'utilisateur",
+    "delete_confirmation": "Cette action est irréversible. Le commentaire sera définitivement supprimé.",
+    "comment_preview": "Aperçu du commentaire",
+    "deletion_reason": "Motif de suppression",
+    "deletion_reason_placeholder": "Expliquez pourquoi ce commentaire a été supprimé...",
+    "temporary_block": "Blocage temporaire",
+    "permanent_block": "Blocage permanent",
+    "duration_days": "Durée (jours)",
+    "ban_reason": "Motif du blocage",
+    "ban_reason_placeholder": "Expliquez pourquoi cet utilisateur a été bloqué...",
+      "user_banned_successfully": "Utilisateur bloqué avec succès",
+     "reported_reviews": "Avis signalés",
     "content_to_moderate": "Contenus à modérer",
     "quick_access": "Accès rapide",
     "manage_users": "Gérer les utilisateurs",
@@ -724,5 +762,17 @@
     "delete": "Supprimer",
     "delete_confirm": "Êtes-vous sûr de vouloir supprimer cette laverie ? Cette action est irréversible.",
     "delete_error": "Erreur lors de la suppression de la laverie."
+  },
+  "pagination": {
+    "first": "Première",
+    "previous": "Précédente",
+    "next": "Suivante",
+    "last": "Dernière"
+  },
+  "time": {
+    "days": "jours"
+  },
+  "messages": {
+    "user_banned_successfully": "L'utilisateur a été bloqué avec succès"
   }
 }

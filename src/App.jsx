@@ -17,6 +17,7 @@ import AdminPendingLaundries from './components/admin/AdminPendingLaundries'
 import AdminProfessionalDetails from './components/admin/AdminProfessionalDetails'
 import AdminLaundryDetails from './components/admin/AdminLaundryDetails'
 import AdminOffensiveWords from './components/admin/AdminOffensiveWords'
+import ModerateComments from './components/admin/ModerateComments'
 import AdminDashboard from './components/admin/AdminDashboard'
 import AdminUsers from './components/admin/AdminUsers'
 import Header from './components/layout/Header'
@@ -326,6 +327,13 @@ function App() {
           <Route path="/admin/offensive-words" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <AdminOffensiveWords
+                isDarkTheme={isDarkTheme}
+              />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/reports" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <ModerateComments
                 isDarkTheme={isDarkTheme}
               />
             </ProtectedAdminRoute>

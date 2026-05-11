@@ -508,7 +508,10 @@
     "language_not_found": "Language not found",
     "invalid_theme": "Invalid theme",
     "offensive_word_required": "Word is required",
-    "offensive_word_max_length": "Word must not exceed 255 characters"
+    "offensive_word_max_length": "Word must not exceed 255 characters",
+    "deletion_reason_required": "Deletion reason is required",
+    "ban_reason_required": "Ban reason is required",
+    "field_required": "This field is required"
   },
   "admin": {
     "admin_title": "Administration - Professional Account Validations",
@@ -589,7 +592,44 @@
     "offensive_word_deleted": "Word deleted successfully",
     "dashboard_title": "Admin dashboard",
     "dashboard_subtitle": "Platform overview",
-    "last_login": "Last login:"
+    "last_login": "Last login:",
+    "moderate_comments": "Moderate Comments",
+    "moderate_comments_title": "Administration - Comment Management",
+    "moderate_comments_subtitle": "View and manage all customer reviews from your laundries",
+    "moderation_tabs_aria_label": "Review moderation",
+    "total_reported": "Total Reported",
+    "no_reported_comments": "No reported comments at this time",
+    "no_comments_found": "No comments found, whether kept or pending.",
+    "by": "By",
+    "reports": "Reports",
+    "report_reasons": "Report Reasons",
+    "reporter_comments": "Reporter Comments",
+    "report_reason_equipment_broken": "Broken equipment",
+    "report_reason_cleanliness_issue": "Cleanliness issue",
+    "report_reason_safety_concern": "Safety concern",
+    "report_reason_staff_behavior": "Staff behavior",
+    "report_reason_pricing_issue": "Pricing issue",
+    "report_reason_offensive": "Offensive content",
+    "report_reason_other": "Other",
+    "keep_comment": "Keep Comment",
+    "delete_comment": "Delete Comment",
+    "block_user": "Block User",
+    "publish_comment": "Publish Comment",
+    "delete_confirmation": "This action is irreversible. The comment will be permanently deleted.",
+    "comment_preview": "Comment Preview",
+    "deletion_reason": "Deletion Reason",
+    "deletion_reason_placeholder": "Explain why this comment was deleted...",
+    "temporary_block": "Temporary Block",
+    "permanent_block": "Permanent Block",
+    "duration_days": "Duration (days)",
+    "ban_reason": "Block Reason",
+    "ban_reason_placeholder": "Explain why this user was blocked...",
+    "user_banned_successfully": "User blocked successfully",
+    "published": "Published",
+    "pending": "Pending",
+    "reported": "Reported",
+    "published_and_moderated": "Published and moderated",
+    "moderated_at": "Moderated on"
   },
   "success": {
     "profile_updated": "Profile updated successfully",
@@ -667,5 +707,17 @@
     "delete": "Delete",
     "delete_confirm": "Are you sure you want to delete this laundry? This action is irreversible.",
     "delete_error": "Error while deleting the laundry."
+  },
+  "pagination": {
+    "first": "First",
+    "previous": "Previous",
+    "next": "Next",
+    "last": "Last"
+  },
+  "time": {
+    "days": "days"
+  },
+  "messages": {
+    "user_banned_successfully": "User blocked successfully"
   }
 }
