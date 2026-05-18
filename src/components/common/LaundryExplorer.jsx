@@ -722,10 +722,12 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 							.map(laundry => {
 								const addressLabel = typeof laundry.address === 'string'
 									? laundry.address
-									: (laundry.address?.address
-										|| [laundry.address?.street, laundry.address?.postalCode, laundry.address?.city]
+									: (typeof laundry.address?.address === 'string' && laundry.address.address)
+										? laundry.address.address
+										: [laundry.address?.street, laundry.address?.postalCode, laundry.address?.city]
 											.filter(Boolean)
-											.join(' '));
+											.map(String)
+											.join(' ') || '-';
 
 								return (
 								<Marker
