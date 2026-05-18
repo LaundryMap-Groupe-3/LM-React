@@ -191,7 +191,7 @@ const AdminPendingLaundries = ({ isDarkTheme }) => {
                           <span className="font-semibold">{laundry.contactEmail || laundry.professional?.email || '-'}</span>
                         </p>
 
-                        {laundry.address && (
+                        {laundry.address?.street && (
                           <p className="text-[13px] text-[#6B7280]">
                             <span>
                               {laundry.address.street}, {laundry.address.postalCode} {laundry.address.city}

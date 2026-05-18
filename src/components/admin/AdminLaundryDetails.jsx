@@ -215,8 +215,8 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
   const isRejected = laundry.status === 'rejected';
   const isAddressPending = laundry.address?.geolocalizationStatus === 'pending';
   const isRejectFlowActive = showRejectModal || rejectionReason.trim().length > 0;
-  const laundryLocation = laundry.address
-    ? `${laundry.address.street}, ${laundry.address.postalCode} ${laundry.address.city}`
+  const laundryLocation = laundry.address?.street
+    ? `${laundry.address.street || ''}, ${laundry.address.postalCode || ''} ${laundry.address.city || ''}`.trim()
     : '-';
 
   const owner = laundry.professional?.user || {};

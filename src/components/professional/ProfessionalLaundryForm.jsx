@@ -294,10 +294,10 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
         if (hasValidLaundry) {
           const laundry = result.laundry;
           if (laundry.name) setValue('establishmentName', laundry.name);
-          if (laundry.address) setValue('street', laundry.address);
-          if (laundry.postalCode) setValue('postalCode', laundry.postalCode);
-          if (laundry.city) setValue('city', laundry.city);
-          if (laundry.country) setValue('country', laundry.country);
+          if (laundry.address?.street) setValue('street', laundry.address.street);
+          if (laundry.address?.postalCode) setValue('postalCode', laundry.address.postalCode);
+          if (laundry.address?.city) setValue('city', laundry.address.city);
+          if (laundry.address?.country) setValue('country', laundry.address.country);
           if (laundry.phone) setValue('contactPhone', laundry.phone);
 
           const wiLineToFormDay = {
