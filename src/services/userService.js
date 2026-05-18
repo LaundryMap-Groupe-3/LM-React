@@ -218,40 +218,6 @@ const userService = {
   },
 
   /**
-   * Update user preferences (language, theme, notifications)
-   */
-  updatePreferences: async (preferences) => {
-    try {
-      const token = localStorage.getItem('jwt_token');
-      if (!token) {
-        throw { status: 401, body: { message: 'Token required' } };
-      }
-
-      const response = await fetch(`${API_BASE_URL}/api/user/preferences`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(preferences),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw {
-          status: response.status,
-          body: data,
-        };
-      }
-
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  /**
    * Get list of available languages
    */
   getLanguages: async () => {

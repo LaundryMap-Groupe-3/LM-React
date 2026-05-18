@@ -7,8 +7,8 @@ import authService from '../../services/authService';
 import { translateErrorKey, formatValidationErrors } from '../../utils/translateErrorKey';
 import { getStrongPasswordRules } from '../../utils/passwordValidation';
 import { useGoogleLogin } from '@react-oauth/google';
-import EyeIcon from '../../assets/images/icons/Eye.svg';
-import InvisibleIcon from '../../assets/images/icons/Invisible.svg';
+import FormField from '../common/FormField';
+import PasswordField from '../common/PasswordField';
 
 const Register = ({ onLoginSuccess }) => {
   const navigate = useNavigate();
@@ -16,8 +16,6 @@ const Register = ({ onLoginSuccess }) => {
   usePageTitle('page_titles.register', t);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Validation messages
   const validationMessages = {
@@ -49,21 +47,25 @@ const Register = ({ onLoginSuccess }) => {
 
   const siginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      const data = await authService.handleGoogleSuccess(tokenResponse.access_token);
+      try {
+        const data = await authService.handleGoogleSuccess(tokenResponse.access_token);
 
-      if (!data) {
-        console.error('Échec connexion Google');
+        if (!data) {
+          setApiError(t('auth.login_with_google_error'));
+          return;
+        }
+
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        }
+
+        const user = await authService.getCurrentUser();
+        if (user) {
+          navigate('/');
+        }
+      } catch (err) {
+        console.error('Échec connexion Google', err);
         setApiError(t('auth.login_with_google_error'));
-        return;
-      }
-
-      if (onLoginSuccess) {
-        onLoginSuccess();
-      }
-
-      const user = await authService.getCurrentUser();
-      if (user) {
-        navigate('/');
       }
     },
     onError: () => {
@@ -165,158 +167,66 @@ const Register = ({ onLoginSuccess }) => {
             {t('auth.personal_info')}
           </h1>
 
-          {/* Nom */}
-          <div>
-            <label htmlFor="name" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.last_name')}<span className="text-red-500">*</span>
-            </label>
+          <FormField label={t('auth.last_name')} error={errors.name?.message} required>
             <input
               type="text"
               id="name"
               {...register('name', {
                 required: validationMessages.lastNameRequired,
-                maxLength: {
-                  value: 50,
-                  message: validationMessages.nameMaxLength,
-                },
+                maxLength: { value: 50, message: validationMessages.nameMaxLength },
               })}
               maxLength={50}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.name ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
               placeholder={t('auth.placeholder_last_name')}
             />
-            {errors.name && (
-              <span className="text-red-500 text-xs mt-1">{errors.name.message}</span>
-            )}
-          </div>
+          </FormField>
 
-          {/* Prénom */}
-          <div>
-            <label htmlFor="firstName" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.first_name')}<span className="text-red-500">*</span>
-            </label>
+          <FormField label={t('auth.first_name')} error={errors.firstName?.message} required>
             <input
               type="text"
               id="firstName"
               {...register('firstName', {
                 required: validationMessages.firstNameRequired,
-                maxLength: {
-                  value: 50,
-                  message: validationMessages.nameMaxLength,
-                },
+                maxLength: { value: 50, message: validationMessages.nameMaxLength },
               })}
               maxLength={50}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.firstName ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.firstName ? 'border-red-500' : 'border-gray-300'}`}
               placeholder={t('auth.placeholder_first_name')}
             />
-            {errors.firstName && (
-              <span className="text-red-500 text-xs mt-1">{errors.firstName.message}</span>
-            )}
-          </div>
+          </FormField>
 
           <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
             {t('auth.connection_info')}
           </h1>
 
-          {/* Email */}
-          <div>
-            <label htmlFor="email" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.email')}<span className="text-red-500">*</span>
-            </label>
+          <FormField label={t('auth.email')} error={errors.email?.message} required>
             <input
               type="email"
               id="email"
               {...register('email', {
                 required: validationMessages.emailRequired,
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: validationMessages.emailInvalid,
-                },
+                pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: validationMessages.emailInvalid },
               })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.email ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
               placeholder={t('auth.placeholder_email')}
             />
-            {errors.email && (
-              <span className="text-red-500 text-xs mt-1">{errors.email.message}</span>
-            )}
-          </div>
+          </FormField>
 
-          {/* Mot de passe */}
-          <div>
-            <label htmlFor="password" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.password')}<span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                {...register('password', getStrongPasswordRules(t))}
-                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                  errors.password ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3"
-                aria-label={showPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
-                aria-pressed={showPassword}
-              >
-                <img
-                  src={showPassword ? InvisibleIcon : EyeIcon}
-                  alt=""
-                  className="w-[17px] h-[17px]"
-                  aria-hidden="true"
-                />
-              </button>
-            </div>
-            {errors.password && (
-              <span className="text-red-500 text-xs mt-1">{errors.password.message}</span>
-            )}
-          </div>
+          <PasswordField
+            label={t('auth.password')}
+            id="password"
+            error={errors.password?.message}
+            required
+            inputProps={register('password', getStrongPasswordRules(t))}
+          />
 
-          {/* Confirmation mot de passe */}
-          <div>
-            <label htmlFor="confirmPassword" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.confirm_password')} <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                id="confirmPassword"
-                {...register('confirmPassword', {
-                  required: validationMessages.passwordConfirmationRequired,
-                })}
-                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                  errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3"
-                aria-label={showConfirmPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
-                aria-pressed={showConfirmPassword}
-              >
-                <img
-                  src={showConfirmPassword ? InvisibleIcon : EyeIcon}
-                  alt=""
-                  className="w-[17px] h-[17px]"
-                  aria-hidden="true"
-                />
-              </button>
-            </div>
-            {errors.confirmPassword && (
-              <span className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</span>
-            )}
-          </div>
+          <PasswordField
+            label={t('auth.confirm_password')}
+            id="confirmPassword"
+            error={errors.confirmPassword?.message}
+            required
+            inputProps={register('confirmPassword', { required: validationMessages.passwordConfirmationRequired })}
+          />
 
           {/* Checkbox CGU */}
           <div className="flex items-center gap-3 text-left">

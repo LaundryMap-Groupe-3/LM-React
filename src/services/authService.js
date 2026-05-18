@@ -114,11 +114,12 @@ const authService = {
           lastName: professionalData.name,
           phone: professionalData.phone,
           companyName: professionalData.companyName,
-          siret: professionalData.siret,
+          siren: professionalData.siren,
           street: professionalData.street,
           postalCode: professionalData.postalCode,
           city: professionalData.city,
           country: professionalData.country,
+          acceptCGU: professionalData.acceptCGU,
         }),
       });
 
@@ -164,6 +165,25 @@ const authService = {
       console.error('Error fetching current user:', error);
       return null;
     }
+  },
+
+  lookupSiren: async (siren) => {
+    const response = await fetch(
+      `https://recherche-entreprises.api.gouv.fr/search?q=${siren}&page=1&per_page=1`,
+      { headers: { Accept: 'application/json' } }
+    );
+    if (!response.ok) throw new Error('api_error');
+    const data = await response.json();
+    const result = data.results?.[0];
+    if (!result || result.siren !== siren) throw new Error('not_found');
+    const siege = result.siege || {};
+    return {
+      companyName: result.nom_complet || result.nom_raison_sociale || '',
+      street: [siege.numero_voie, siege.type_voie, siege.libelle_voie].filter(Boolean).join(' '),
+      postalCode: siege.code_postal || '',
+      city: siege.libelle_commune || '',
+      country: 'France',
+    };
   },
 
   // Helper method to make authenticated API requests

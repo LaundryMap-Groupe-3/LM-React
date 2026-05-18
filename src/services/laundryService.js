@@ -27,7 +27,7 @@ function toQueryString(params = {}) {
 const laundryService = {
   async getPendingLaudries(page = 1, limit = 10) {
     const response = await fetch(
-      `${API_BASE_URL}/api/admin/laundry/prending?page=${page}&limit=${limit}`,
+      `${API_BASE_URL}/api/admin/laundries/pending?page=${page}&limit=${limit}`,
       {
         method: 'GET',
         headers: {

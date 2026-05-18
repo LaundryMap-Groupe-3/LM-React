@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import Select from 'react-select';
@@ -8,8 +8,8 @@ import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import { translateErrorKey, formatValidationErrors } from '../../utils/translateErrorKey';
 import { getStrongPasswordRules } from '../../utils/passwordValidation';
-import EyeIcon from '../../assets/images/icons/Eye.svg';
-import InvisibleIcon from '../../assets/images/icons/Invisible.svg';
+import FormField from '../common/FormField';
+import PasswordField from '../common/PasswordField';
 
 const ProfessionalRegister = () => {
   const navigate = useNavigate();
@@ -17,8 +17,8 @@ const ProfessionalRegister = () => {
   usePageTitle('page_titles.register_professional', t);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [sirenStatus, setSirenStatus] = useState(null); // 'checking' | 'verified' | 'not_found' | 'error'
+  const sirenDebounceRef = useRef(null);
   const countryOptions = useMemo(() => countryList().getData(), []);
 
   // Validation messages
@@ -30,8 +30,8 @@ const ProfessionalRegister = () => {
     emailInvalid: t('validation.email_invalid'),
     passwordConfirmationRequired: t('validation.password_confirmation_required'),
     acceptTerms: t('auth.accept_terms'),
-    siretRequired: t('validation.siret_required'),
-    siretInvalidLength: t('validation.siret_invalid_length'),
+    sirenRequired: t('validation.siren_required'),
+    sirenInvalidLength: t('validation.siren_invalid_length'),
     streetRequired: t('validation.street_required'),
     postalCodeRequired: t('validation.postal_code_required'),
     postalCodeInvalid: t('validation.postal_code_invalid_exact'),
@@ -58,16 +58,43 @@ const ProfessionalRegister = () => {
       email: '',
       password: '',
       confirmPassword: '',
-      siret: '',
+      siren: '',
       companyName: '',
       phone: '',
       street: '',
       postalCode: '',
       city: '',
-      country: '',
+      country: 'France',
       acceptCGU: false,
     },
   });
+
+  const handleSirenChange = useCallback((e) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 9);
+    setValue('siren', value);
+
+    clearTimeout(sirenDebounceRef.current);
+
+    if (value.length !== 9) {
+      setSirenStatus(null);
+      return;
+    }
+
+    setSirenStatus('checking');
+    sirenDebounceRef.current = setTimeout(async () => {
+      try {
+        const info = await authService.lookupSiren(value);
+        setValue('companyName', info.companyName, { shouldValidate: true });
+        setValue('street', info.street, { shouldValidate: true });
+        setValue('postalCode', info.postalCode, { shouldValidate: true });
+        setValue('city', info.city, { shouldValidate: true });
+        setValue('country', info.country, { shouldValidate: true, shouldDirty: true });
+        setSirenStatus('verified');
+      } catch (err) {
+        setSirenStatus(err.message === 'not_found' ? 'not_found' : 'error');
+      }
+    }, 400);
+  }, [setValue, sirenDebounceRef]);
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -132,207 +159,125 @@ const ProfessionalRegister = () => {
             {t('auth.personal_info')}
           </h2>
 
-          {/* Nom */}
-          <div>
-            <label htmlFor="name" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.last_name')}<span className="text-red-500">*</span>
-            </label>
+          <FormField label={t('auth.last_name')} error={errors.name?.message} required>
             <input
               type="text"
               id="name"
               {...register('name', {
                 required: validationMessages.lastNameRequired,
-                maxLength: {
-                  value: 50,
-                  message: validationMessages.nameMaxLength,
-                },
+                maxLength: { value: 50, message: validationMessages.nameMaxLength },
               })}
               maxLength={50}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.name ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
               placeholder={t('auth.placeholder_last_name')}
             />
-            {errors.name && (
-              <span className="text-red-500 text-xs mt-1">{errors.name.message}</span>
-            )}
-          </div>
+          </FormField>
 
-          {/* Prénom */}
-          <div>
-            <label htmlFor="firstName" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.first_name')}<span className="text-red-500">*</span>
-            </label>
+          <FormField label={t('auth.first_name')} error={errors.firstName?.message} required>
             <input
               type="text"
               id="firstName"
               {...register('firstName', {
                 required: validationMessages.firstNameRequired,
-                maxLength: {
-                  value: 50,
-                  message: validationMessages.nameMaxLength,
-                },
+                maxLength: { value: 50, message: validationMessages.nameMaxLength },
               })}
               maxLength={50}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.firstName ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.firstName ? 'border-red-500' : 'border-gray-300'}`}
               placeholder={t('auth.placeholder_first_name')}
             />
-            {errors.firstName && (
-              <span className="text-red-500 text-xs mt-1">{errors.firstName.message}</span>
-            )}
-          </div>
+          </FormField>
 
           {/* INFORMATIONS PROFESSIONNELLES */}
           <h2 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6">
             {t('auth.company_section_title')}
           </h2>
 
-          {/* SIRET */}
-          <div>
-            <label htmlFor="siret" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.siret')}<span className="text-red-500">*</span>
-            </label>
+          <FormField label={t('auth.siren')} error={errors.siren?.message} required>
             <input
               type="text"
-              id="siret"
-              {...register('siret', {
-                required: validationMessages.siretRequired,
-                pattern: {
-                  value: /^\d{13,14}$/,
-                  message: validationMessages.siretInvalidLength,
-                },
+              id="siren"
+              {...register('siren', {
+                required: validationMessages.sirenRequired,
+                pattern: { value: /^\d{9}$/, message: validationMessages.sirenInvalidLength },
               })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.siret ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder={t('auth.placeholder_siret')}
+              onChange={handleSirenChange}
+              maxLength={9}
+              inputMode="numeric"
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.siren ? 'border-red-500' : sirenStatus === 'verified' ? 'border-green-500' : 'border-gray-300'}`}
+              placeholder={t('auth.placeholder_siren')}
             />
-            {errors.siret && (
-              <span className="text-red-500 text-xs mt-1">{errors.siret.message}</span>
+            {sirenStatus === 'checking' && (
+              <p className="text-xs text-gray-500 mt-1">{t('auth.siren_checking')}</p>
             )}
-          </div>
+            {sirenStatus === 'verified' && (
+              <p className="text-xs text-green-600 mt-1">✓ {t('auth.siren_verified')}</p>
+            )}
+            {sirenStatus === 'not_found' && (
+              <p className="text-xs text-red-500 mt-1">{t('auth.siren_not_found_inline')}</p>
+            )}
+            {sirenStatus === 'error' && (
+              <p className="text-xs text-red-500 mt-1">{t('auth.siren_error_inline')}</p>
+            )}
+          </FormField>
 
-          {/* Nom de l'entreprise */}
-          <div>
-            <label htmlFor="companyName" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.company_name')}<span className="text-red-500">*</span>
-            </label>
+          <FormField label={t('auth.company_name')} error={errors.companyName?.message} required>
             <input
               type="text"
               id="companyName"
               {...register('companyName', {
                 required: validationMessages.companyNameRequired,
-                maxLength: {
-                  value: 50,
-                  message: validationMessages.companyNameMaxLength,
-                },
+                maxLength: { value: 50, message: validationMessages.companyNameMaxLength },
               })}
               maxLength={50}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.companyName ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.companyName ? 'border-red-500' : 'border-gray-300'}`}
               placeholder={t('auth.placeholder_company_name')}
             />
-            {errors.companyName && (
-              <span className="text-red-500 text-xs mt-1">{errors.companyName.message}</span>
-            )}
-          </div>
+          </FormField>
 
-          {/* Téléphone */}
-          <div>
-            <label htmlFor="phone" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.phone')}<span className="text-red-500">*</span>
-            </label>
+          <FormField label={t('auth.phone')} error={errors.phone?.message} required>
             <input
               type="tel"
               id="phone"
-              {...register('phone', {
-                required: validationMessages.phoneRequired,
-              })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.phone ? 'border-red-500' : 'border-gray-300'
-              }`}
+              {...register('phone', { required: validationMessages.phoneRequired })}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
               placeholder={t('auth.placeholder_phone')}
             />
-            {errors.phone && (
-              <span className="text-red-500 text-xs mt-1">{errors.phone.message}</span>
-            )}
-          </div>
+          </FormField>
 
-          {/* Rue et numéro */}
-          <div>
-            <label htmlFor="street" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.street')}<span className="text-red-500">*</span>
-            </label>
+          <FormField label={t('auth.street')} error={errors.street?.message} required>
             <input
               type="text"
               id="street"
-              {...register('street', {
-                required: validationMessages.streetRequired,
-              })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.street ? 'border-red-500' : 'border-gray-300'
-              }`}
+              {...register('street', { required: validationMessages.streetRequired })}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.street ? 'border-red-500' : 'border-gray-300'}`}
               placeholder={t('auth.placeholder_street')}
             />
-            {errors.street && (
-              <span className="text-red-500 text-xs mt-1">{errors.street.message}</span>
-            )}
-          </div>
+          </FormField>
 
-          {/* Code postal */}
-          <div>
-            <label htmlFor="postalCode" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.postal_code')}<span className="text-red-500">*</span>
-            </label>
+          <FormField label={t('auth.postal_code')} error={errors.postalCode?.message} required>
             <input
               type="text"
               id="postalCode"
               {...register('postalCode', {
                 required: validationMessages.postalCodeRequired,
-                pattern: {
-                  value: /^\d{5}$/,
-                  message: validationMessages.postalCodeInvalid,
-                },
+                pattern: { value: /^\d{5}$/, message: validationMessages.postalCodeInvalid },
               })}
-              className={`w-full h-[44px] px-3 border text-[#9CA3AF] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.postalCode ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.postalCode ? 'border-red-500' : 'border-gray-300'}`}
               placeholder={t('auth.placeholder_postal_code')}
             />
-            {errors.postalCode && (
-              <span className="text-red-500 text-xs mt-1">{errors.postalCode.message}</span>
-            )}
-          </div>
+          </FormField>
 
-          {/* Ville */}
-          <div>
-            <label htmlFor="city" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.city')}<span className="text-red-500">*</span>
-            </label>
+          <FormField label={t('auth.city')} error={errors.city?.message} required>
             <input
               type="text"
               id="city"
-              {...register('city', {
-                required: validationMessages.cityRequired,
-              })}
-              className={`w-full h-[44px] px-3 border text-[#9CA3AF] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.city ? 'border-red-500' : 'border-gray-300'
-              }`}
+              {...register('city', { required: validationMessages.cityRequired })}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.city ? 'border-red-500' : 'border-gray-300'}`}
               placeholder={t('auth.placeholder_city')}
             />
-            {errors.city && (
-              <span className="text-red-500 text-xs mt-1">{errors.city.message}</span>
-            )}
-          </div>
+          </FormField>
 
-          {/* Pays */}
-          <div>
-            <label htmlFor="country" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.country')}<span className="text-red-500">*</span>
-            </label>
+          <FormField label={t('auth.country')} error={errors.country?.message} required>
             <Select
               inputId="country"
               options={countryOptions}
@@ -349,124 +294,47 @@ const ProfessionalRegister = () => {
                   minHeight: 44,
                   borderColor: errors.country ? '#ef4444' : state.isFocused ? '#3b82f6' : '#d1d5db',
                   boxShadow: state.isFocused ? '0 0 0 2px rgba(59, 130, 246, 0.25)' : 'none',
-                  '&:hover': {
-                    borderColor: state.isFocused ? '#3b82f6' : '#9ca3af',
-                  },
+                  '&:hover': { borderColor: state.isFocused ? '#3b82f6' : '#9ca3af' },
                 }),
-                menu: (base) => ({
-                  ...base,
-                  zIndex: 30,
-                }),
+                menu: (base) => ({ ...base, zIndex: 30 }),
               }}
             />
-            <input
-              type="hidden"
-              {...register('country', {
-                required: validationMessages.countryRequired,
-              })}
-            />
-            {errors.country && (
-              <span className="text-red-500 text-xs mt-1">{errors.country.message}</span>
-            )}
-          </div>
+            <input type="hidden" {...register('country', { required: validationMessages.countryRequired })} />
+          </FormField>
 
           {/* INFORMATIONS DE CONNEXION */}
           <h2 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6">
             {t('auth.connection_info')}
           </h2>
 
-          {/* Email */}
-          <div>
-            <label htmlFor="email" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.email')}<span className="text-red-500">*</span>
-            </label>
+          <FormField label={t('auth.email')} error={errors.email?.message} required>
             <input
               type="email"
               id="email"
               {...register('email', {
                 required: validationMessages.emailRequired,
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: validationMessages.emailInvalid,
-                },
+                pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: validationMessages.emailInvalid },
               })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.email ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
               placeholder={t('auth.placeholder_email')}
             />
-            {errors.email && (
-              <span className="text-red-500 text-xs mt-1">{errors.email.message}</span>
-            )}
-          </div>
+          </FormField>
 
-          {/* Mot de passe */}
-          <div>
-            <label htmlFor="password" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.password')}<span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                {...register('password', getStrongPasswordRules(t))}
-                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                  errors.password ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-3 flex items-center"
-                aria-label={showPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
-              >
-                <img
-                  src={showPassword ? InvisibleIcon : EyeIcon}
-                  alt={showPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
-                  className="w-[17px] h-[17px]"
-                />
-              </button>
-            </div>
-            {errors.password && (
-              <span className="text-red-500 text-xs mt-1">{errors.password.message}</span>
-            )}
-          </div>
+          <PasswordField
+            label={t('auth.password')}
+            id="password"
+            error={errors.password?.message}
+            required
+            inputProps={register('password', getStrongPasswordRules(t))}
+          />
 
-          {/* Confirmation mot de passe */}
-          <div>
-            <label htmlFor="confirmPassword" className="block text-left text-sm text-gray-700 mb-1">
-              {t('auth.confirm_password')} <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                id="confirmPassword"
-                {...register('confirmPassword', {
-                  required: validationMessages.passwordConfirmationRequired,
-                })}
-                className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                  errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-3 flex items-center"
-                aria-label={showConfirmPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
-              >
-                <img
-                  src={showConfirmPassword ? InvisibleIcon : EyeIcon}
-                  alt={showConfirmPassword ? t('auth.hide_password', 'Masquer le mot de passe') : t('auth.show_password', 'Afficher le mot de passe')}
-                  className="w-[17px] h-[17px]"
-                />
-              </button>
-            </div>
-            {errors.confirmPassword && (
-              <span className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</span>
-            )}
-          </div>
+          <PasswordField
+            label={t('auth.confirm_password')}
+            id="confirmPassword"
+            error={errors.confirmPassword?.message}
+            required
+            inputProps={register('confirmPassword', { required: validationMessages.passwordConfirmationRequired })}
+          />
 
           {/* Checkbox CGU */}
           <div className="flex items-center gap-3 text-left">

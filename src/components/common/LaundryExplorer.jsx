@@ -12,6 +12,7 @@ import authService from "../../services/authService";
 
 // 3. Composants locaux
 import LaundryCard from './LaundryCard';
+import TagFilter from './TagFilter';
 
 // 4. Assets/images
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -75,10 +76,15 @@ function SetViewOnCenter({ target }) {
 
 	useEffect(() => {
 		if (!target) return;
-		const key = `${target[0].toFixed(6)},${target[1].toFixed(6)},${target[2] ?? ''}`;
-		if (lastKey.current === key) return;
+		const [lat, lng, zoom] = target;
+		const targetZoom = zoom ?? map.getZoom();
+		const center = map.getCenter();
+		const closeEnough = Math.abs(center.lat - lat) < 1e-6 && Math.abs(center.lng - lng) < 1e-6;
+		const sameZoom = map.getZoom() === targetZoom;
+		const key = `${lat.toFixed(6)},${lng.toFixed(6)},${targetZoom}`;
+		if (lastKey.current === key && closeEnough && sameZoom) return;
 		lastKey.current = key;
-		map.flyTo([target[0], target[1]], target[2] ?? map.getZoom(), {
+		map.flyTo([lat, lng], targetZoom, {
 			animate: true,
 			duration: 1.2,
 		});
@@ -120,6 +126,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 	const [laundries,          setLaundries]          = useState([]);
 	const [error,              setError]              = useState(null);
 	const [position,           setPosition]           = useState(null);
+	const [initialMapCenter,   setInitialMapCenter]   = useState(null);
 	const [flyToTarget,        setFlyToTarget]        = useState(null);
 	const [mapBounds,          setMapBounds]          = useState(null);
 	const [search,             setSearch]             = useState('');
@@ -135,8 +142,12 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 	const [endTimeValue,       setEndTimeValue]       = useState('');
 	const [favoriteIds,        setFavoriteIds]        = useState([]);
 	const [loadingFavorites,   setLoadingFavorites]   = useState(false);
-	const mapRef   = useRef(null);
-	const cardRefs = useRef({});
+	const [suggestions,        setSuggestions]        = useState([]);
+	const [showSuggestions,    setShowSuggestions]    = useState(false);
+	const mapRef          = useRef(null);
+	const cardRefs        = useRef({});
+	const suggestDebounce = useRef(null);
+	const searchWrapRef   = useRef(null);
 
 	const fetchFavorites = useCallback(async () => {
         setLoadingFavorites(true);
@@ -189,7 +200,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 
 	function getRadiusKm() {
 		const parsed = Number.parseInt(radiusValue, 10);
-		return Number.isNaN(parsed) ? 20 : Math.max(1, Math.min(100, parsed));
+		return Number.isNaN(parsed) ? 5 : Math.max(1, Math.min(100, parsed));
 	}
 
 	function isValidTimeHHMM(v) {
@@ -263,15 +274,17 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 	}, [selectedServices, selectedPayments, startTimeValue, endTimeValue, radiusValue]);
 
 	useEffect(() => {
+		const PARIS = [48.8666, 2.3333];
 		if (!navigator.geolocation) {
 			setError(t('explorer.geolocation_unavailable', "La géolocalisation n'est pas supportée par ce navigateur."));
+			setInitialMapCenter(PARIS);
 			return;
 		}
 		navigator.geolocation.getCurrentPosition(
 			(pos) => {
 				const coords = [pos.coords.latitude, pos.coords.longitude];
 				setPosition(coords);
-				setFlyToTarget([...coords, 15]);
+				setInitialMapCenter(coords);
 				setError(null);
 			},
 			(err) => {
@@ -282,8 +295,8 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 				} else {
 					setError(t('explorer.geolocation_error', 'Erreur de géolocalisation : ') + err.message);
 				}
-
-				setFlyToTarget([48.8666, 2.3333, 12]);
+				setInitialMapCenter(PARIS);
+				setFlyToTarget([...PARIS, 12]);
 			}
 		);
 	}, [t]);
@@ -302,6 +315,9 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 	}, [isFilterModalOpen]);
 
 	function handleRecenter() {
+		if (mapRef.current) {
+			mapRef.current.closePopup();
+		}
 		setIsLocationSearch(false);
 		setSearchLocation(null);
 		setShowAll(false);
@@ -332,11 +348,61 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 	}
 
 	function handleSearchChange(e) {
-		setSearch(e.target.value);
+		const value = e.target.value;
+		setSearch(value);
+
+		clearTimeout(suggestDebounce.current);
+		if (value.trim().length < 2) {
+			setSuggestions([]);
+			setShowSuggestions(false);
+			return;
+		}
+		suggestDebounce.current = setTimeout(async () => {
+			try {
+				const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=fr&addressdetails=1&q=${encodeURIComponent(value.trim())}`;
+				const res = await fetch(url, { headers: { Accept: 'application/json', 'Accept-Language': 'fr' } });
+				if (!res.ok) return;
+				const data = await res.json();
+				setSuggestions(data.map(item => {
+						const a = item.address || {};
+						const parts = [
+							a.house_number && a.road ? `${a.house_number} ${a.road}` : a.road,
+							a.city || a.town || a.village || a.municipality,
+							a.postcode,
+						].filter(Boolean);
+						return {
+							label: parts.length ? parts.join(', ') : item.display_name.split(',').slice(0, 3).join(',').trim(),
+							fullLabel: item.display_name,
+							lat: parseFloat(item.lat),
+							lng: parseFloat(item.lon),
+							type: item.type,
+						};
+					}));
+				setShowSuggestions(true);
+			} catch {
+				setSuggestions([]);
+			}
+		}, 300);
+	}
+
+	function handleSuggestionSelect(suggestion) {
+		setSearch(suggestion.label);
+		setSuggestions([]);
+		setShowSuggestions(false);
+		const zoom = looksLikeAddress(suggestion.label) ? 15 : 13;
+		setIsLocationSearch(true);
+		setSearchLocation([suggestion.lat, suggestion.lng]);
+		setHighlightedLaundryId(null);
+		setShowAll(false);
+		setFlyToTarget([suggestion.lat, suggestion.lng, zoom]);
+		if (mapRef.current) mapRef.current.closePopup();
 	}
 
 	async function handleSearchSubmit(e) {
 		e.preventDefault();
+		if (mapRef.current) {
+			mapRef.current.closePopup();
+		}
 		const queryRaw = search.trim();
 		if (!queryRaw) {
 			setIsLocationSearch(false);
@@ -408,8 +474,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 				? laundriesVisible
 				: laundriesVisible.slice(0, LIST_INITIAL_LIMIT);
 
-	const initialCenter = [48.8584, 2.2945];
-	const initialZoom   = 12;
+	const initialZoom = position ? 15 : 12;
 
 	return (
 		<div className={`flex flex-col md:flex-row gap-8 lg:gap-6 items-baseline lg:items-start w-full ${effectiveDarkTheme ? 'text-slate-100' : 'text-slate-900'}`}>
@@ -427,19 +492,24 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 						className="py-2 lg:py-3 flex gap-2 lg:gap-3 items-center w-full max-w-xl lg:max-w-3xl xl:max-w-4xl"
 						onSubmit={handleSearchSubmit}
 					>
-						<div className="relative flex-1">
+						<div className="relative flex-1" ref={searchWrapRef}>
 							<input
 								type="text"
 								placeholder={t('explorer.search_placeholder', 'Rechercher une laverie, une ville...')}
 								className={`w-full border rounded-lg h-[38px] lg:h-[46px] pl-3 text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-blue-200 ${effectiveDarkTheme ? 'border-slate-600 bg-slate-900 text-slate-100 placeholder-slate-400' : 'border-[#D1D5DB] bg-white text-slate-900'}`}
 								value={search}
 								onChange={handleSearchChange}
+								onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+								onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+								autoComplete="off"
 							/>
 							{search && (
 								<button
 									type="button"
 									onClick={() => {
 										setSearch('');
+										setSuggestions([]);
+										setShowSuggestions(false);
 										setSearchLocation(null);
 										setIsLocationSearch(false);
 										handleRecenter();
@@ -450,6 +520,21 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 								>
 									×
 								</button>
+							)}
+							{showSuggestions && suggestions.length > 0 && (
+								<ul className={`absolute z-[9999] left-0 right-0 top-full mt-1 rounded-lg shadow-lg border overflow-hidden ${effectiveDarkTheme ? 'bg-slate-800 border-slate-600' : 'bg-white border-[#D1D5DB]'}`}>
+									{suggestions.map((s, i) => (
+										<li key={i}>
+											<button
+												type="button"
+												onMouseDown={() => handleSuggestionSelect(s)}
+												className={`w-full text-left px-3 py-2 text-sm truncate transition-colors ${effectiveDarkTheme ? 'text-slate-100 hover:bg-slate-700' : 'text-slate-800 hover:bg-blue-50'}`}
+											>
+												{s.label}
+											</button>
+										</li>
+									))}
+								</ul>
 							)}
 						</div>
 
@@ -487,7 +572,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 
 				{isFilterModalOpen && (
 					<div className="fixed inset-0 z-1 flex items-end justify-center">
-						<div className="relative z-10 w-full max-w-[600px] bg-white dark:bg-slate-900 rounded-t-2xl border-t-2 border-blue-500 shadow-xl flex flex-col">
+						<div className="relative z-10 pb-4 w-full max-w-[600px] bg-white dark:bg-slate-900 rounded-t-2xl border-t-2 border-blue-500 shadow-xl flex flex-col">
 							
 							<div className="overflow-y-auto px-6 pb-6 pt-4">
 								<div className="flex items-start justify-between mb-4">
@@ -543,7 +628,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 									</div>
 
 									<div className="flex flex-wrap items-center gap-2">
-										<div className="flex-1 min-w-[80px] flex flex-col gap-1">
+										<div className="flex-1 min-w-20 flex flex-col gap-1">
 											<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
 											{t('explorer.filter_time_start', 'Ouverture')}
 											</label>
@@ -558,7 +643,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 											/>
 										</div>
 										<span className="text-slate-300 dark:text-slate-600 text-base mt-4">→</span>
-										<div className="flex-1 min-w-[80px] flex flex-col gap-1">
+										<div className="flex-1 min-w-20 flex flex-col gap-1">
 											<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
 											{t('explorer.filter_time_end', 'Fermeture')}
 											</label>
@@ -579,7 +664,11 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 										{t('explorer.filter_service', 'Services')}
 										</label>
 										<div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
-										<ServiceFilter t={t} hideLabel selected={selectedServices} onChange={setSelectedServices} />
+										<TagFilter items={[
+											{ value: 'wifi', label: t('explorer.filter_service_wifi') },
+											{ value: 'ironing-station',   label: t('explorer.filter_service_ironing') },
+											{ value: 'laundry-folding',   label: t('explorer.filter_service_folding') },
+										]} selected={selectedServices} onChange={setSelectedServices} />
 										</div>
 									</div>
 
@@ -588,7 +677,11 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 										{t('explorer.filter_payment', 'Moyens de paiement')}
 										</label>
 										<div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
-										<PaymentFilter t={t} hideLabel selected={selectedPayments} onChange={setSelectedPayments} />
+										<TagFilter items={[
+											{ value: 'card',        label: t('explorer.filter_payment_cb',          'Carte bancaire') },
+											{ value: 'cash',        label: t('explorer.filter_payment_cash',         'Espèces') },
+											{ value: 'contactless', label: t('explorer.filter_payment_contactless',  'Sans contact') },
+										]} selected={selectedPayments} onChange={setSelectedPayments} />
 										</div>
 									</div>
 								</div>
@@ -598,9 +691,9 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 				)}
 
 				<div className="h-[500px] lg:h-[680px] xl:h-[760px] w-full z-0">
-					<MapContainer
+					{initialMapCenter && <MapContainer
 						ref={mapRef}
-						center={initialCenter}
+						center={initialMapCenter}
 						zoom={initialZoom}
 						style={{ height: '100%', width: '100%' }}
 					>
@@ -626,7 +719,15 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 								!isNaN(l.latitude) &&
 								!isNaN(l.longitude)
 							)
-							.map(laundry => (
+							.map(laundry => {
+								const addressLabel = typeof laundry.address === 'string'
+									? laundry.address
+									: (laundry.address?.address
+										|| [laundry.address?.street, laundry.address?.postalCode, laundry.address?.city]
+											.filter(Boolean)
+											.join(' '));
+
+								return (
 								<Marker
 									key={laundry.id}
 									position={[laundry.latitude, laundry.longitude]}
@@ -647,30 +748,58 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 								>
 									<Popup>
 										<strong>{laundry.establishmentName}</strong><br />
-										{laundry.address}<br />
-										<div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+											{addressLabel}<br />
+										<div style={{ marginTop: 10, display: 'flex', gap: 6 }}>
 											<a
-												href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(laundry.address)}`}
+												href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addressLabel)}`}
 												target="_blank"
 												rel="noopener noreferrer"
-												className="inline-flex mt-1 w-[50px] h-[38px] items-center justify-center rounded bg-[#4285F4] hover:bg-blue-700"
-												style={{ marginBottom: 4 }}
+												style={{
+													display: 'inline-flex',
+													alignItems: 'center',
+													gap: 6,
+													padding: '5px 10px',
+													background: '#E8F0FE',
+													border: 'none',
+													borderRadius: 20,
+													textDecoration: 'none',
+													color: '#1a73e8',
+													fontSize: 12,
+													fontWeight: 600,
+													whiteSpace: 'nowrap',
+												}}
 											>
-												<img src={GoogleMapsIcon} alt="Google Maps" style={{ height: 22, width: 22, display: 'block' }} />
+												<img src={GoogleMapsIcon} alt="Google Maps" style={{ height: 16, width: 16, display: 'block', flexShrink: 0 }} />
+												<span>Google Maps</span>
 											</a>
 											<a
 												href={`https://waze.com/ul?ll=${laundry.latitude},${laundry.longitude}&navigate=yes`}
 												target="_blank"
 												rel="noopener noreferrer"
-												className="inline-flex w-[50px] h-[38px] items-center justify-center rounded bg-[#33CCFF] hover:bg-indigo-700"
+												style={{
+													display: 'inline-flex',
+													alignItems: 'center',
+													gap: 6,
+													padding: '5px 10px',
+													background: '#E0F9FF',
+													border: 'none',
+													borderRadius: 20,
+													textDecoration: 'none',
+													color: '#00b4d8',
+													fontSize: 12,
+													fontWeight: 600,
+													whiteSpace: 'nowrap',
+												}}
 											>
-												<img src={WazeIcon} alt="Waze" style={{ height: 22, width: 22, display: 'block' }} />
+												<img src={WazeIcon} alt="Waze" style={{ height: 16, width: 16, display: 'block', flexShrink: 0 }} />
+												<span>Waze</span>
 											</a>
 										</div>
 									</Popup>
-								</Marker>
-							))}
-					</MapContainer>
+									</Marker>
+								);
+							})}
+					</MapContainer>}
 				</div>
 			</div>
 
@@ -701,6 +830,9 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 									onMouseEnter={() => setHighlightedLaundryId(laundry.id)}
 									onMouseLeave={() => setHighlightedLaundryId(null)}
 									onClick={() => {
+										if (mapRef.current) {
+											mapRef.current.closePopup();
+										}
 										setFlyToTarget([laundry.latitude, laundry.longitude, 16]);
 										setHighlightedLaundryId(laundry.id);
 									}}
@@ -732,89 +864,3 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 };
 
 export default LaundryExplorer;
-
-function ServiceFilter({ t, hideLabel, selected = [], onChange }) {
-	const services = [
-		{ value: 'self-service-24-7', label: t('explorer.filter_service_self_service', 'Libre-service 24/7') },
-		{ value: 'ironing-station',   label: t('explorer.filter_service_ironing',       'Poste de repassage') },
-		{ value: 'laundry-folding',   label: t('explorer.filter_service_folding',        'Pliage du linge') },
-	];
-
-	function toggleService(value) {
-		onChange(sel => sel.includes(value) ? sel.filter(v => v !== value) : [...sel, value]);
-	}
-
-	function removeService(value, e) {
-		e.stopPropagation();
-		onChange(sel => sel.filter(v => v !== value));
-	}
-
-	return (
-		<div>
-			{!hideLabel && (
-				<label className="block text-left font-bold text-[12px] text-[#3B82F6] mb-1">
-					{t('explorer.filter_service', 'Services')}
-				</label>
-			)}
-			<div className="flex flex-wrap gap-2">
-				{services.map(s => (
-					<button
-						type="button"
-						key={s.value}
-						onClick={() => toggleService(s.value)}
-						className={`flex items-center gap-1 px-3 py-1 rounded-full border transition ${
-							selected.includes(s.value)
-								? 'bg-[#3B82F6] text-white border-[#3B82F6] shadow'
-								: 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-blue-100'
-						}`}
-					>
-						{s.label}
-					</button>
-				))}
-			</div>
-		</div>
-	);
-}
-
-function PaymentFilter({ t, hideLabel, selected = [], onChange }) {
-	const payments = [
-		{ value: 'card',        label: t('explorer.filter_payment_cb',          'Carte bancaire') },
-		{ value: 'cash',        label: t('explorer.filter_payment_cash',         'Espèces') },
-		{ value: 'contactless', label: t('explorer.filter_payment_contactless',  'Sans contact') },
-	];
-
-	function togglePayment(value) {
-		onChange(sel => sel.includes(value) ? sel.filter(v => v !== value) : [...sel, value]);
-	}
-
-	function removePayment(value, e) {
-		e.stopPropagation();
-		onChange(sel => sel.filter(v => v !== value));
-	}
-
-	return (
-		<div>
-			{!hideLabel && (
-				<label className="block text-left font-bold text-[12px] text-[#3B82F6] mb-1">
-					{t('explorer.filter_payment', 'Moyen de paiement')}
-				</label>
-			)}
-			<div className="flex flex-wrap gap-2">
-				{payments.map(p => (
-					<button
-						type="button"
-						key={p.value}
-						onClick={() => togglePayment(p.value)}
-						className={`flex items-center gap-1 px-3 py-1 rounded-full border transition ${
-							selected.includes(p.value)
-								? 'bg-[#3B82F6] text-white border-[#3B82F6] shadow'
-								: 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-blue-100'
-						}`}
-					>
-						{p.label}
-					</button>
-				))}
-			</div>
-		</div>
-	);
-}

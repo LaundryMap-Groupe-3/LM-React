@@ -5,6 +5,8 @@ import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import adminService from '../../services/adminService';
 import { ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
+import StatusBadge from '../common/StatusBadge';
+import Button from '../common/Button';
 
 const AdminProfessionalDetails = ({ isDarkTheme }) => {
   const { id } = useParams();
@@ -91,7 +93,11 @@ const AdminProfessionalDetails = ({ isDarkTheme }) => {
   };
 
   if (!user) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3B82F6]" />
+      </div>
+    );
   }
 
   if (!loading && user.type !== 'admin') {
@@ -153,23 +159,9 @@ const AdminProfessionalDetails = ({ isDarkTheme }) => {
                 {professionalUser.firstName} {professionalUser.lastName}
               </h1>
               <div className="flex gap-2">
-                {isApproved && (
-                  <span className="px-3 py-1 bg-green-100 text-green-800 text-[12px] font-semibold rounded-md flex items-center gap-2 whitespace-nowrap">
-                    <CheckCircle size={16} />
-                    {t('admin.approved')}
-                  </span>
-                )}
-                {isRejected && (
-                  <span className="px-3 py-1 bg-red-100 text-red-800 text-[12px] font-semibold rounded-md flex items-center gap-2 whitespace-nowrap">
-                    <AlertCircle size={16} />
-                    {t('admin.rejected')}
-                  </span>
-                )}
-                {!isApproved && !isRejected && (
-                  <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-[12px] font-semibold rounded-md flex items-center gap-2 whitespace-nowrap">
-                    {t('admin.pending')}
-                  </span>
-                )}
+                {isApproved && <StatusBadge status="approved" label={t('admin.approved')} icon={<CheckCircle size={16} />} />}
+                {isRejected && <StatusBadge status="rejected" label={t('admin.rejected')} icon={<AlertCircle size={16} />} />}
+                {!isApproved && !isRejected && <StatusBadge status="pending" label={t('admin.pending')} />}
               </div>
             </div>
           </div>
@@ -239,10 +231,10 @@ const AdminProfessionalDetails = ({ isDarkTheme }) => {
                   </div>
                   <div>
                     <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">
-                      {t('auth.siret')}
+                      {t('auth.siren')}
                     </p>
                     <p className="text-[14px] text-[#111827] font-mono">
-                      {professional.siret}
+                      {professional.siren}
                     </p>
                   </div>
                   <div>
@@ -363,20 +355,12 @@ const AdminProfessionalDetails = ({ isDarkTheme }) => {
                     {t('admin.approve_confirmation')}
                   </p>
                   <div className="space-y-2">
-                    <button
-                      onClick={handleApprove}
-                      disabled={isProcessing}
-                      className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200"
-                    >
-                      {isProcessing ? t('admin.approving') : t('admin.approve_button')}
-                    </button>
-                    <button
-                      onClick={() => setShowApproveConfirm(false)}
-                      disabled={isProcessing}
-                      className="w-full bg-gray-300 hover:bg-gray-400 disabled:bg-gray-300 disabled:cursor-not-allowed text-gray-700 px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200"
-                    >
+                    <Button variant="success" onClick={handleApprove} disabled={isProcessing} loading={isProcessing} loadingLabel={t('admin.approving')} className="w-full py-2 text-[13px]">
+                      {t('admin.approve_button')}
+                    </Button>
+                    <Button variant="secondary" onClick={() => setShowApproveConfirm(false)} disabled={isProcessing} className="w-full py-2 text-[13px]">
                       {t('common.cancel')}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -386,65 +370,36 @@ const AdminProfessionalDetails = ({ isDarkTheme }) => {
                 {!isApproved && !isRejected && (
                   <>
                     {!showRejectModal && !showApproveConfirm && (
-                      <button
-                        onClick={() => {
-                          setShowApproveConfirm(true);
-                          setShowRejectModal(false);
-                        }}
-                        disabled={isProcessing}
-                        className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200 flex items-center justify-center gap-2"
-                      >
+                      <Button variant="success" onClick={() => { setShowApproveConfirm(true); setShowRejectModal(false); }} disabled={isProcessing} className="w-full py-2 text-[13px]">
                         <CheckCircle size={16} />
-                        {isProcessing ? t('admin.approving') : t('admin.approve_button')}
-                      </button>
+                        {t('admin.approve_button')}
+                      </Button>
                     )}
 
                     {!showRejectModal && !showApproveConfirm ? (
-                      <button
-                        onClick={() => {
-                          setShowRejectModal(true);
-                          setShowApproveConfirm(false);
-                        }}
-                        disabled={isProcessing}
-                        className="w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200 flex items-center justify-center gap-2"
-                      >
+                      <Button variant="danger" onClick={() => { setShowRejectModal(true); setShowApproveConfirm(false); }} disabled={isProcessing} className="w-full py-2 text-[13px]">
                         <AlertCircle size={16} />
                         {t('admin.reject_button')}
-                      </button>
+                      </Button>
                     ) : showRejectModal ? (
                       <>
-                        <button
-                          onClick={handleRejectSubmit}
-                          disabled={isProcessing || !rejectionReason.trim()}
-                          className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200"
-                        >
-                          {isProcessing ? t('admin.rejecting') : t('admin.reject_button')}
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowRejectModal(false);
-                            setRejectionReason('');
-                          }}
-                          disabled={isProcessing}
-                          className="w-full bg-gray-300 hover:bg-gray-400 disabled:bg-gray-300 disabled:cursor-not-allowed text-gray-700 px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200"
-                        >
+                        <Button variant="danger" onClick={handleRejectSubmit} disabled={isProcessing || !rejectionReason.trim()} loading={isProcessing} loadingLabel={t('admin.rejecting')} className="w-full py-2 text-[13px]">
+                          {t('admin.reject_button')}
+                        </Button>
+                        <Button variant="secondary" onClick={() => { setShowRejectModal(false); setRejectionReason(''); }} disabled={isProcessing} className="w-full py-2 text-[13px]">
                           {t('common.cancel')}
-                        </button>
+                        </Button>
                       </>
                     ) : null}
                   </>
                 )}
               </div>
 
-              {/* Bouton retour si déjà validé */}
               {(isApproved || isRejected) && (
-                <button
-                  onClick={() => navigate('/admin/professionals')}
-                  className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200 flex items-center justify-center gap-2"
-                >
+                <Button onClick={() => navigate('/admin/professionals')} className="w-full py-2 text-[13px]">
                   <ArrowLeft size={16} />
                   {t('admin.back_to_list')}
-                </button>
+                </Button>
               )}
             </div>
           </div>

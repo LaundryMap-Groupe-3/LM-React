@@ -13,6 +13,8 @@ import LocationIcon from '../../assets/images/icons/Location.svg';
 import DoneIcon from '../../assets/images/icons/Done.svg';
 import WhiteCrossIcon from '../../assets/images/icons/white-close.svg';
 import { ArrowLeft } from 'lucide-react';
+import StatusBadge from '../common/StatusBadge';
+import Button from '../common/Button';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -103,6 +105,18 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
     return `${parsed.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`;
   };
 
+  const formatCapacity = (value) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return '-';
+    return `${parsed} kg`;
+  };
+
+  const formatDuration = (value) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return '-';
+    return `${parsed} min`;
+  };
+
   const getDisplayValue = (value) => {
     if (value === 0) return '0';
     return value || '-';
@@ -161,7 +175,13 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
     sunday: t('professional.laundry_form.sunday'),
   };
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3B82F6]" />
+      </div>
+    );
+  }
 
   if (!loading && user.type !== 'admin') {
     return (
@@ -206,6 +226,38 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
   const exceptionalClosures = Array.isArray(laundry.exceptionalClosures) ? laundry.exceptionalClosures : [];
   const serviceLabels = resolveLabelsFromIds(laundry.services || laundry.serviceIds);
   const paymentLabels = resolveLabelsFromIds(laundry.paymentMethods || laundry.paymentMethodIds);
+  const equipmentItems = Array.isArray(laundry.equipments) ? laundry.equipments : [];
+
+  const equipmentTypeOrder = {
+    washing_machine: 1,
+    dryer: 2,
+    ironing_machine: 3,
+    vacuum: 4,
+    other: 5,
+  };
+
+  const equipmentTypeLabels = {
+    washing_machine: t('admin.equipment_type_washing_machine'),
+    dryer: t('admin.equipment_type_dryer'),
+    ironing_machine: t('admin.equipment_type_ironing_machine'),
+    vacuum: t('admin.equipment_type_vacuum'),
+    other: t('admin.equipment_type_other'),
+  };
+
+  const sortedEquipmentItems = [...equipmentItems].sort((a, b) => {
+    const orderA = equipmentTypeOrder[a?.type] ?? 99;
+    const orderB = equipmentTypeOrder[b?.type] ?? 99;
+    if (orderA !== orderB) return orderA - orderB;
+
+    const capacityA = Number(a?.capacity) || 0;
+    const capacityB = Number(b?.capacity) || 0;
+    if (capacityA !== capacityB) return capacityA - capacityB;
+
+    return String(a?.name || '').localeCompare(String(b?.name || ''), 'fr');
+  });
+
+  const washingMachineItems = sortedEquipmentItems.filter((equipment) => equipment?.type === 'washing_machine');
+  const dryerItems = sortedEquipmentItems.filter((equipment) => equipment?.type === 'dryer');
 
   const openingHoursByDay = !Array.isArray(laundry.openingHours) && laundry.openingHours
     ? laundry.openingHours
@@ -255,21 +307,10 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
                 {laundry.establishmentName || '-'}
               </h1>
               <div className="flex gap-2">
-                {isApproved && (
-                  <span className="px-3 py-1 bg-green-100 text-green-800 text-[12px] font-semibold rounded-md flex items-center gap-2 whitespace-nowrap">
-                    {t('admin.approved')}
-                  </span>
-                )}
-                {isRejected && (
-                  <span className="px-3 py-1 bg-red-100 text-red-800 text-[12px] font-semibold rounded-md flex items-center gap-2 whitespace-nowrap">
-                    {t('admin.rejected')}
-                  </span>
-                )}
+                {isApproved && <StatusBadge status="approved" label={t('admin.approved')} />}
+                {isRejected && <StatusBadge status="rejected" label={t('admin.rejected')} />}
                 {!isApproved && !isRejected && (
-                  <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-[12px] font-semibold rounded-md flex items-center gap-2 whitespace-nowrap">
-                    <img src={PendingClockIcon} alt="" className="h-3 w-3" />
-                    {t('admin.pending')}
-                  </span>
+                  <StatusBadge status="pending" label={t('admin.pending')} icon={<img src={PendingClockIcon} alt="" className="h-3 w-3" />} />
                 )}
               </div>
             </div>
@@ -344,7 +385,7 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
                       <img
                         src={logoUrl}
                         alt={t('admin.logo')}
-                        className="mt-1 h-20 w-20 rounded-md border border-gray-200 object-cover"
+                        className="mt-1 h-20 w-20 rounded-md border border-gray-200 object-cover mx-auto block"
                       />
                     ) : (
                       <p className="text-[14px] text-[#111827]">-</p>
@@ -431,58 +472,80 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
                 <h3 className="text-[14px] font-semibold text-[#111827] mb-4">
                   {t('dashboard.machines')}
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-[13px] text-[#111827]">
-                  <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('professional.laundry_form.capacity_6kg')}</p>
-                    <p>{t('dashboard.washing_machines')}: {getDisplayValue(laundry.washingMachines6kg)}</p>
-                    <p>{t('dashboard.dryers')}: {getDisplayValue(laundry.dryers6kg)}</p>
+                {sortedEquipmentItems.length > 0 ? (
+                  <div className="mt-3 space-y-6">
+                    <div>
+                      <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-2">
+                        {t('admin.equipment_type_washing_machine')}
+                      </p>
+                      {washingMachineItems.length > 0 ? (
+                        <div className="overflow-x-auto">
+                          <table className="min-w-[520px] mx-auto text-center text-[12px] text-[#111827]">
+                            <thead className="text-[11px] uppercase text-[#6B7280]">
+                              <tr className="border-b border-gray-200">
+                                <th className="py-2 px-3 font-semibold">{t('admin.equipment_name')}</th>
+                                <th className="py-2 px-3 font-semibold">{t('admin.equipment_capacity')}</th>
+                                <th className="py-2 px-3 font-semibold">{t('admin.equipment_price')}</th>
+                                <th className="py-2 px-3 font-semibold">{t('admin.equipment_duration')}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {washingMachineItems.map((equipment, index) => (
+                                <tr
+                                  key={equipment?.id ?? `${equipment?.name || 'equipment'}-${index}`}
+                                  className="border-b border-gray-100 last:border-b-0"
+                                >
+                                  <td className="py-2 px-3">{equipment?.name || '-'}</td>
+                                  <td className="py-2 px-3">{formatCapacity(equipment?.capacity)}</td>
+                                  <td className="py-2 px-3">{formatPrice(equipment?.price)}</td>
+                                  <td className="py-2 px-3">{formatDuration(equipment?.duration)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <p className="text-[14px] text-[#111827]">{t('admin.no_equipments')}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-2">
+                        {t('admin.equipment_type_dryer')}
+                      </p>
+                      {dryerItems.length > 0 ? (
+                        <div className="overflow-x-auto">
+                          <table className="min-w-[520px] mx-auto text-center text-[12px] text-[#111827]">
+                            <thead className="text-[11px] uppercase text-[#6B7280]">
+                              <tr className="border-b border-gray-200">
+                                <th className="py-2 px-3 font-semibold">{t('admin.equipment_name')}</th>
+                                <th className="py-2 px-3 font-semibold">{t('admin.equipment_capacity')}</th>
+                                <th className="py-2 px-3 font-semibold">{t('admin.equipment_price')}</th>
+                                <th className="py-2 px-3 font-semibold">{t('admin.equipment_duration')}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {dryerItems.map((equipment, index) => (
+                                <tr
+                                  key={equipment?.id ?? `${equipment?.name || 'equipment'}-${index}`}
+                                  className="border-b border-gray-100 last:border-b-0"
+                                >
+                                  <td className="py-2 px-3">{equipment?.name || '-'}</td>
+                                  <td className="py-2 px-3">{formatCapacity(equipment?.capacity)}</td>
+                                  <td className="py-2 px-3">{formatPrice(equipment?.price)}</td>
+                                  <td className="py-2 px-3">{formatDuration(equipment?.duration)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <p className="text-[14px] text-[#111827]">{t('admin.no_equipments')}</p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('professional.laundry_form.capacity_8kg')}</p>
-                    <p>{t('dashboard.washing_machines')}: {getDisplayValue(laundry.washingMachines8kg)}</p>
-                    <p>{t('dashboard.dryers')}: {getDisplayValue(laundry.dryers8kg)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('professional.laundry_form.capacity_10kg')}</p>
-                    <p>{t('dashboard.washing_machines')}: {getDisplayValue(laundry.washingMachines10kg)}</p>
-                    <p>{t('dashboard.dryers')}: {getDisplayValue(laundry.dryers10kg)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('professional.laundry_form.capacity_12kg_plus')}</p>
-                    <p>{t('dashboard.washing_machines')}: {getDisplayValue(laundry.washingMachines12kgPlus)}</p>
-                    <p>{t('dashboard.dryers')}: {getDisplayValue(laundry.dryers12kgPlus)}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-gray-200"></div>
-
-              <div>
-                <h3 className="text-[14px] font-semibold text-[#111827] mb-4">
-                  {t('dashboard.pricing')}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-[13px] text-[#111827]">
-                  <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('professional.laundry_form.capacity_6kg')}</p>
-                    <p>{t('professional.laundry_form.washing_price')}: {formatPrice(laundry.washingPrice6kg)}</p>
-                    <p>{t('professional.laundry_form.drying_price')}: {formatPrice(laundry.dryingPrice6kg)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('professional.laundry_form.capacity_8kg')}</p>
-                    <p>{t('professional.laundry_form.washing_price')}: {formatPrice(laundry.washingPrice8kg)}</p>
-                    <p>{t('professional.laundry_form.drying_price')}: {formatPrice(laundry.dryingPrice8kg)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('professional.laundry_form.capacity_10kg')}</p>
-                    <p>{t('professional.laundry_form.washing_price')}: {formatPrice(laundry.washingPrice10kg)}</p>
-                    <p>{t('professional.laundry_form.drying_price')}: {formatPrice(laundry.dryingPrice10kg)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('professional.laundry_form.capacity_12kg_plus')}</p>
-                    <p>{t('professional.laundry_form.washing_price')}: {formatPrice(laundry.washingPrice12kgPlus)}</p>
-                    <p>{t('professional.laundry_form.drying_price')}: {formatPrice(laundry.dryingPrice12kgPlus)}</p>
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-[14px] text-[#111827]">{t('admin.no_equipments')}</p>
+                )}
               </div>
 
               <div className="border-t border-gray-200"></div>
@@ -520,9 +583,9 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
                     </p>
                   </div>
                   <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('admin.siret')}</p>
+                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('admin.siren')}</p>
                     <p className="text-[14px] text-[#111827]">
-                      {laundry.professional?.siret || '-'}
+                      {laundry.professional?.siren || '-'}
                     </p>
                   </div>
                 </div>
@@ -605,20 +668,12 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
                     {t('admin.approve_confirmation')}
                   </p>
                   <div className="space-y-2">
-                    <button
-                      onClick={handleApprove}
-                      disabled={isProcessing}
-                      className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200"
-                    >
-                      {isProcessing ? t('admin.approving') : t('admin.approve_button')}
-                    </button>
-                    <button
-                      onClick={() => setShowApproveConfirm(false)}
-                      disabled={isProcessing}
-                      className="w-full bg-gray-300 hover:bg-gray-400 disabled:bg-gray-300 disabled:cursor-not-allowed text-gray-700 px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200"
-                    >
+                    <Button variant="success" onClick={handleApprove} disabled={isProcessing} loading={isProcessing} loadingLabel={t('admin.approving')} className="w-full py-2 text-[13px]">
+                      {t('admin.approve_button')}
+                    </Button>
+                    <Button variant="secondary" onClick={() => setShowApproveConfirm(false)} disabled={isProcessing} className="w-full py-2 text-[13px]">
                       {t('common.cancel')}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -627,50 +682,25 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
                 {!isApproved && !isRejected && (
                   <>
                     {!showRejectModal && !showApproveConfirm && (
-                      <button
-                        onClick={() => {
-                          setShowApproveConfirm(true);
-                          setShowRejectModal(false);
-                        }}
-                        disabled={isProcessing}
-                        className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200 flex items-center justify-center gap-2"
-                      >
+                      <Button variant="success" onClick={() => { setShowApproveConfirm(true); setShowRejectModal(false); }} disabled={isProcessing} className="w-full py-2 text-[13px]">
                         <img src={DoneIcon} alt="" className="w-[15px] h-[15px]" />
-                        {isProcessing ? t('admin.approving') : t('admin.approve_button')}
-                      </button>
+                        {t('admin.approve_button')}
+                      </Button>
                     )}
 
                     {!showRejectModal && !showApproveConfirm ? (
-                      <button
-                        onClick={() => {
-                          setShowRejectModal(true);
-                          setShowApproveConfirm(false);
-                        }}
-                        disabled={isProcessing}
-                        className="w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200 flex items-center justify-center gap-2"
-                      >
+                      <Button variant="danger" onClick={() => { setShowRejectModal(true); setShowApproveConfirm(false); }} disabled={isProcessing} className="w-full py-2 text-[13px]">
                         <img src={WhiteCrossIcon} alt="" className="w-[15px] h-[15px]" />
                         {t('admin.reject_button')}
-                      </button>
+                      </Button>
                     ) : showRejectModal ? (
                       <>
-                        <button
-                          onClick={handleRejectSubmit}
-                          disabled={isProcessing || !rejectionReason.trim()}
-                          className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200"
-                        >
-                          {isProcessing ? t('admin.rejecting') : t('admin.reject_button')}
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowRejectModal(false);
-                            setRejectionReason('');
-                          }}
-                          disabled={isProcessing}
-                          className="w-full bg-gray-300 hover:bg-gray-400 disabled:bg-gray-300 disabled:cursor-not-allowed text-gray-700 px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200"
-                        >
+                        <Button variant="danger" onClick={handleRejectSubmit} disabled={isProcessing || !rejectionReason.trim()} loading={isProcessing} loadingLabel={t('admin.rejecting')} className="w-full py-2 text-[13px]">
+                          {t('admin.reject_button')}
+                        </Button>
+                        <Button variant="secondary" onClick={() => { setShowRejectModal(false); setRejectionReason(''); }} disabled={isProcessing} className="w-full py-2 text-[13px]">
                           {t('common.cancel')}
-                        </button>
+                        </Button>
                       </>
                     ) : null}
                   </>
@@ -678,13 +708,10 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
               </div>
 
               {(isApproved || isRejected) && (
-                <button
-                  onClick={() => navigate('/admin/laundries')}
-                  className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white px-4 py-2 rounded-md text-[13px] font-semibold transition-colors duration-200 flex items-center justify-center gap-2"
-                >
+                <Button onClick={() => navigate('/admin/laundries')} className="w-full py-2 text-[13px]">
                   <ArrowLeft size={16} />
                   {t('admin.back_to_list')}
-                </button>
+                </Button>
               )}
             </div>
           </div>

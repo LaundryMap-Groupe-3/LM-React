@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import usePageTitle from '../../hooks/usePageTitle';
 import { useTranslation } from '../../context/I18nContext';
 import { usePreferences } from '../../context/PreferencesContext';
+import StatusBadge from '../common/StatusBadge';
 import professionalService from '../../services/professionalService';
 import UserShield  from '../../assets/images/icons/User-Shield-white.svg';
 import Star from '../../assets/images/icons/Star-white.svg';
@@ -35,19 +36,20 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
   const totalPages = Math.ceil(laundries.length / pageSize);
   const paginatedLaundries = laundries.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
+  const fetchProfessionalData = async () => {
+    try {
+      const response = await professionalService.getLaundriesStats();
+      setLaundries(response.laundries || []);
+      setStats(response.stats || { averageNote: '--', total: '--', pending: '--' });
+    } catch (error) {
+      console.error('Erreur API /api/professional/laundries', error);
+      setLaundries([]);
+      setStats({ averageNote: '--', total: '--', pending: '--' });
+    }
+  };
+
   // Charger les laveries et statistiques du professionnel
   useEffect(() => {
-    const fetchProfessionalData = async () => {
-      try {
-        const response = await professionalService.getLaundriesStats();
-        setLaundries(response.laundries || []);
-        setStats(response.stats || { averageNote: '--', total: '--', pending: '--' });
-      } catch (error) {
-        console.error('Erreur API /api/professional/laundries', error);
-        setLaundries([]);
-        setStats({ averageNote: '--', total: '--', pending: '--' });
-      }
-    };
     fetchProfessionalData();
   }, []);
 
@@ -189,28 +191,23 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                         <span className={`font-bold text-base md:text-xl leading-tight truncate max-w-[60%] sm:max-w-[70%] ${effectiveDarkTheme ? 'text-blue-200' : 'text-[#1B4965]'}`}>
                           {laundry.establishmentName}
                         </span>
-                        <span
-                          className={`inline-flex items-center justify-center uppercase text-[9px] md:text-[12px] font-semibold rounded-[6px] px-2 py-1 h-[22px] whitespace-nowrap
-                            ${laundry.status === 'approved' ? 'text-[#008236] border border-[#0E9620]/20 bg-[#DCFCE7]'
-                            : laundry.status === 'pending' ? 'text-[#F59E0B] border border-[#F59E0B]/20 bg-[#FFF7ED]'
-                            : 'text-red-700 border border-red-200 bg-red-100'}
-                          `}
-                        >
-                          {laundry.status === 'approved' && (
-                            <img src={ApprovedIcon} alt={t('dashboard.status.approved', 'Validée')} className="w-[11px] h-[11px] mr-1" />
-                          )}
-                          {laundry.status === 'pending' && (
-                            <img src={PendingIconColor} alt={t('dashboard.status.pending', 'En attente')} className="w-[11px] h-[11px] mr-1" />
-                          )}
-                          {laundry.status === 'rejected' && (
-                            <img src={RefusedIcon} alt={t('dashboard.status.rejected', 'Refusée')} className="w-[11px] h-[11px] mr-1" />
-                          )}
-                          {laundry.status === 'approved'
-                            ? t('dashboard.status.approved', 'VALIDÉE')
-                            : laundry.status === 'pending'
-                            ? t('dashboard.status.pending', 'EN ATTENTE')
-                            : t('dashboard.status.rejected', 'REFUSÉE')}
-                        </span>
+                        <StatusBadge
+                          status={laundry.status === 'approved' ? 'approved' : laundry.status === 'pending' ? 'pending' : 'rejected'}
+                          label={
+                            laundry.status === 'approved'
+                              ? t('dashboard.status.approved', 'VALIDÉE')
+                              : laundry.status === 'pending'
+                              ? t('dashboard.status.pending', 'EN ATTENTE')
+                              : t('dashboard.status.rejected', 'REFUSÉE')
+                          }
+                          icon={
+                            laundry.status === 'approved'
+                              ? <img src={ApprovedIcon} alt="" className="w-[11px] h-[11px]" />
+                              : laundry.status === 'pending'
+                              ? <img src={PendingIconColor} alt="" className="w-[11px] h-[11px]" />
+                              : <img src={RefusedIcon} alt="" className="w-[11px] h-[11px]" />
+                          }
+                        />
                       </div>
 
                       <div className={`w-auto -mx-2 md:-mx-5 border-t ${effectiveDarkTheme ? 'border-gray-700' : 'border-[#E5E7EB]'}`}></div>
@@ -222,10 +219,10 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                             <img src={AddressIcon} alt="Address Icon" className="w-4 h-4 mt-[2px] shrink-0" />
                             <span className="break-words">{laundry.address}</span>
                           </span>
-                          {laundry.status === 'approved' && (
+                          {laundry.status === 'approved' && laundry.averageNote != null && (
                             <span className="text-sm md:text-base font-semibold text-[#FFD700]">
                               <img src={StarIcon} alt="Star Icon" className="w-4 h-4 inline-block mr-2" />
-                              {stats.averageNote ?? '--'}/5 ({stats.reviewCount ?? 0} {t('dashboard.reviews', 'avis')})
+                              {Number(laundry.averageNote).toFixed(1)}/5 ({laundry.reviewCount ?? 0} {t('dashboard.reviews', 'avis')})
                             </span>
                           )}
                         </div>
@@ -286,7 +283,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                                 if (window.confirm(t('dashboard.delete_confirm', 'Êtes-vous sûr de vouloir supprimer cette laverie ? Cette action est irréversible.'))) {
                                   try {
                                     await professionalService.deleteLaundry(laundry.id);
-                                    setLaundries((prev) => prev.filter((l) => l.id !== laundry.id));
+                                    await fetchProfessionalData();
                                   } catch (error) {
                                     alert(t('dashboard.delete_error', 'Erreur lors de la suppression de la laverie.'));
                                   }

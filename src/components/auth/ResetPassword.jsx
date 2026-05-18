@@ -111,12 +111,9 @@ const ResetPassword = ({ isDarkTheme }) => {
       let errorMessage = t('errors.generic_error');
 
       if (error.body?.error) {
-        let errorKey = error.body.error;
-        // Remove 'errors.' prefix if present
-        errorKey = errorKey.replace('errors.', '');
-        errorMessage = t(`errors.${errorKey}`);
+        errorMessage = t(error.body.error);
       } else if (error.body?.errors) {
-        errorMessage = Object.values(error.body.errors).join(', ');
+        errorMessage = Object.values(error.body.errors).map(k => t(k)).join(', ');
       }
 
       setApiError(errorMessage);
