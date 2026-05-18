@@ -16,7 +16,7 @@ const laundryNoteService = {
         );
 
         if (response.status === 403) {
-            throw new Error('Unauthorized - Admin access required');
+            throw new Error('Unauthorized -  authentication required');
         }
 
         if (!response.ok) {
@@ -26,7 +26,7 @@ const laundryNoteService = {
 
         return await response.json();
     },
-    getLaundryCommens: async (laundryId, page = 1, limit = 10) => {
+    getLaundryComments: async (laundryId, page = 1, limit = 10) => {
         const response = await fetch(
             `${API_BASE_URL}/api/laundry/${laundryId}/comments?page=${page}&limit=${limit}`,
             {
@@ -37,10 +37,6 @@ const laundryNoteService = {
                 },
             }
         );
-
-        if (response.status === 403) {
-            throw new Error('Unauthorized - Admin access required');
-        }
 
         if (!response.ok) {
             const error = await response.json();
