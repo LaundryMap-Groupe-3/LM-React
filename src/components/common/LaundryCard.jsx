@@ -2,7 +2,6 @@ import React, { forwardRef } from 'react';
 import { Heart } from 'lucide-react'
 import StarIcon from '../../assets/images/icons/Star-yellow.svg';
 import AddressIcon from '../../assets/images/icons/Map.svg';
-import LaundryBaseLogo from '../../assets/images/logos/logo-laundry.png';
 import ExternalLinkIcon from '../../assets/images/icons/External-Link-white.svg';
 import { useTranslation } from '../../context/I18nContext';
 import { usePreferences } from '../../context/PreferencesContext';
@@ -65,13 +64,6 @@ const LaundryCard = forwardRef(({
   const { t } = useTranslation();
   const { isAuthenticated, isDarkTheme: preferenceDarkTheme } = usePreferences();
   const effectiveDarkTheme = preferenceDarkTheme ?? isDarkTheme;
-  const imageUrl = laundry?.imageUrl
-    || laundry?.image
-    || laundry?.photoUrl
-    || laundry?.photo
-    || laundry?.coverUrl
-    || laundry?.logo?.location
-    || '';
   const ratingValue = Number(laundry?.rating);
   const rating = Number.isFinite(ratingValue) ? ratingValue : null;
   const reviewCountValue = Number(laundry?.reviewCount);
@@ -93,112 +85,102 @@ const LaundryCard = forwardRef(({
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
-          if (onClick) {
-            onClick();
-          }
+          if (onClick) onClick();
         }
       }}
-      className={`w-full cursor-pointer rounded-lg border p-4 lg:p-5 shadow-sm transition ${isHighlighted ? 'ring-2 ring-sky-500' : ''} ${effectiveDarkTheme ? 'border-slate-700 bg-slate-900/70 text-slate-200' : 'border-[#E5E7EB] bg-white text-slate-700'}`}
+      className={[
+        'w-full cursor-pointer rounded-xl border transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500',
+        isHighlighted ? 'ring-2 ring-sky-500 shadow-md' : 'shadow-sm hover:shadow-md',
+        effectiveDarkTheme
+          ? 'border-slate-700 bg-slate-900/70 text-slate-200'
+          : 'border-[#E5E7EB] bg-white text-slate-700',
+      ].join(' ')}
     >
-      <div className="space-y-2">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="text-[12px] xl:text-[14px] font-bold text-[#3B82F6]">
+      {/* Card body */}
+      <div className="p-3 sm:p-4 flex flex-col gap-2">
+        {/* Name row: nom + badge + favori */}
+        <div className="flex items-end justify-between gap-2">
+          <h3 className="text-sm sm:text-base font-bold text-[#3B82F6] leading-snug line-clamp-2">
             {laundry.establishmentName}
           </h3>
-          <div className="flex flex-col items-end gap-1">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
+            <span
+              className={[
+                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap',
+                isCurrentlyOpen
+                  ? (effectiveDarkTheme
+                      ? 'border border-[#0E9620]/30 bg-[#0E9620]/15 text-[#22c55e]'
+                      : 'border border-[#0E9620]/20 bg-[#0E9620]/10 text-[#0E9620]')
+                  : (effectiveDarkTheme
+                      ? 'bg-rose-900/40 text-rose-300'
+                      : 'bg-rose-100 text-rose-600'),
+              ].join(' ')}
+            >
               <span
-                className={`inline-flex items-center gap-1 h-[18px] w-[68px] lg:h-[22px] lg:w-[72px] rounded-[5px] px-2 py-1 text-[12px] font-semibold ${isCurrentlyOpen
-                  ? (effectiveDarkTheme ? 'border border-[#0E9620]/20 bg-[#0E9620]/15 text-[#0E9620]/90' : 'border border-[#0E9620]/20 bg-[#0E9620]/10 text-[#0E9620]')
-                  : (effectiveDarkTheme ? 'bg-rose-900/40 text-rose-300' : 'bg-rose-100 text-rose-700')}`}
-              >
-                <span
-                  aria-hidden="true"
-                  className={`h-2 w-2 rounded-full ${isCurrentlyOpen ? (effectiveDarkTheme ? 'bg-[#0E9620]/85' : 'bg-[#0E9620]') : 'bg-rose-500'}`}
-                />
-                {isCurrentlyOpen ? t('explorer.open', 'Ouvert') : t('explorer.closed', 'Fermé')}
-              </span>
-              {(isAuthenticated && userType !== 'admin') && (
-                <button
-                  type="button"
-                  aria-label={isFavorite ? t('explorer.remove_favorite', 'Retirer des favoris') : t('explorer.add_favorite', 'Ajouter aux favoris')}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    if (onToggleFavorite) {
-                      onToggleFavorite();
-                    }
-                  }}
-                  className={`inline-flex h-8 w-6 items-center justify-center transition ${isFavorite ? 'text-rose-500' : (effectiveDarkTheme ? 'text-rose-300 hover:text-rose-200' : 'text-rose-500 hover:text-rose-600')}`}
-                >
-                  <Heart className={`h-3.5 w-3.5 ${isFavorite ? 'fill-current' : ''}`} />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={
-                t('explorer.laundry_photo_alt', undefined, undefined).includes('{{name}}')
-                  ? t('explorer.laundry_photo_alt', undefined, undefined).replace('{{name}}', laundry.establishmentName)
-                  : t('explorer.laundry_photo_alt', { name: laundry.establishmentName }, `Photo de ${laundry.establishmentName}`)
-              }
-              className="w-[78px] rounded-lg object-cover"
-            />
-          ) : (
-            <img
-              src={LaundryBaseLogo}
-              alt={
-                t('explorer.laundry_photo_alt', undefined, undefined).includes('{{name}}')
-                  ? t('explorer.laundry_photo_alt', undefined, undefined).replace('{{name}}', laundry.establishmentName)
-                  : t('explorer.laundry_photo_alt', { name: laundry.establishmentName }, `Photo de ${laundry.establishmentName}`)
-              }
-              className="h-[69px] w-[78px] rounded-lg object-contain"
-            />
-          )}
-          <div className="flex h-[69px] min-w-0 flex-1 flex-col justify-between">
-            <div className="flex flex-col items-start gap-1">
-              <p className={`text-[12px] flex items-center gap-1 font-semibold ${effectiveDarkTheme ? 'text-slate-200' : 'text-black'}`}>
-                <img src={AddressIcon} alt={t('explorer.address_icon_alt', 'Icône de localisation')} className="inline-block h-[13px] w-[13px]" />
-                {addressLabel}
-              </p>
-              {reviewCount > 0 && (
-                <span
-                  className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#FFD700]"
-                >
-                  <img src={StarIcon} alt={t('explorer.star_icon_alt', 'Étoile')} className="h-[13px] w-[13px]" />
-                  {rating.toFixed(1)}/5
-                  {reviewCount !== null && (
-                    <span className="text-[#FFD700] text-[12px]">
-                      ({reviewCount} {t('explorer.reviews', 'avis')})
-                    </span>
-                  )}
-                </span>
-              )}
-            </div>
-            <div className={`flex flex-wrap items-center gap-2 ${distanceKm !== null ? 'justify-between' : 'justify-end'}`}>
-              {distanceKm !== null && (
-                <span className={`text-[11px] font-semibold whitespace-nowrap ${effectiveDarkTheme ? 'text-slate-200' : 'text-black'}`}>
-                  {t('explorer.distance', 'Distance')}: {`${distanceKm.toFixed(1)} km`}
-                </span>
-              )}
+                aria-hidden="true"
+                className={`h-2 w-2 rounded-full ${isCurrentlyOpen ? 'bg-[#0E9620]' : 'bg-rose-500'}`}
+              />
+              {isCurrentlyOpen ? t('explorer.open', 'Ouvert') : t('explorer.closed', 'Fermé')}
+            </span>
+            {(isAuthenticated && userType !== 'admin') && (
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); if (onClick) onClick(); }}
-                className="inline-flex h-[25px] w-25 lg:h-[30px] lg:w-[95px] items-center justify-center gap-[5px] rounded-lg bg-[#3B82F6] px-2 py-1 text-[12px] font-semibold text-white transition hover:bg-blue-700"
+                aria-label={isFavorite
+                  ? t('explorer.remove_favorite', 'Retirer des favoris')
+                  : t('explorer.add_favorite', 'Ajouter aux favoris')}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (onToggleFavorite) onToggleFavorite();
+                }}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
               >
-                <img src={ExternalLinkIcon} alt={t('explorer.see_icon_alt', 'Voir')} className="h-[20px] w-[20px]" />
-                {t('explorer.see_laundry', 'Consulter')}
+                <Heart className={`h-5 w-5 ${isFavorite ? 'fill-rose-500 text-rose-500' : 'text-rose-400'}`} />
               </button>
-            </div>
+            )}
           </div>
+        </div>
+
+        {/* Address */}
+        <p className={`flex items-start gap-1.5 text-sm leading-snug ${effectiveDarkTheme ? 'text-slate-300' : 'text-slate-600'}`}>
+          <img
+            src={AddressIcon}
+            alt={t('explorer.address_icon_alt', 'Icône de localisation')}
+            className="mt-0.5 h-4 w-4 shrink-0"
+          />
+          <span className="line-clamp-2">{addressLabel}</span>
+        </p>
+
+        {/* Avis */}
+        {reviewCount > 0 && rating !== null && (
+          <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#B8860B]">
+            <img src={StarIcon} alt={t('explorer.star_icon_alt', 'Étoile')} className="h-4 w-4" />
+            <span>{rating.toFixed(1)}/5</span>
+            <span className="font-normal text-xs text-[#B8860B]">
+              ({reviewCount} {t('explorer.reviews', 'avis')})
+            </span>
+          </p>
+        )}
+
+        {/* Distance + CTA */}
+        <div className="flex items-start justify-between gap-2">
+          {distanceKm !== null ? (
+            <span className={`text-sm font-medium ${effectiveDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>
+              {t('explorer.distance', 'Distance')}&nbsp;: {distanceKm.toFixed(1)} km
+            </span>
+          ) : <span />}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); if (onClick) onClick(); }}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+          >
+            <img src={ExternalLinkIcon} alt="" aria-hidden="true" className="h-4 w-4" />
+            {t('explorer.see_laundry', 'Consulter')}
+          </button>
         </div>
       </div>
     </article>
-  )
+  );
 });
 
 export default LaundryCard;

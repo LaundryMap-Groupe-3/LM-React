@@ -749,23 +749,50 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 									<Popup>
 										<strong>{laundry.establishmentName}</strong><br />
 											{addressLabel}<br />
-										<div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+										<div style={{ marginTop: 10, display: 'flex', gap: 6 }}>
 											<a
-													href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addressLabel)}`}
+												href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addressLabel)}`}
 												target="_blank"
 												rel="noopener noreferrer"
-												className="inline-flex mt-1 w-[50px] h-[38px] items-center justify-center rounded bg-[#4285F4] hover:bg-blue-700"
-												style={{ marginBottom: 4 }}
+												style={{
+													display: 'inline-flex',
+													alignItems: 'center',
+													gap: 6,
+													padding: '5px 10px',
+													background: '#E8F0FE',
+													border: 'none',
+													borderRadius: 20,
+													textDecoration: 'none',
+													color: '#1a73e8',
+													fontSize: 12,
+													fontWeight: 600,
+													whiteSpace: 'nowrap',
+												}}
 											>
-												<img src={GoogleMapsIcon} alt="Google Maps" style={{ height: 22, width: 22, display: 'block' }} />
+												<img src={GoogleMapsIcon} alt="Google Maps" style={{ height: 16, width: 16, display: 'block', flexShrink: 0 }} />
+												<span>Google Maps</span>
 											</a>
 											<a
 												href={`https://waze.com/ul?ll=${laundry.latitude},${laundry.longitude}&navigate=yes`}
 												target="_blank"
 												rel="noopener noreferrer"
-												className="inline-flex w-[50px] h-[38px] items-center justify-center rounded bg-[#33CCFF] hover:bg-indigo-700"
+												style={{
+													display: 'inline-flex',
+													alignItems: 'center',
+													gap: 6,
+													padding: '5px 10px',
+													background: '#E0F9FF',
+													border: 'none',
+													borderRadius: 20,
+													textDecoration: 'none',
+													color: '#00b4d8',
+													fontSize: 12,
+													fontWeight: 600,
+													whiteSpace: 'nowrap',
+												}}
 											>
-												<img src={WazeIcon} alt="Waze" style={{ height: 22, width: 22, display: 'block' }} />
+												<img src={WazeIcon} alt="Waze" style={{ height: 16, width: 16, display: 'block', flexShrink: 0 }} />
+												<span>Waze</span>
 											</a>
 										</div>
 									</Popup>
