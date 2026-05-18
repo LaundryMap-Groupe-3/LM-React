@@ -214,7 +214,9 @@ const ProfessionalLaundryDetails = ({ isDarkTheme }) => {
                 {laundry.establishmentName}
               </h1>
               <p className={`mt-2 text-sm md:text-base ${isDarkTheme ? 'text-gray-300' : 'text-slate-600'}`}>
-                {laundry.address?.address || `${laundry.address?.street || ''} ${laundry.address?.postalCode || ''} ${laundry.address?.city || ''}`.trim()}
+                {typeof laundry.address?.address === 'string' && laundry.address.address
+                  ? laundry.address.address
+                  : `${laundry.address?.street || ''} ${laundry.address?.postalCode || ''} ${laundry.address?.city || ''}`.trim() || '-'}
               </p>
             </div>
 
