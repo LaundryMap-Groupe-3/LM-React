@@ -172,7 +172,7 @@ const AdminPendingProfessionals = ({ isDarkTheme }) => {
                         </p>
 
                         <p className="text-[13px] text-[#6B7280]">
-                          <span>SIRET: <span className="font-semibold text-[#111827]">{professional.siret}</span></span>
+                          <span>SIREN: <span className="font-semibold text-[#111827]">{professional.siren}</span></span>
                         </p>
 
                         {professional.address && (

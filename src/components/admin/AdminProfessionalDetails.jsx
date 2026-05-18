@@ -231,10 +231,10 @@ const AdminProfessionalDetails = ({ isDarkTheme }) => {
                   </div>
                   <div>
                     <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">
-                      {t('auth.siret')}
+                      {t('auth.siren')}
                     </p>
                     <p className="text-[14px] text-[#111827] font-mono">
-                      {professional.siret}
+                      {professional.siren}
                     </p>
                   </div>
                   <div>

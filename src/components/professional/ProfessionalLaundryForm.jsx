@@ -16,6 +16,19 @@ import WifiBlueIcon from '../../assets/images/icons/Wi-Fi-blue.svg';
 import EuroIcon from '../../assets/images/icons/Euro.svg';
 import SaveIcon from '../../assets/images/icons/Save.svg';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+const resolveMediaUrl = (location) => {
+  if (!location || typeof location !== 'string') return null;
+  try {
+    new URL(location);
+    return location;
+  } catch {
+    const normalizedPath = location.startsWith('/') ? location : `/${location}`;
+    return `${API_BASE_URL}${normalizedPath}`;
+  }
+};
+
 const EQUIPMENT_CAPACITIES = ['6kg', '8kg', '10kg', '12kg+'];
 
 const defaultValues = {
@@ -673,7 +686,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                       {(selectedLogo?.[0] || currentLogo?.location) && (
                         <div className="flex flex-col items-center gap-1 sm:flex-shrink-0">
                           <img
-                            src={selectedLogo?.[0] ? URL.createObjectURL(selectedLogo[0]) : currentLogo.location}
+                            src={selectedLogo?.[0] ? URL.createObjectURL(selectedLogo[0]) : resolveMediaUrl(currentLogo.location)}
                             alt="Logo"
                             className="h-28 w-28 sm:h-40 sm:w-40 rounded-2xl object-cover border border-slate-200 shadow-sm"
                           />
@@ -761,7 +774,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                           {currentMedias.map((media) => (
                             <div key={media.id} className={`relative flex items-center gap-2 rounded-lg border px-2 py-2 ${isDarkTheme ? 'border-gray-600 bg-gray-800' : 'border-slate-200 bg-white'}`}>
                               <img
-                                src={media.location}
+                                src={resolveMediaUrl(media.location)}
                                 alt={media.originalName}
                                 className="h-12 w-12 rounded-md object-cover flex-shrink-0"
                               />

@@ -2,6 +2,7 @@ import React, { forwardRef } from 'react';
 import { Heart } from 'lucide-react'
 import StarIcon from '../../assets/images/icons/Star-yellow.svg';
 import AddressIcon from '../../assets/images/icons/Map.svg';
+import LaundryBaseLogo from '../../assets/images/logos/logo-laundry.png';
 import ExternalLinkIcon from '../../assets/images/icons/External-Link-white.svg';
 import { useTranslation } from '../../context/I18nContext';
 import { usePreferences } from '../../context/PreferencesContext';
@@ -145,13 +146,17 @@ const LaundryCard = forwardRef(({
                   ? t('explorer.laundry_photo_alt', undefined, undefined).replace('{{name}}', laundry.establishmentName)
                   : t('explorer.laundry_photo_alt', { name: laundry.establishmentName }, `Photo de ${laundry.establishmentName}`)
               }
-              className="h-[69px] w-[78px] rounded-lg object-cover"
-              loading="lazy"
+              className="w-[78px] rounded-lg object-cover"
             />
           ) : (
-            <div
-              className={`h-[69px] w-[78px] rounded-lg ${effectiveDarkTheme ? 'bg-slate-800/70' : 'bg-slate-100'}`}
-              aria-hidden="true"
+            <img
+              src={LaundryBaseLogo}
+              alt={
+                t('explorer.laundry_photo_alt', undefined, undefined).includes('{{name}}')
+                  ? t('explorer.laundry_photo_alt', undefined, undefined).replace('{{name}}', laundry.establishmentName)
+                  : t('explorer.laundry_photo_alt', { name: laundry.establishmentName }, `Photo de ${laundry.establishmentName}`)
+              }
+              className="h-[69px] w-[78px] rounded-lg object-contain"
             />
           )}
           <div className="flex h-[69px] min-w-0 flex-1 flex-col justify-between">

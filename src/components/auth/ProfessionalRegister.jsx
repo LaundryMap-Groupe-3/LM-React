@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import Select from 'react-select';
@@ -17,6 +17,8 @@ const ProfessionalRegister = () => {
   usePageTitle('page_titles.register_professional', t);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
+  const [sirenStatus, setSirenStatus] = useState(null); // 'checking' | 'verified' | 'not_found' | 'error'
+  const sirenDebounceRef = useRef(null);
   const countryOptions = useMemo(() => countryList().getData(), []);
 
   // Validation messages
@@ -28,8 +30,8 @@ const ProfessionalRegister = () => {
     emailInvalid: t('validation.email_invalid'),
     passwordConfirmationRequired: t('validation.password_confirmation_required'),
     acceptTerms: t('auth.accept_terms'),
-    siretRequired: t('validation.siret_required'),
-    siretInvalidLength: t('validation.siret_invalid_length'),
+    sirenRequired: t('validation.siren_required'),
+    sirenInvalidLength: t('validation.siren_invalid_length'),
     streetRequired: t('validation.street_required'),
     postalCodeRequired: t('validation.postal_code_required'),
     postalCodeInvalid: t('validation.postal_code_invalid_exact'),
@@ -56,16 +58,43 @@ const ProfessionalRegister = () => {
       email: '',
       password: '',
       confirmPassword: '',
-      siret: '',
+      siren: '',
       companyName: '',
       phone: '',
       street: '',
       postalCode: '',
       city: '',
-      country: '',
+      country: 'France',
       acceptCGU: false,
     },
   });
+
+  const handleSirenChange = useCallback((e) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 9);
+    setValue('siren', value);
+
+    clearTimeout(sirenDebounceRef.current);
+
+    if (value.length !== 9) {
+      setSirenStatus(null);
+      return;
+    }
+
+    setSirenStatus('checking');
+    sirenDebounceRef.current = setTimeout(async () => {
+      try {
+        const info = await authService.lookupSiren(value);
+        setValue('companyName', info.companyName, { shouldValidate: true });
+        setValue('street', info.street, { shouldValidate: true });
+        setValue('postalCode', info.postalCode, { shouldValidate: true });
+        setValue('city', info.city, { shouldValidate: true });
+        setValue('country', info.country, { shouldValidate: true, shouldDirty: true });
+        setSirenStatus('verified');
+      } catch (err) {
+        setSirenStatus(err.message === 'not_found' ? 'not_found' : 'error');
+      }
+    }, 400);
+  }, [setValue, sirenDebounceRef]);
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -163,17 +192,32 @@ const ProfessionalRegister = () => {
             {t('auth.company_section_title')}
           </h2>
 
-          <FormField label={t('auth.siret')} error={errors.siret?.message} required>
+          <FormField label={t('auth.siren')} error={errors.siren?.message} required>
             <input
               type="text"
-              id="siret"
-              {...register('siret', {
-                required: validationMessages.siretRequired,
-                pattern: { value: /^\d{13,14}$/, message: validationMessages.siretInvalidLength },
+              id="siren"
+              {...register('siren', {
+                required: validationMessages.sirenRequired,
+                pattern: { value: /^\d{9}$/, message: validationMessages.sirenInvalidLength },
               })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.siret ? 'border-red-500' : 'border-gray-300'}`}
-              placeholder={t('auth.placeholder_siret')}
+              onChange={handleSirenChange}
+              maxLength={9}
+              inputMode="numeric"
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.siren ? 'border-red-500' : sirenStatus === 'verified' ? 'border-green-500' : 'border-gray-300'}`}
+              placeholder={t('auth.placeholder_siren')}
             />
+            {sirenStatus === 'checking' && (
+              <p className="text-xs text-gray-500 mt-1">{t('auth.siren_checking')}</p>
+            )}
+            {sirenStatus === 'verified' && (
+              <p className="text-xs text-green-600 mt-1">✓ {t('auth.siren_verified')}</p>
+            )}
+            {sirenStatus === 'not_found' && (
+              <p className="text-xs text-red-500 mt-1">{t('auth.siren_not_found_inline')}</p>
+            )}
+            {sirenStatus === 'error' && (
+              <p className="text-xs text-red-500 mt-1">{t('auth.siren_error_inline')}</p>
+            )}
           </FormField>
 
           <FormField label={t('auth.company_name')} error={errors.companyName?.message} required>
@@ -218,7 +262,7 @@ const ProfessionalRegister = () => {
                 required: validationMessages.postalCodeRequired,
                 pattern: { value: /^\d{5}$/, message: validationMessages.postalCodeInvalid },
               })}
-              className={`w-full h-[44px] px-3 border text-[#9CA3AF] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.postalCode ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.postalCode ? 'border-red-500' : 'border-gray-300'}`}
               placeholder={t('auth.placeholder_postal_code')}
             />
           </FormField>
@@ -228,7 +272,7 @@ const ProfessionalRegister = () => {
               type="text"
               id="city"
               {...register('city', { required: validationMessages.cityRequired })}
-              className={`w-full h-[44px] px-3 border text-[#9CA3AF] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.city ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.city ? 'border-red-500' : 'border-gray-300'}`}
               placeholder={t('auth.placeholder_city')}
             />
           </FormField>
