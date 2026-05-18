@@ -155,12 +155,14 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     if (!files.length) return;
     setPendingMediaFiles((current) => {
       const sigs = new Set(current.map((f) => `${f.name}-${f.size}-${f.lastModified}`));
-      return [...current, ...files.filter((f) => {
+      const merged = [...current, ...files.filter((f) => {
         const sig = `${f.name}-${f.size}-${f.lastModified}`;
         if (sigs.has(sig)) return false;
         sigs.add(sig);
         return true;
       })];
+      const maxNew = Math.max(0, 10 - currentMedias.length);
+      return merged.slice(0, maxNew);
     });
   };
 
@@ -251,10 +253,6 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     }
     const clientCode = (wiLineReference || '').trim();
     if (clientCode === '') { setWiLineError(''); setWiLineAutoFillSuccess(false); return; }
-    if (!/^\d+$/.test(clientCode)) {
-      setWiLineError(t('validation.wiline_client_code_invalid', 'Le code client WI-LINE doit contenir uniquement des chiffres.'));
-      setWiLineAutoFillSuccess(false); return;
-    }
     if (clientCode === lastFetchedWiLineCode) return;
 
     let cancelled = false;
@@ -280,12 +278,50 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
         });
         if (newItems.length > 0) setEquipments(newItems);
 
+        if (hasValidLaundry) {
+          const laundry = result.laundry;
+          if (laundry.name) setValue('establishmentName', laundry.name);
+          if (laundry.address) setValue('street', laundry.address);
+          if (laundry.postalCode) setValue('postalCode', laundry.postalCode);
+          if (laundry.city) setValue('city', laundry.city);
+          if (laundry.country) setValue('country', laundry.country);
+          if (laundry.phone) setValue('contactPhone', laundry.phone);
+
+          const wiLineToFormDay = {
+            monday: 'monday', thuesday: 'tuesday', wednesday: 'wednesday',
+            thursday: 'thursday', friday: 'friday', saturday: 'saturday', sunday: 'sunday',
+          };
+          const rawHours = laundry.openingHours || {};
+          const newClosedDays = { ...initialClosedDays };
+          const newAdditionalSlots = { ...initialAdditionalSlots };
+          Object.entries(wiLineToFormDay).forEach(([wiKey, formKey]) => {
+            const slots = Array.isArray(rawHours[wiKey]) ? rawHours[wiKey] : [];
+            if (slots.length === 0) {
+              newClosedDays[formKey] = true;
+              setValue(`openingHours.${formKey}.open`, '');
+              setValue(`openingHours.${formKey}.close`, '');
+            } else {
+              newClosedDays[formKey] = false;
+              setValue(`openingHours.${formKey}.open`, slots[0].open ?? '');
+              setValue(`openingHours.${formKey}.close`, slots[0].close ?? '');
+              const extra = slots.slice(1);
+              newAdditionalSlots[formKey] = extra.length;
+              extra.forEach((slot, idx) => {
+                setValue(`openingHoursExtra.${formKey}.${idx}.open`, slot.open ?? '');
+                setValue(`openingHoursExtra.${formKey}.${idx}.close`, slot.close ?? '');
+              });
+            }
+          });
+          setClosedDays(newClosedDays);
+          setAdditionalSlotsByDay(newAdditionalSlots);
+        }
+
         setLastFetchedWiLineCode(clientCode);
         setWiLineAutoFillSuccess(hasValidLaundry);
         if (!hasValidLaundry) setWiLineError(t('errors.wiline_client_not_found', 'Code client WI-LINE introuvable.'));
       } catch (error) {
         if (cancelled) return;
-        const backendErrorKey = error?.body?.error;
+        const backendErrorKey = typeof error?.body?.error === 'string' && error.body.error ? error.body.error : null;
         setWiLineError(t(backendErrorKey || 'errors.wiline_fetch_failed', 'Impossible de récupérer les machines WI-LINE.'));
         setWiLineAutoFillSuccess(false);
       } finally {
@@ -294,7 +330,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     }, 600);
 
     return () => { cancelled = true; clearTimeout(timeoutId); };
-  }, [showPreciseAddress, wiLineReference, lastFetchedWiLineCode, setValue, t]);
+  }, [showPreciseAddress, wiLineReference, lastFetchedWiLineCode, setValue, t, setClosedDays, setAdditionalSlotsByDay]);
 
   const onSubmit = async (values, event) => {
     const submitter = event?.nativeEvent?.submitter;
@@ -389,7 +425,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
   const dryingEquipments = equipments.filter((eq) => eq.type === 'drying');
 
   return (
-    <div className={`min-h-screen mt-5 px-4 mx-4 pb-10 ${isDarkTheme ? 'text-gray-100' : 'text-gray-900'}`}>
+    <div className={`min-h-screen mt-5 mx-6 px-6 md:px-32 md:mx-32 pb-10 ${isDarkTheme ? 'text-gray-100' : 'text-gray-900'}`}>
       {/* Header */}
       <div className="mb-6 flex items-center gap-3">
         <button
@@ -399,7 +435,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
         >
           <img src={LeftArrowIcon} alt="Back" className="h-[22px] w-[22px]" />
         </button>
-        <div>
+        <div className='text-left'>
           <h1 className="text-[18px] font-bold text-[#3B82F6]">
             {isEditMode ? t('professional.laundry_form.edit_laundry_title', 'Modifier une laverie') : t('professional.laundry_form.create_laundry_title', 'Ajouter une laverie')}
           </h1>
@@ -478,13 +514,11 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                     <input
                       id="wiLineReference"
                       type="text"
-                      inputMode="numeric"
                       {...register('wiLineReference', {
                         validate: (value) => {
                           if (!showPreciseAddress) return true;
                           const trimmed = (value || '').trim();
                           if (trimmed === '') return t('validation.wiline_client_code_required', 'Le code client WI-LINE est requis.');
-                          if (!/^\d+$/.test(trimmed)) return t('validation.wiline_client_code_invalid', 'Le code client WI-LINE doit contenir uniquement des chiffres.');
                           return true;
                         },
                       })}
@@ -632,30 +666,46 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                   {t('professional.laundry_form.medias_title', 'Visuels')}
                 </h3>
                 <div className="space-y-4">
+                  {/* Logo */}
                   <div>
                     <label className={labelClass}>{t('professional.laundry_form.logo', 'Logo')}</label>
-                    <label
-                      htmlFor="logo"
-                      className={`flex flex-col w-full cursor-pointer items-center rounded-xl border border-dashed px-4 py-4 text-sm transition ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-700'} hover:border-[#3B82F6]`}
-                    >
-                      <input id="logo" type="file" accept="image/*" {...register('logo')} className="sr-only" />
-                      <img src={UploadIcon} alt="Upload" className="mb-2 h-[28px] w-[28px] opacity-60" />
-                      <span className="text-[12px]">
-                        {selectedLogo?.[0]?.name || currentLogo?.originalName || t('professional.laundry_form.logo_placeholder', 'Cliquer pour uploader')}
-                      </span>
-                    </label>
-                    {currentLogo?.location && !selectedLogo?.[0]?.name && (
-                      <p className={`mt-1 text-xs ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
-                        {t('professional.laundry_form.current_logo', 'Logo actuel')}: {currentLogo.originalName}
-                      </p>
-                    )}
+                    <div className={`mt-1 flex flex-col sm:flex-row sm:items-center gap-3`}>
+                      {(selectedLogo?.[0] || currentLogo?.location) && (
+                        <div className="flex flex-col items-center gap-1 sm:flex-shrink-0">
+                          <img
+                            src={selectedLogo?.[0] ? URL.createObjectURL(selectedLogo[0]) : currentLogo.location}
+                            alt="Logo"
+                            className="h-28 w-28 sm:h-40 sm:w-40 rounded-2xl object-cover border border-slate-200 shadow-sm"
+                          />
+                          <p className={`truncate max-w-[112px] text-[10px] font-medium ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
+                            {selectedLogo?.[0]?.name || currentLogo?.originalName}
+                          </p>
+                          {selectedLogo?.[0] && (
+                            <p className={`text-[10px] ${isDarkTheme ? 'text-gray-400' : 'text-slate-400'}`}>{(selectedLogo[0].size / 1024).toFixed(0)} Ko</p>
+                          )}
+                        </div>
+                      )}
+                      <label
+                        htmlFor="logo"
+                        className={`flex flex-col flex-1 w-full cursor-pointer items-center justify-center rounded-xl border border-dashed px-4 py-3 text-sm transition ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-700'} hover:border-[#3B82F6]`}
+                      >
+                        <input id="logo" type="file" accept="image/*" {...register('logo')} className="sr-only" />
+                        <img src={UploadIcon} alt="Upload" className="mb-1 h-[22px] w-[22px] opacity-60" />
+                        <span className="text-[12px]">
+                          {(selectedLogo?.[0] || currentLogo?.location)
+                            ? t('professional.laundry_form.change', 'Changer le logo')
+                            : t('professional.laundry_form.logo_placeholder', 'Cliquer pour uploader')}
+                        </span>
+                      </label>
+                    </div>
                   </div>
 
+                  {/* Galerie */}
                   <div>
                     <label className={labelClass}>{t('professional.laundry_form.gallery_media', 'Photos de la laverie')}</label>
                     <label
                       htmlFor="mediaFiles"
-                      className={`flex flex-col w-full cursor-pointer items-center rounded-xl border border-dashed px-4 py-4 text-sm transition ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-700'} hover:border-[#3B82F6]`}
+                      className={`flex flex-col w-full cursor-pointer items-center rounded-xl border border-dashed px-4 py-3 text-sm transition ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-700'} hover:border-[#3B82F6]`}
                     >
                       <input
                         id="mediaFiles"
@@ -665,33 +715,70 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                         onChange={(e) => { appendMediaFiles(e.target.files); e.target.value = ''; }}
                         className="sr-only"
                       />
-                      <img src={UploadIcon} alt="Upload" className="mb-2 h-[28px] w-[28px] opacity-60" />
-                      <span className="text-[12px]">
-                        {pendingMediaFiles.length > 0
-                          ? t('professional.laundry_form.gallery_files_selected', '{{count}} fichier(s) sélectionné(s)').replace('{{count}}', String(pendingMediaFiles.length))
-                          : t('professional.laundry_form.gallery_placeholder', 'Cliquer pour ajouter plusieurs photos')}
-                      </span>
+                      <img src={UploadIcon} alt="Upload" className="mb-1 h-[24px] w-[24px] opacity-60" />
+                      <span className="text-[12px]">{t('professional.laundry_form.gallery_placeholder', 'Cliquer pour ajouter plusieurs photos')}</span>
                     </label>
 
+                    {/* Nouvelles photos sélectionnées — aperçu en grille */}
                     {pendingMediaFiles.length > 0 && (
-                      <div className="mt-2 space-y-1">
-                        {pendingMediaFiles.map((file, idx) => (
-                          <div key={`${file.name}-${file.size}-${file.lastModified}`} className={`flex items-center justify-between rounded-lg border px-3 py-2 ${isDarkTheme ? 'border-gray-600 bg-gray-800' : 'border-slate-200 bg-slate-50'}`}>
-                            <span className={`truncate text-xs ${isDarkTheme ? 'text-gray-200' : 'text-slate-700'}`}>{file.name}</span>
-                            <button type="button" onClick={() => removePendingMediaFile(idx)} className="ml-2 text-xs text-red-500 hover:text-red-600">{t('common.delete', 'Supprimer')}</button>
-                          </div>
-                        ))}
+                      <div className="mt-3">
+                        <p className={`text-[11px] font-medium mb-2 ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
+                          {t('professional.laundry_form.gallery_files_selected', '{{count}} fichier(s) sélectionné(s)').replace('{{count}}', String(pendingMediaFiles.length))}
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {pendingMediaFiles.map((file, idx) => (
+                            <div key={`${file.name}-${file.size}-${file.lastModified}`} className={`relative flex items-center gap-2 rounded-lg border px-2 py-2 ${isDarkTheme ? 'border-gray-600 bg-gray-800' : 'border-slate-200 bg-white'}`}>
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt={file.name}
+                                className="h-12 w-12 rounded-md object-cover flex-shrink-0"
+                              />
+                              <div className="min-w-0 flex-1">
+                                <p className={`truncate text-[11px] font-medium ${isDarkTheme ? 'text-gray-200' : 'text-slate-700'}`}>{file.name}</p>
+                                <p className={`text-[10px] ${isDarkTheme ? 'text-gray-400' : 'text-slate-400'}`}>{(file.size / 1024).toFixed(0)} Ko</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => removePendingMediaFile(idx)}
+                                className="flex-shrink-0 text-red-500 hover:text-red-600 text-lg leading-none px-1"
+                                title={t('common.delete', 'Supprimer')}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
 
+                    {/* Photos existantes — aperçu en grille */}
                     {currentMedias.length > 0 && (
-                      <div className="mt-2 space-y-1">
-                        {currentMedias.map((media) => (
-                          <div key={media.id} className={`flex items-center justify-between rounded-lg border px-3 py-2 ${isDarkTheme ? 'border-gray-600 bg-gray-800' : 'border-slate-200 bg-slate-50'}`}>
-                            <span className={`truncate text-xs ${isDarkTheme ? 'text-gray-200' : 'text-slate-700'}`}>{media.originalName}</span>
-                            <button type="button" onClick={() => handleDeleteMedia(media.id)} className="ml-2 text-xs text-red-500 hover:text-red-600">{t('common.delete', 'Supprimer')}</button>
-                          </div>
-                        ))}
+                      <div className="mt-3">
+                        <p className={`text-[11px] font-medium mb-2 ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
+                          {t('professional.laundry_form.current_medias', 'Photos actuelles')}
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {currentMedias.map((media) => (
+                            <div key={media.id} className={`relative flex items-center gap-2 rounded-lg border px-2 py-2 ${isDarkTheme ? 'border-gray-600 bg-gray-800' : 'border-slate-200 bg-white'}`}>
+                              <img
+                                src={media.location}
+                                alt={media.originalName}
+                                className="h-12 w-12 rounded-md object-cover flex-shrink-0"
+                              />
+                              <div className="min-w-0 flex-1">
+                                <p className={`truncate text-[11px] font-medium ${isDarkTheme ? 'text-gray-200' : 'text-slate-700'}`}>{media.originalName}</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteMedia(media.id)}
+                                className="flex-shrink-0 text-red-500 hover:text-red-600 text-lg leading-none px-1"
+                                title={t('common.delete', 'Supprimer')}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -948,20 +1035,46 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                 <h3 className={`text-[13px] font-semibold mb-3 ${isDarkTheme ? 'text-gray-200' : 'text-slate-700'}`}>
                   {t('professional.laundry_form.services_title', 'Services disponibles')}
                 </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {loadingOptions ? (
-                    <p className={`col-span-2 text-xs ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>{t('common.loading_text', 'Chargement...')}</p>
-                  ) : serviceOptions.length === 0 ? (
-                    <p className={`col-span-2 text-xs ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>{t('professional.laundry_form.no_services_available', 'Aucun service disponible')}</p>
-                  ) : (
-                    serviceOptions.map((service) => (
-                      <label key={service.id} className={`flex items-center gap-2 text-[12px] cursor-pointer ${isDarkTheme ? 'text-gray-200' : 'text-slate-700'}`}>
-                        <input type="checkbox" value={String(service.id)} {...register('serviceIds')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                        <span>{t(service.translationKey, service.name)}</span>
-                      </label>
-                    ))
-                  )}
-                </div>
+                {loadingOptions ? (
+                  <p className={`text-xs ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>{t('common.loading_text', 'Chargement...')}</p>
+                ) : serviceOptions.length === 0 ? (
+                  <p className={`text-xs ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>{t('professional.laundry_form.no_services_available', 'Aucun service disponible')}</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    {serviceOptions.map((service) => {
+                      const checked = (watch('serviceIds') || []).includes(String(service.id));
+                      return (
+                        <label
+                          key={service.id}
+                          className={`flex items-center gap-2.5 cursor-pointer rounded-xl border px-3 py-2.5 text-[12px] font-medium transition-all
+                            ${checked
+                              ? isDarkTheme
+                                ? 'border-[#3B82F6] bg-[#3B82F6]/15 text-blue-300'
+                                : 'border-[#3B82F6] bg-blue-50 text-[#3B82F6]'
+                              : isDarkTheme
+                                ? 'border-gray-600 bg-gray-700/50 text-gray-300 hover:border-gray-500'
+                                : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                            }`}
+                        >
+                          <input type="checkbox" value={String(service.id)} {...register('serviceIds')} className="sr-only" />
+                          <span className={`h-4 w-4 shrink-0 rounded border-2 flex items-center justify-center transition-colors
+                            ${checked
+                              ? 'border-[#3B82F6] bg-[#3B82F6]'
+                              : isDarkTheme ? 'border-gray-500' : 'border-slate-300'
+                            }`}
+                          >
+                            {checked && (
+                              <svg className="h-2.5 w-2.5 text-white" viewBox="0 0 10 8" fill="none">
+                                <path d="M1 4l3 3 5-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            )}
+                          </span>
+                          <span>{t(service.translationKey, service.name)}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Modes de paiement */}
@@ -969,20 +1082,46 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                 <h3 className={`text-[13px] font-semibold mb-3 ${isDarkTheme ? 'text-gray-200' : 'text-slate-700'}`}>
                   {t('professional.laundry_form.payment_methods_title', 'Modes de paiement acceptés')}
                 </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {loadingOptions ? (
-                    <p className={`col-span-2 text-xs ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>{t('common.loading_text', 'Chargement...')}</p>
-                  ) : paymentMethodOptions.length === 0 ? (
-                    <p className={`col-span-2 text-xs ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>{t('professional.laundry_form.no_payment_methods_available', 'Aucun mode de paiement disponible')}</p>
-                  ) : (
-                    paymentMethodOptions.map((pm) => (
-                      <label key={pm.id} className={`flex items-center gap-2 text-[12px] cursor-pointer ${isDarkTheme ? 'text-gray-200' : 'text-slate-700'}`}>
-                        <input type="checkbox" value={String(pm.id)} {...register('paymentMethodIds')} className="h-4 w-4 rounded border-slate-300 text-[#3B82F6] focus:ring-[#3B82F6]" />
-                        <span>{t(pm.translationKey, pm.name)}</span>
-                      </label>
-                    ))
-                  )}
-                </div>
+                {loadingOptions ? (
+                  <p className={`text-xs ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>{t('common.loading_text', 'Chargement...')}</p>
+                ) : paymentMethodOptions.length === 0 ? (
+                  <p className={`text-xs ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>{t('professional.laundry_form.no_payment_methods_available', 'Aucun mode de paiement disponible')}</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    {paymentMethodOptions.map((pm) => {
+                      const checked = (watch('paymentMethodIds') || []).includes(String(pm.id));
+                      return (
+                        <label
+                          key={pm.id}
+                          className={`flex items-center gap-2.5 cursor-pointer rounded-xl border px-3 py-2.5 text-[12px] font-medium transition-all
+                            ${checked
+                              ? isDarkTheme
+                                ? 'border-[#3B82F6] bg-[#3B82F6]/15 text-blue-300'
+                                : 'border-[#3B82F6] bg-blue-50 text-[#3B82F6]'
+                              : isDarkTheme
+                                ? 'border-gray-600 bg-gray-700/50 text-gray-300 hover:border-gray-500'
+                                : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                            }`}
+                        >
+                          <input type="checkbox" value={String(pm.id)} {...register('paymentMethodIds')} className="sr-only" />
+                          <span className={`h-4 w-4 shrink-0 rounded border-2 flex items-center justify-center transition-colors
+                            ${checked
+                              ? 'border-[#3B82F6] bg-[#3B82F6]'
+                              : isDarkTheme ? 'border-gray-500' : 'border-slate-300'
+                            }`}
+                          >
+                            {checked && (
+                              <svg className="h-2.5 w-2.5 text-white" viewBox="0 0 10 8" fill="none">
+                                <path d="M1 4l3 3 5-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            )}
+                          </span>
+                          <span>{t(pm.translationKey, pm.name)}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </section>
           )}

@@ -126,6 +126,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 	const [laundries,          setLaundries]          = useState([]);
 	const [error,              setError]              = useState(null);
 	const [position,           setPosition]           = useState(null);
+	const [initialMapCenter,   setInitialMapCenter]   = useState(null);
 	const [flyToTarget,        setFlyToTarget]        = useState(null);
 	const [mapBounds,          setMapBounds]          = useState(null);
 	const [search,             setSearch]             = useState('');
@@ -199,7 +200,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 
 	function getRadiusKm() {
 		const parsed = Number.parseInt(radiusValue, 10);
-		return Number.isNaN(parsed) ? 20 : Math.max(1, Math.min(100, parsed));
+		return Number.isNaN(parsed) ? 5 : Math.max(1, Math.min(100, parsed));
 	}
 
 	function isValidTimeHHMM(v) {
@@ -273,15 +274,17 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 	}, [selectedServices, selectedPayments, startTimeValue, endTimeValue, radiusValue]);
 
 	useEffect(() => {
+		const PARIS = [48.8666, 2.3333];
 		if (!navigator.geolocation) {
 			setError(t('explorer.geolocation_unavailable', "La géolocalisation n'est pas supportée par ce navigateur."));
+			setInitialMapCenter(PARIS);
 			return;
 		}
 		navigator.geolocation.getCurrentPosition(
 			(pos) => {
 				const coords = [pos.coords.latitude, pos.coords.longitude];
 				setPosition(coords);
-				setFlyToTarget([...coords, 15]);
+				setInitialMapCenter(coords);
 				setError(null);
 			},
 			(err) => {
@@ -292,8 +295,8 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 				} else {
 					setError(t('explorer.geolocation_error', 'Erreur de géolocalisation : ') + err.message);
 				}
-
-				setFlyToTarget([48.8666, 2.3333, 12]);
+				setInitialMapCenter(PARIS);
+				setFlyToTarget([...PARIS, 12]);
 			}
 		);
 	}, [t]);
@@ -471,8 +474,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 				? laundriesVisible
 				: laundriesVisible.slice(0, LIST_INITIAL_LIMIT);
 
-	const initialCenter = [48.8584, 2.2945];
-	const initialZoom   = 12;
+	const initialZoom = position ? 15 : 12;
 
 	return (
 		<div className={`flex flex-col md:flex-row gap-8 lg:gap-6 items-baseline lg:items-start w-full ${effectiveDarkTheme ? 'text-slate-100' : 'text-slate-900'}`}>
@@ -570,7 +572,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 
 				{isFilterModalOpen && (
 					<div className="fixed inset-0 z-1 flex items-end justify-center">
-						<div className="relative z-10 w-full max-w-[600px] bg-white dark:bg-slate-900 rounded-t-2xl border-t-2 border-blue-500 shadow-xl flex flex-col">
+						<div className="relative z-10 pb-4 w-full max-w-[600px] bg-white dark:bg-slate-900 rounded-t-2xl border-t-2 border-blue-500 shadow-xl flex flex-col">
 							
 							<div className="overflow-y-auto px-6 pb-6 pt-4">
 								<div className="flex items-start justify-between mb-4">
@@ -663,9 +665,9 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 										</label>
 										<div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
 										<TagFilter items={[
-											{ value: 'self-service-24-7', label: t('explorer.filter_service_self_service', 'Libre-service 24/7') },
-											{ value: 'ironing-station',   label: t('explorer.filter_service_ironing',       'Poste de repassage') },
-											{ value: 'laundry-folding',   label: t('explorer.filter_service_folding',        'Pliage du linge') },
+											{ value: 'wifi', label: t('explorer.filter_service_wifi') },
+											{ value: 'ironing-station',   label: t('explorer.filter_service_ironing') },
+											{ value: 'laundry-folding',   label: t('explorer.filter_service_folding') },
 										]} selected={selectedServices} onChange={setSelectedServices} />
 										</div>
 									</div>
@@ -689,9 +691,9 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 				)}
 
 				<div className="h-[500px] lg:h-[680px] xl:h-[760px] w-full z-0">
-					<MapContainer
+					{initialMapCenter && <MapContainer
 						ref={mapRef}
-						center={initialCenter}
+						center={initialMapCenter}
 						zoom={initialZoom}
 						style={{ height: '100%', width: '100%' }}
 					>
@@ -770,7 +772,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 									</Marker>
 								);
 							})}
-					</MapContainer>
+					</MapContainer>}
 				</div>
 			</div>
 

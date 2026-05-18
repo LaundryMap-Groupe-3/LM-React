@@ -431,6 +431,7 @@
     "filter_time_invalid_format": "Format invalide. Utilisez HH:MM (ex: 09:30).",
     "filter_time_invalid_range": "L'heure de fin doit être supérieure ou égale à l'heure de début.",
     "filter_service": "Service(s)",
+    "filter_service_wifi": "WI-FI",
     "filter_service_self_service": "Libre-service 24/7",
     "filter_service_ironing": "Poste de repassage",
     "filter_service_folding": "Pliage du linge",
@@ -602,7 +603,19 @@
     "rejecting": "Rejet en cours...",
     "approval_success": "Compte approuvé avec succès",
     "rejection_success": "Compte rejeté avec succès",
-    "loading_details": "Chargement des détails du professionnel..."
+    "loading_details": "Chargement des détails du professionnel...",
+    "equipment_name": "Machine",
+    "equipment_type": "Type",
+    "equipment_capacity": "Capacité",
+    "equipment_price": "Prix",
+    "equipment_duration": "Durée",
+    "equipment_reference": "Référence",
+    "no_equipments": "Aucune machine renseignée.",
+    "equipment_type_washing_machine": "Lave-linge",
+    "equipment_type_dryer": "Sèche-linge",
+    "equipment_type_ironing_machine": "Poste de repassage",
+    "equipment_type_vacuum": "Aspirateur",
+    "equipment_type_other": "Autre"
   },
   "success": {
     "profile_updated": "Profil mis à jour avec succès",

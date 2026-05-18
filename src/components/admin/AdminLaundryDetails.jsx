@@ -105,6 +105,18 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
     return `${parsed.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EUR`;
   };
 
+  const formatCapacity = (value) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return '-';
+    return `${parsed} kg`;
+  };
+
+  const formatDuration = (value) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return '-';
+    return `${parsed} min`;
+  };
+
   const getDisplayValue = (value) => {
     if (value === 0) return '0';
     return value || '-';
@@ -214,6 +226,38 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
   const exceptionalClosures = Array.isArray(laundry.exceptionalClosures) ? laundry.exceptionalClosures : [];
   const serviceLabels = resolveLabelsFromIds(laundry.services || laundry.serviceIds);
   const paymentLabels = resolveLabelsFromIds(laundry.paymentMethods || laundry.paymentMethodIds);
+  const equipmentItems = Array.isArray(laundry.equipments) ? laundry.equipments : [];
+
+  const equipmentTypeOrder = {
+    washing_machine: 1,
+    dryer: 2,
+    ironing_machine: 3,
+    vacuum: 4,
+    other: 5,
+  };
+
+  const equipmentTypeLabels = {
+    washing_machine: t('admin.equipment_type_washing_machine'),
+    dryer: t('admin.equipment_type_dryer'),
+    ironing_machine: t('admin.equipment_type_ironing_machine'),
+    vacuum: t('admin.equipment_type_vacuum'),
+    other: t('admin.equipment_type_other'),
+  };
+
+  const sortedEquipmentItems = [...equipmentItems].sort((a, b) => {
+    const orderA = equipmentTypeOrder[a?.type] ?? 99;
+    const orderB = equipmentTypeOrder[b?.type] ?? 99;
+    if (orderA !== orderB) return orderA - orderB;
+
+    const capacityA = Number(a?.capacity) || 0;
+    const capacityB = Number(b?.capacity) || 0;
+    if (capacityA !== capacityB) return capacityA - capacityB;
+
+    return String(a?.name || '').localeCompare(String(b?.name || ''), 'fr');
+  });
+
+  const washingMachineItems = sortedEquipmentItems.filter((equipment) => equipment?.type === 'washing_machine');
+  const dryerItems = sortedEquipmentItems.filter((equipment) => equipment?.type === 'dryer');
 
   const openingHoursByDay = !Array.isArray(laundry.openingHours) && laundry.openingHours
     ? laundry.openingHours
@@ -341,7 +385,7 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
                       <img
                         src={logoUrl}
                         alt={t('admin.logo')}
-                        className="mt-1 h-20 w-20 rounded-md border border-gray-200 object-cover"
+                        className="mt-1 h-20 w-20 rounded-md border border-gray-200 object-cover mx-auto block"
                       />
                     ) : (
                       <p className="text-[14px] text-[#111827]">-</p>
@@ -428,58 +472,80 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
                 <h3 className="text-[14px] font-semibold text-[#111827] mb-4">
                   {t('dashboard.machines')}
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-[13px] text-[#111827]">
-                  <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('professional.laundry_form.capacity_6kg')}</p>
-                    <p>{t('dashboard.washing_machines')}: {getDisplayValue(laundry.washingMachines6kg)}</p>
-                    <p>{t('dashboard.dryers')}: {getDisplayValue(laundry.dryers6kg)}</p>
+                {sortedEquipmentItems.length > 0 ? (
+                  <div className="mt-3 space-y-6">
+                    <div>
+                      <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-2">
+                        {t('admin.equipment_type_washing_machine')}
+                      </p>
+                      {washingMachineItems.length > 0 ? (
+                        <div className="overflow-x-auto">
+                          <table className="min-w-[520px] mx-auto text-center text-[12px] text-[#111827]">
+                            <thead className="text-[11px] uppercase text-[#6B7280]">
+                              <tr className="border-b border-gray-200">
+                                <th className="py-2 px-3 font-semibold">{t('admin.equipment_name')}</th>
+                                <th className="py-2 px-3 font-semibold">{t('admin.equipment_capacity')}</th>
+                                <th className="py-2 px-3 font-semibold">{t('admin.equipment_price')}</th>
+                                <th className="py-2 px-3 font-semibold">{t('admin.equipment_duration')}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {washingMachineItems.map((equipment, index) => (
+                                <tr
+                                  key={equipment?.id ?? `${equipment?.name || 'equipment'}-${index}`}
+                                  className="border-b border-gray-100 last:border-b-0"
+                                >
+                                  <td className="py-2 px-3">{equipment?.name || '-'}</td>
+                                  <td className="py-2 px-3">{formatCapacity(equipment?.capacity)}</td>
+                                  <td className="py-2 px-3">{formatPrice(equipment?.price)}</td>
+                                  <td className="py-2 px-3">{formatDuration(equipment?.duration)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <p className="text-[14px] text-[#111827]">{t('admin.no_equipments')}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-2">
+                        {t('admin.equipment_type_dryer')}
+                      </p>
+                      {dryerItems.length > 0 ? (
+                        <div className="overflow-x-auto">
+                          <table className="min-w-[520px] mx-auto text-center text-[12px] text-[#111827]">
+                            <thead className="text-[11px] uppercase text-[#6B7280]">
+                              <tr className="border-b border-gray-200">
+                                <th className="py-2 px-3 font-semibold">{t('admin.equipment_name')}</th>
+                                <th className="py-2 px-3 font-semibold">{t('admin.equipment_capacity')}</th>
+                                <th className="py-2 px-3 font-semibold">{t('admin.equipment_price')}</th>
+                                <th className="py-2 px-3 font-semibold">{t('admin.equipment_duration')}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {dryerItems.map((equipment, index) => (
+                                <tr
+                                  key={equipment?.id ?? `${equipment?.name || 'equipment'}-${index}`}
+                                  className="border-b border-gray-100 last:border-b-0"
+                                >
+                                  <td className="py-2 px-3">{equipment?.name || '-'}</td>
+                                  <td className="py-2 px-3">{formatCapacity(equipment?.capacity)}</td>
+                                  <td className="py-2 px-3">{formatPrice(equipment?.price)}</td>
+                                  <td className="py-2 px-3">{formatDuration(equipment?.duration)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <p className="text-[14px] text-[#111827]">{t('admin.no_equipments')}</p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('professional.laundry_form.capacity_8kg')}</p>
-                    <p>{t('dashboard.washing_machines')}: {getDisplayValue(laundry.washingMachines8kg)}</p>
-                    <p>{t('dashboard.dryers')}: {getDisplayValue(laundry.dryers8kg)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('professional.laundry_form.capacity_10kg')}</p>
-                    <p>{t('dashboard.washing_machines')}: {getDisplayValue(laundry.washingMachines10kg)}</p>
-                    <p>{t('dashboard.dryers')}: {getDisplayValue(laundry.dryers10kg)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('professional.laundry_form.capacity_12kg_plus')}</p>
-                    <p>{t('dashboard.washing_machines')}: {getDisplayValue(laundry.washingMachines12kgPlus)}</p>
-                    <p>{t('dashboard.dryers')}: {getDisplayValue(laundry.dryers12kgPlus)}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-gray-200"></div>
-
-              <div>
-                <h3 className="text-[14px] font-semibold text-[#111827] mb-4">
-                  {t('dashboard.pricing')}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-[13px] text-[#111827]">
-                  <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('professional.laundry_form.capacity_6kg')}</p>
-                    <p>{t('professional.laundry_form.washing_price')}: {formatPrice(laundry.washingPrice6kg)}</p>
-                    <p>{t('professional.laundry_form.drying_price')}: {formatPrice(laundry.dryingPrice6kg)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('professional.laundry_form.capacity_8kg')}</p>
-                    <p>{t('professional.laundry_form.washing_price')}: {formatPrice(laundry.washingPrice8kg)}</p>
-                    <p>{t('professional.laundry_form.drying_price')}: {formatPrice(laundry.dryingPrice8kg)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('professional.laundry_form.capacity_10kg')}</p>
-                    <p>{t('professional.laundry_form.washing_price')}: {formatPrice(laundry.washingPrice10kg)}</p>
-                    <p>{t('professional.laundry_form.drying_price')}: {formatPrice(laundry.dryingPrice10kg)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('professional.laundry_form.capacity_12kg_plus')}</p>
-                    <p>{t('professional.laundry_form.washing_price')}: {formatPrice(laundry.washingPrice12kgPlus)}</p>
-                    <p>{t('professional.laundry_form.drying_price')}: {formatPrice(laundry.dryingPrice12kgPlus)}</p>
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-[14px] text-[#111827]">{t('admin.no_equipments')}</p>
+                )}
               </div>
 
               <div className="border-t border-gray-200"></div>
