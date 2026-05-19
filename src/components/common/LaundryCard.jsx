@@ -16,7 +16,7 @@ const resolveAddressLabel = (laundry) => {
   }
 
   const addressValue = laundry.address?.address;
-  if (typeof addressValue === 'string') {
+  if (addressValue) {
     return addressValue;
   }
 
@@ -24,7 +24,7 @@ const resolveAddressLabel = (laundry) => {
     laundry.address?.street,
     laundry.address?.postalCode,
     laundry.address?.city,
-  ].filter(Boolean).map(String);
+  ].filter(Boolean);
 
   return parts.join(' ');
 };
@@ -100,7 +100,7 @@ const LaundryCard = forwardRef(({
       <div className="p-3 sm:p-4 flex flex-col gap-2">
         {/* Name row: nom + badge + favori */}
         <div className="flex items-end justify-between gap-2">
-          <h3 className="text-sm sm:text-base font-bold text-[#3B82F6] leading-snug line-clamp-2">
+          <h3 className="text-sm sm:text-base font-bold text-[#3B82F6] leading-snug line-clamp-2 text-left">
             {laundry.establishmentName}
           </h3>
           <div className="flex items-center gap-2 shrink-0">

@@ -59,6 +59,7 @@ const laundryService = {
     payments = [],
     openAt = '',
     closeAt = '',
+    signal,
   } = {}) {
     const queryString = toQueryString({
       lat: latitude,
@@ -79,6 +80,7 @@ const laundryService = {
         headers: {
           'Content-Type': 'application/json',
         },
+        signal,
       })
       const text = await response.text()
       let data
