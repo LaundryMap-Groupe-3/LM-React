@@ -275,30 +275,48 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 
 	useEffect(() => {
 		const PARIS = [48.8666, 2.3333];
+
 		if (!navigator.geolocation) {
 			setError(t('explorer.geolocation_unavailable', "La géolocalisation n'est pas supportée par ce navigateur."));
 			setInitialMapCenter(PARIS);
 			return;
 		}
-		navigator.geolocation.getCurrentPosition(
-			(pos) => {
-				const coords = [pos.coords.latitude, pos.coords.longitude];
-				setPosition(coords);
-				setInitialMapCenter(coords);
-				setError(null);
-			},
-			(err) => {
-				if (err.code === 1) {
-					setError(null);
-				} else if (err.code === 2) {
-					setError(t('explorer.geolocation_unavailable_position', 'Impossible de trouver votre position.'));
-				} else {
-					setError(t('explorer.geolocation_error', 'Erreur de géolocalisation : ') + err.message);
-				}
-				setInitialMapCenter(PARIS);
-				setFlyToTarget([...PARIS, 12]);
+
+		const onSuccess = (pos) => {
+			const coords = [pos.coords.latitude, pos.coords.longitude];
+			setPosition(coords);
+			// Si initialMapCenter n'est pas encore défini, la carte va s'ouvrir directement dessus
+			// sans flyTo. Sinon (Paris déjà affiché), on anime vers la position.
+			setInitialMapCenter(prev => {
+				if (prev === null) return coords;
+				setFlyToTarget([...coords, 15]);
+				return prev;
+			});
+			setError(null);
+		};
+
+		const onError = (err) => {
+			setInitialMapCenter(PARIS);
+			if (err.code === 2) {
+				setError(t('explorer.geolocation_unavailable_position', 'Impossible de trouver votre position.'));
+			} else if (err.code !== 1) {
+				setError(t('explorer.geolocation_error', 'Erreur de géolocalisation : ') + err.message);
 			}
-		);
+		};
+
+		// Si la permission est déjà accordée, on attend la position avant d'afficher la carte.
+		// Sinon (prompt ou refus), on affiche Paris immédiatement sans bloquer.
+		if (navigator.permissions) {
+			navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+				if (result.state !== 'granted') {
+					setInitialMapCenter(PARIS);
+				}
+				navigator.geolocation.getCurrentPosition(onSuccess, onError, { timeout: 8000 });
+			});
+		} else {
+			setInitialMapCenter(PARIS);
+			navigator.geolocation.getCurrentPosition(onSuccess, onError, { timeout: 8000 });
+		}
 	}, [t]);
 
 	function openFilterModal() {
