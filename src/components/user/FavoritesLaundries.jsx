@@ -33,9 +33,9 @@ const FavoritesLaundries = ({ isDarkTheme, userType }) => {
     const fetchFavoritesLaundries = async () => {
       try {
         const response = await laundryService.getFavorites(currentPage, pageSize);
-        setLaundries(response.laundries);
-        setTotalLaundries(response.pagination.total);
-        setTotalPages(response.pagination.pages);
+        setLaundries(response.laundries ?? []);
+        setTotalLaundries(response.pagination?.total ?? 0);
+        setTotalPages(response.pagination?.pages ?? 0);
       } catch (error) {
         console.error('Erreur API /api/favorites/laundries', error);
         setLaundries([]);
