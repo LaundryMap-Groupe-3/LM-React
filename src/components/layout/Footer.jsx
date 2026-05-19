@@ -11,64 +11,6 @@ const Footer = ({ isDarkTheme, isLoggedIn }) => {
   return (
     <footer className={isDarkTheme ? 'bg-[#1E293B] text-[#E2E8F0]' : 'bg-white text-[#64748B]'}>
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-left justify-items-center md:justify-items-start">
-          <div>
-            {/*Titre */}
-            <h3 className="font-semibold text-[12px] text-[#3B82F6]">{t('footer.laundrymap')}</h3>
-            {/* Liens rapides */}
-            <div>
-              <ul className="text-left space-y-2">
-                <li>
-                  <a href="#" className={`text-[12px] font-medium transition duration-300 ${isDarkTheme ? 'text-[#CBD5E1] hover:text-[#3B82F6]' : 'text-[#64748B] hover:text-[#3B82F6]'}`}>
-                    {t('footer.about')}
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className={`text-[12px] font-medium transition duration-300 ${isDarkTheme ? 'text-[#CBD5E1] hover:text-[#3B82F6]' : 'text-[#64748B] hover:text-[#3B82F6]'}`}>
-                    {t('footer.how_it_works')}
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className={`text-[12px] font-medium transition duration-300 ${isDarkTheme ? 'text-[#CBD5E1] hover:text-[#3B82F6]' : 'text-[#64748B] hover:text-[#3B82F6]'}`}>
-                    {t('footer.blog')}
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className={`text-[12px] font-medium transition duration-300 ${isDarkTheme ? 'text-[#CBD5E1] hover:text-[#3B82F6]' : 'text-[#64748B] hover:text-[#3B82F6]'}`}>
-                    {t('footer.help_support')}
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          {/* Contact */}
-          <div>
-            <h3 className="font-semibold text-[12px] text-[#3B82F6]">{t('footer.contact')}</h3>
-            <ul className="space-y-2 text-gray-300">
-              <li>
-                <a href="#" className={`text-[12px] font-medium transition duration-300 ${isDarkTheme ? 'text-[#CBD5E1] hover:text-[#3B82F6]' : 'text-[#64748B] hover:text-[#3B82F6]'}`}>
-                 {t('footer.about')}
-                </a>
-              </li>
-              <li>
-                <a href='#' className={`text-[12px] font-medium flex items-center ${isDarkTheme ? 'text-[#CBD5E1]' : 'text-[#64748B]'}`}>
-                  {t('footer.contact_email')}
-                </a>
-              </li>
-              <li>
-                <a href='#' className={`text-[12px] font-medium flex items-center ${isDarkTheme ? 'text-[#CBD5E1]' : 'text-[#64748B]'}`}>
-                  {t('footer.contact_phone')}
-                </a>
-              </li>
-              <li>
-                <a href='#' className={`text-[12px] font-medium flex items-center ${isDarkTheme ? 'text-[#CBD5E1]' : 'text-[#64748B]'}`}>
-                  {t('footer.help_center')}
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-
         {/*Réseaux sociaux */}
         <div className="flex justify-center gap-[14px] space-x-4 mt-4">
           <a href="#" className={`transition duration-300 ${isDarkTheme ? 'hover:text-[#3B82F6]' : 'hover:text-[#3B82F6]'}`}>
