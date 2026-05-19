@@ -458,10 +458,13 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 
 	const radiusKm = getRadiusKm();
 
+	const PARIS = [48.8666, 2.3333];
+
 	let laundriesVisible = laundries.map(laundry => {
 		let distance = null;
-		if (position && typeof laundry.latitude === 'number' && typeof laundry.longitude === 'number') {
-			distance = getDistanceKm(position[0], position[1], laundry.latitude, laundry.longitude);
+		const refPoint = position ?? PARIS;
+		if (typeof laundry.latitude === 'number' && typeof laundry.longitude === 'number') {
+			distance = getDistanceKm(refPoint[0], refPoint[1], laundry.latitude, laundry.longitude);
 		}
 		return { ...laundry, distance };
 	});
@@ -481,6 +484,10 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 		laundriesVisible = laundriesVisible
 			.filter(l => typeof l.distance === 'number' && l.distance <= radiusKm)
 			.sort((a, b) => a.distance - b.distance);
+	} else {
+		laundriesVisible = laundriesVisible
+			.filter(l => l.distance !== null)
+			.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
 	}
 
 	const isPositionNearestMode = !isLocationSearch && !!position;
@@ -617,7 +624,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 			)}
 
 			{/* Barre de recherche flottante — haut gauche */}
-			<div className="absolute top-4 left-4 z-[1000] w-full max-w-[460px] pr-4">
+			<div className="absolute top-4 left-4 z-[1000] w-[80%] sm:w-full max-w-[460px] pr-4 sm:pr-4">
 				{error && (
 					<div className={`mb-2 px-3 py-2 rounded-lg text-xs text-center shadow ${effectiveDarkTheme ? 'bg-red-900/80 border border-red-700/60 text-red-200' : 'bg-red-100 border border-red-300 text-red-700'}`}>
 						{error}
@@ -679,10 +686,10 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 					<button
 						type="button"
 						onClick={handleRecenter}
-						className={`w-[44px] h-[44px] rounded-xl flex items-center justify-center shadow-lg transition border flex-shrink-0 ${!position ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${effectiveDarkTheme ? 'bg-slate-900/90 border-slate-600 hover:bg-slate-800' : 'bg-white/95 border-slate-200 hover:bg-slate-50'}`}
+						className={`w-[44px] h-[44px] rounded-xl flex items-center justify-center shadow-lg transition flex-shrink-0 bg-[#3B82F6] hover:bg-blue-600 ${!position ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
 						title={t('explorer.locate_me', 'Revenir sur ma position')}
 					>
-						<img src={Logo} alt={t('explorer.locate_me', 'Ma position')} className="h-5 w-5" />
+						<img src={Logo} alt={t('explorer.locate_me', 'Ma position')} className="h-5 w-5" style={{ filter: 'brightness(0) invert(1)' }} />
 					</button>
 
 					{/* Filtres */}
@@ -699,7 +706,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 
 				{/* Panneau filtres flottant sous la barre */}
 				{isFilterOpen && (
-					<div className={`mt-2 rounded-2xl shadow-xl border overflow-y-auto max-h-[70vh] ${effectiveDarkTheme ? 'bg-slate-900/95 border-slate-700' : 'bg-white/97 border-slate-200'}`} style={{ backdropFilter: 'blur(8px)' }}>
+					<div className={`mt-2 rounded-2xl shadow-xl border overflow-y-auto max-h-[70vh] max-w-[320px] sm:max-w-full ${effectiveDarkTheme ? 'bg-slate-900/95 border-slate-700' : 'bg-white/97 border-slate-200'}`} style={{ backdropFilter: 'blur(8px)' }}>
 						<div className="px-4 py-4">
 							<div className="flex justify-end mb-3">
 								<button
@@ -739,7 +746,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 								<div>
 									<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-2">{t('explorer.filter_payment', 'Moyens de paiement')}</label>
 									<div className={`rounded-xl p-3 ${effectiveDarkTheme ? 'bg-slate-700' : 'bg-white border border-slate-200'}`}>
-										<TagFilter items={[{ value: 'card', label: t('explorer.filter_payment_cb', 'Carte bancaire') }, { value: 'cash', label: t('explorer.filter_payment_cash', 'Espèces') }, { value: 'contactless', label: t('explorer.filter_payment_contactless', 'Sans contact') }]} selected={selectedPayments} onChange={setSelectedPayments} />
+										<TagFilter items={[{ value: 'card', label: t('explorer.filter_payment_cb', 'Carte bancaire') }, { value: 'coins', label: t('explorer.filter_payment_coins', 'Pièces') }, { value: 'bills', label: t('explorer.filter_payment_bills', 'Billets') }, { value: 'contactless', label: t('explorer.filter_payment_contactless', 'Sans contact') }, { value: 'fidelity', label: t('explorer.filter_payment_fidelity', 'Carte de fidélité') }]} selected={selectedPayments} onChange={setSelectedPayments} />
 									</div>
 								</div>
 							</div>
@@ -748,23 +755,34 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 				)}
 			</div>
 
-			{/* Bouton burger — haut droite */}
-			<button
-				type="button"
-				onClick={() => setIsSidePanelOpen(v => !v)}
-				className={`absolute top-4 right-4 z-[1000] w-[44px] h-[44px] rounded-xl flex items-center justify-center shadow-lg transition cursor-pointer border ${effectiveDarkTheme ? 'bg-slate-900/90 border-slate-600 text-slate-100 hover:bg-slate-800' : 'bg-white/95 border-slate-200 text-slate-700 hover:bg-slate-50'}`}
-				title={t('explorer.toggle_list', 'Liste des laveries')}
-			>
-				<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-					<path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-				</svg>
-			</button>
+			{/* Bouton burger — haut droite sur desktop, bas centre sur mobile — masqué si panneau ouvert */}
+			{!isSidePanelOpen && (
+				<button
+					type="button"
+					onClick={() => setIsSidePanelOpen(true)}
+					className={`absolute z-[1000] flex items-center gap-2 shadow-lg transition cursor-pointer border
+						bottom-4 left-1/2 -translate-x-1/2 rounded-2xl px-4 h-[44px]
+						sm:bottom-auto sm:top-4 sm:left-auto sm:right-4 sm:translate-x-0 sm:rounded-xl sm:w-[44px] sm:px-0 sm:justify-center
+						${effectiveDarkTheme ? 'bg-slate-900/90 border-slate-600 text-slate-100 hover:bg-slate-800' : 'bg-white/95 border-slate-200 text-slate-700 hover:bg-slate-50'}`}
+					title={t('explorer.toggle_list', 'Liste des laveries')}
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+						<path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+					</svg>
+					<span className="text-sm font-medium sm:hidden">
+						{t('explorer.list_title', 'Laveries à proximité')}
+					</span>
+				</button>
+			)}
 
-			{/* Panneau liste — flottant droite */}
+			{/* Panneau liste — drawer bas sur mobile, flottant droite sur desktop */}
 			{isSidePanelOpen && (
 				<div
-					className={`absolute top-4 right-4 z-[999] w-full max-w-[360px] rounded-2xl shadow-2xl flex flex-col overflow-hidden ${effectiveDarkTheme ? 'bg-slate-900/95 text-slate-100' : 'bg-white/97 text-slate-900'}`}
-					style={{ backdropFilter: 'blur(8px)', maxHeight: 'calc(100% - 2rem)' }}
+					className={`absolute z-[999] flex flex-col overflow-hidden shadow-2xl
+						bottom-0 left-0 right-0 rounded-t-2xl max-h-[55%]
+						sm:bottom-auto sm:top-4 sm:left-auto sm:right-4 sm:rounded-2xl sm:w-full sm:max-w-[360px] sm:max-h-[calc(100%-2rem)]
+						${effectiveDarkTheme ? 'bg-slate-900/95 text-slate-100' : 'bg-white/97 text-slate-900'}`}
+					style={{ backdropFilter: 'blur(8px)' }}
 				>
 					{/* En-tête */}
 					<div className={`flex items-center justify-between px-4 py-3 border-b flex-shrink-0 ${effectiveDarkTheme ? 'border-slate-700' : 'border-slate-200'}`}>

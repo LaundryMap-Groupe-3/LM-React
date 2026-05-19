@@ -29,7 +29,6 @@ const resolveMediaUrl = (location) => {
   }
 };
 
-const EQUIPMENT_CAPACITIES = ['6kg', '8kg', '10kg', '12kg+'];
 
 const defaultValues = {
   wiLineReference: '',
@@ -75,57 +74,32 @@ const STEPS = [
   { id: 3, labelKey: 'professional.laundry_form.step_equipment', fallback: 'professional.laundry_form.step_equipment', icon: ServicesIcon },
 ];
 
-const createEquipment = (type = 'washing', capacity = '6kg') => ({
+const createEquipment = (type = 'washing', capacity = '') => ({
   id: `eq-${Date.now()}-${Math.random()}`,
   type,
   capacity,
   price: '',
 });
 
-const equipmentFromLegacy = (laundry) => {
-  const items = [];
-  const capacities = ['6kg', '8kg', '10kg', '12kgPlus'];
-  const capacityLabel = { '6kg': '6kg', '8kg': '8kg', '10kg': '10kg', '12kgPlus': '12kg+' };
-
-  capacities.forEach((cap) => {
-    const washCount = Number(laundry?.[`washingMachines${cap}`]) || 0;
-    const washPrice = laundry?.[`washingPrice${cap}`] ?? '';
-    for (let i = 0; i < washCount; i++) {
-      items.push({ id: `eq-${Date.now()}-${Math.random()}`, type: 'washing', capacity: capacityLabel[cap], price: String(washPrice) });
-    }
-    const dryCount = Number(laundry?.[`dryers${cap}`]) || 0;
-    const dryPrice = laundry?.[`dryingPrice${cap}`] ?? '';
-    for (let i = 0; i < dryCount; i++) {
-      items.push({ id: `eq-${Date.now()}-${Math.random()}`, type: 'drying', capacity: capacityLabel[cap], price: String(dryPrice) });
-    }
-  });
-
-  return items;
+const equipmentFromLaundry = (laundry) => {
+  if (Array.isArray(laundry?.equipments)) {
+    return laundry.equipments.map((eq) => ({
+      id: `eq-${Date.now()}-${Math.random()}`,
+      type: eq.type,
+      capacity: String(eq.capacity),
+      price: String(eq.price ?? ''),
+    }));
+  }
+  return [];
 };
 
-const equipmentToPayload = (equipments) => {
-  const capacityKey = { '6kg': '6kg', '8kg': '8kg', '10kg': '10kg', '12kg+': '12kgPlus' };
-  const result = {
-    washingMachines6kg: 0, washingMachines8kg: 0, washingMachines10kg: 0, washingMachines12kgPlus: 0,
-    dryers6kg: 0, dryers8kg: 0, dryers10kg: 0, dryers12kgPlus: 0,
-    washingPrice6kg: 0, washingPrice8kg: 0, washingPrice10kg: 0, washingPrice12kgPlus: 0,
-    dryingPrice6kg: 0, dryingPrice8kg: 0, dryingPrice10kg: 0, dryingPrice12kgPlus: 0,
-  };
-
-  equipments.forEach((eq) => {
-    const key = capacityKey[eq.capacity] || '6kg';
-    const price = parseFloat(String(eq.price).replace(',', '.')) || 0;
-    if (eq.type === 'washing') {
-      result[`washingMachines${key}`] += 1;
-      result[`washingPrice${key}`] = price;
-    } else {
-      result[`dryers${key}`] += 1;
-      result[`dryingPrice${key}`] = price;
-    }
-  });
-
-  return result;
-};
+const equipmentToPayload = (equipments) => ({
+  equipments: equipments.map((eq) => ({
+    type: eq.type,
+    capacity: parseInt(String(eq.capacity), 10) || 0,
+    price: parseFloat(String(eq.price).replace(',', '.')) || 0,
+  })),
+});
 
 const ProfessionalLaundryForm = ({ isDarkTheme }) => {
   const { id } = useParams();
@@ -235,7 +209,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
         setCurrentLogo(laundry?.logo ?? null);
         setCurrentMedias(Array.isArray(laundry?.medias) ? laundry.medias : []);
         setPendingMediaFiles([]);
-        setEquipments(equipmentFromLegacy(laundry));
+        setEquipments(equipmentFromLaundry(laundry));
 
         const additionalSlots = openingHoursDays.reduce((acc, day) => {
           const slots = laundry?.openingHoursExtra?.[day.key];
@@ -278,18 +252,14 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
 
         if (cancelled) return;
 
-        const capacities = ['6kg', '8kg', '10kg', '12kgPlus'];
-        const capLabel = { '6kg': '6kg', '8kg': '8kg', '10kg': '10kg', '12kgPlus': '12kg+' };
-        const newItems = [];
-        capacities.forEach((cap) => {
-          const wCount = Number(autoFill[`washingMachines${cap}`]) || 0;
-          const wPrice = autoFill[`washingPrice${cap}`] ?? '';
-          for (let i = 0; i < wCount; i++) newItems.push({ id: `eq-${Date.now()}-${Math.random()}`, type: 'washing', capacity: capLabel[cap], price: String(wPrice) });
-          const dCount = Number(autoFill[`dryers${cap}`]) || 0;
-          const dPrice = autoFill[`dryingPrice${cap}`] ?? '';
-          for (let i = 0; i < dCount; i++) newItems.push({ id: `eq-${Date.now()}-${Math.random()}`, type: 'drying', capacity: capLabel[cap], price: String(dPrice) });
-        });
-        if (newItems.length > 0) setEquipments(newItems);
+        if (Array.isArray(autoFill.equipments) && autoFill.equipments.length > 0) {
+          setEquipments(autoFill.equipments.map((eq) => ({
+            id: `eq-${Date.now()}-${Math.random()}`,
+            type: eq.type,
+            capacity: String(eq.capacity),
+            price: String(eq.price ?? ''),
+          })));
+        }
 
         if (hasValidLaundry) {
           const laundry = result.laundry;
@@ -299,6 +269,9 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
           if (laundry.city) setValue('city', laundry.city);
           if (laundry.country) setValue('country', laundry.country);
           if (laundry.phone) setValue('contactPhone', laundry.phone);
+          if (Array.isArray(laundry.paymentMethodIds) && laundry.paymentMethodIds.length > 0) {
+            setValue('paymentMethodIds', laundry.paymentMethodIds.map(String));
+          }
 
           const wiLineToFormDay = {
             monday: 'monday', tuesday: 'tuesday', wednesday: 'wednesday',
@@ -425,7 +398,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     }
   };
 
-  const addEquipment = (type) => setEquipments((prev) => [...prev, createEquipment(type, '6kg')]);
+  const addEquipment = (type) => setEquipments((prev) => [...prev, createEquipment(type, '')]);
   const removeEquipment = (eqId) => setEquipments((prev) => prev.filter((eq) => eq.id !== eqId));
   const updateEquipment = (eqId, field, value) => setEquipments((prev) => prev.map((eq) => eq.id === eqId ? { ...eq, [field]: value } : eq));
 
@@ -937,15 +910,13 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                           <div className="grid grid-cols-2 gap-3">
                             <div>
                               <label className={labelClass}>{t('professional.laundry_form.capacity', 'Capacité')}</label>
-                              <select
+                              <input
+                                type="text"
                                 value={eq.capacity}
                                 onChange={(e) => updateEquipment(eq.id, 'capacity', e.target.value)}
                                 className={`w-full rounded-xl border px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-900'}`}
-                              >
-                                {EQUIPMENT_CAPACITIES.map((cap) => (
-                                  <option key={cap} value={cap}>{cap}</option>
-                                ))}
-                              </select>
+                                placeholder="Ex: 6"
+                              />
                             </div>
                             <div>
                               <label className={labelClass}>
@@ -1009,15 +980,13 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                           <div className="grid grid-cols-2 gap-3">
                             <div>
                               <label className={labelClass}>{t('professional.laundry_form.capacity', 'Capacité')}</label>
-                              <select
+                              <input
+                                type="text"
                                 value={eq.capacity}
                                 onChange={(e) => updateEquipment(eq.id, 'capacity', e.target.value)}
                                 className={`w-full rounded-xl border px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-slate-300 bg-white text-slate-900'}`}
-                              >
-                                {EQUIPMENT_CAPACITIES.map((cap) => (
-                                  <option key={cap} value={cap}>{cap}</option>
-                                ))}
-                              </select>
+                                placeholder="Ex: 6"
+                              />
                             </div>
                             <div>
                               <label className={labelClass}>
