@@ -26,19 +26,6 @@ import EraseIcon from '../../assets/images/icons/Erase.svg';
 import GoogleMapsIcon from '../../assets/images/icons/Google-Maps.svg';
 import WazeIcon from '../../assets/images/icons/Waze.svg';
 
-function getDistanceKm(lat1, lon1, lat2, lon2) {
-	const R = 6371;
-	const dLat = ((lat2 - lat1) * Math.PI) / 180;
-	const dLon = ((lon2 - lon1) * Math.PI) / 180;
-	const a =
-		Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-		Math.cos((lat1 * Math.PI) / 180) *
-			Math.cos((lat2 * Math.PI) / 180) *
-			Math.sin(dLon / 2) *
-			Math.sin(dLon / 2);
-	const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-	return R * c;
-}
 
 const laundryIcon = L.icon({
 	iconUrl: WashingMachineIcon,
@@ -270,10 +257,13 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 	}
 
 	useEffect(() => {
+		const PARIS = [48.8666, 2.3333];
 		const { openAt, closeAt } = getTimeFilterState();
+		const refPoint = isLocationSearch && searchLocation ? searchLocation : (position ?? PARIS);
+		const controller = new AbortController();
 		laundryService.getNearbyLaundries({
-			latitude:  undefined,
-			longitude: undefined,
+			latitude:  refPoint[0],
+			longitude: refPoint[1],
 			radius:    getRadiusKm(),
 			limit:     100,
 			query:     '',
@@ -281,16 +271,19 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 			payments:  selectedPayments,
 			openAt,
 			closeAt,
+			signal:    controller.signal,
 		})
 			.then(data => {
 				setLaundries(data.laundries);
 				setError(null);
 			})
 			.catch(err => {
+				if (err?.name === 'AbortError') return;
 				setError(null);
 				console.error('[LaundryExplorer] Erreur récupération laveries:', err);
 			});
-	}, [selectedServices, selectedPayments, startTimeValue, endTimeValue, radiusValue]);
+		return () => controller.abort();
+	}, [selectedServices, selectedPayments, startTimeValue, endTimeValue, radiusValue, position, searchLocation, isLocationSearch]);
 
 	useEffect(() => {
 		const PARIS = [48.8666, 2.3333];
@@ -456,45 +449,17 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 		}
 	}
 
-	const radiusKm = getRadiusKm();
-
-	const PARIS = [48.8666, 2.3333];
-
-	let laundriesVisible = laundries.map(laundry => {
-		let distance = null;
-		const refPoint = position ?? PARIS;
-		if (typeof laundry.latitude === 'number' && typeof laundry.longitude === 'number') {
-			distance = getDistanceKm(refPoint[0], refPoint[1], laundry.latitude, laundry.longitude);
-		}
-		return { ...laundry, distance };
-	});
-
-	if (isLocationSearch && Array.isArray(searchLocation)) {
-		const [sLat, sLng] = searchLocation;
-		laundriesVisible = laundries
-			.map(laundry => {
-				if (typeof laundry.latitude !== 'number' || typeof laundry.longitude !== 'number') {
-					return { ...laundry, distance: null };
-				}
-				return { ...laundry, distance: getDistanceKm(sLat, sLng, laundry.latitude, laundry.longitude) };
-			})
-			.filter(l => l.distance !== null && l.distance <= radiusKm)
-			.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
-	} else if (position) {
-		laundriesVisible = laundriesVisible
-			.filter(l => typeof l.distance === 'number' && l.distance <= radiusKm)
-			.sort((a, b) => a.distance - b.distance);
-	} else {
-		laundriesVisible = laundriesVisible
-			.filter(l => l.distance !== null)
-			.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
-	}
+	const laundriesVisible = laundries.map(laundry => ({
+		...laundry,
+		distance: laundry.distanceKm ?? null,
+	}));
 
 	const isPositionNearestMode = !isLocationSearch && !!position;
+	const isParisDefaultMode = !isLocationSearch && !position;
 
 	const laundriesToDisplay = isLocationSearch
 		? laundriesVisible.slice(0, LOCATION_SEARCH_LIMIT)
-		: isPositionNearestMode
+		: (isPositionNearestMode || isParisDefaultMode)
 			? laundriesVisible.slice(0, POSITION_NEAREST_LIMIT)
 			: showAll
 				? laundriesVisible
@@ -830,7 +795,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 										/>
 									))}
 								</div>
-								{!isLocationSearch && !isPositionNearestMode && !showAll && laundriesVisible.length > LIST_INITIAL_LIMIT && (
+								{!isLocationSearch && !isPositionNearestMode && !isParisDefaultMode && !showAll && laundriesVisible.length > LIST_INITIAL_LIMIT && (
 									<button onClick={() => setShowAll(true)} className="mt-4 mb-2 w-full text-center py-2 text-sm text-[#3B82F6] font-medium hover:underline cursor-pointer">
 										{t('explorer.show_more', 'Afficher plus')}
 									</button>
