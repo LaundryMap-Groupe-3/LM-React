@@ -282,7 +282,22 @@
       "wiline_client_code_placeholder": "Eg: 1554",
       "wiline_loading": "Fetching WI-LINE machines...",
       "wiline_autofill_done": "WI-LINE machines fetched and fields updated.",
-      "wi_line_connectivity": "WI-LINE Connectivity (Optional)"
+      "wi_line_connectivity": "WI-LINE Connectivity",
+      "step_info": "Information",
+      "step_hours": "Hours",
+      "step_equipment": "Equipment",
+      "medias_title": "Visuals",
+      "change": "Change logo",
+      "current_medias": "Current photos",
+      "no_washing_machines": "No washing machines added",
+      "no_dryers": "No dryers added",
+      "add_washing_machine": "Add",
+      "add_dryer": "Add",
+      "capacity": "Capacity",
+      "price_per_wash": "Price (€)",
+      "price_per_dry": "Price (€)",
+      "no_services_available": "No services available",
+      "no_payment_methods_available": "No payment methods available"
     }
   },
   "profile": {

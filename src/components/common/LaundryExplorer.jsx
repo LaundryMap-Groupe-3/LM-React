@@ -123,63 +123,83 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 	const { isDarkTheme: preferenceDarkTheme } = usePreferences();
 	const effectiveDarkTheme = preferenceDarkTheme ?? isDarkTheme;
 
-	const [laundries,          setLaundries]          = useState([]);
-	const [error,              setError]              = useState(null);
-	const [position,           setPosition]           = useState(null);
-	const [initialMapCenter,   setInitialMapCenter]   = useState(null);
-	const [flyToTarget,        setFlyToTarget]        = useState(null);
-	const [mapBounds,          setMapBounds]          = useState(null);
-	const [search,             setSearch]             = useState('');
-	const [searchLocation,     setSearchLocation]     = useState(null);
-	const [isLocationSearch,   setIsLocationSearch]   = useState(false);
-	const [showAll,            setShowAll]            = useState(false);
+	const [mapHeight, setMapHeight] = useState('100dvh');
+
+	useEffect(() => {
+		function updateHeight() {
+			const header = document.querySelector('header');
+			const footer = document.querySelector('footer');
+			const headerH = header ? header.getBoundingClientRect().height : 0;
+			const footerH = footer ? footer.getBoundingClientRect().height : 0;
+			setMapHeight(`calc(100dvh - ${headerH + footerH * 0.3}px)`);
+		}
+		updateHeight();
+		const observer = new ResizeObserver(updateHeight);
+		const header = document.querySelector('header');
+		const footer = document.querySelector('footer');
+		if (header) observer.observe(header);
+		if (footer) observer.observe(footer);
+		return () => observer.disconnect();
+	}, []);
+
+	const [laundries,            setLaundries]            = useState([]);
+	const [error,                setError]                = useState(null);
+	const [position,             setPosition]             = useState(null);
+	const [initialMapCenter,     setInitialMapCenter]     = useState(null);
+	const [flyToTarget,          setFlyToTarget]          = useState(null);
+	const [mapBounds,            setMapBounds]            = useState(null);
+	const [search,               setSearch]               = useState('');
+	const [searchLocation,       setSearchLocation]       = useState(null);
+	const [isLocationSearch,     setIsLocationSearch]     = useState(false);
+	const [showAll,              setShowAll]              = useState(false);
 	const [highlightedLaundryId, setHighlightedLaundryId] = useState(null);
-	const [isFilterModalOpen,  setIsFilterModalOpen]  = useState(false);
-	const [radiusValue,        setRadiusValue]        = useState('');
-	const [selectedServices,   setSelectedServices]   = useState([]);
-	const [selectedPayments,   setSelectedPayments]   = useState([]);
-	const [startTimeValue,     setStartTimeValue]     = useState('');
-	const [endTimeValue,       setEndTimeValue]       = useState('');
-	const [favoriteIds,        setFavoriteIds]        = useState([]);
-	const [loadingFavorites,   setLoadingFavorites]   = useState(false);
-	const [suggestions,        setSuggestions]        = useState([]);
-	const [showSuggestions,    setShowSuggestions]    = useState(false);
+	const [isSidePanelOpen,      setIsSidePanelOpen]      = useState(false);
+	const [isFilterOpen,         setIsFilterOpen]         = useState(false);
+	const [radiusValue,          setRadiusValue]          = useState('');
+	const [selectedServices,     setSelectedServices]     = useState([]);
+	const [selectedPayments,     setSelectedPayments]     = useState([]);
+	const [startTimeValue,       setStartTimeValue]       = useState('');
+	const [endTimeValue,         setEndTimeValue]         = useState('');
+	const [favoriteIds,          setFavoriteIds]          = useState([]);
+	const [loadingFavorites,     setLoadingFavorites]     = useState(false);
+	const [suggestions,          setSuggestions]          = useState([]);
+	const [showSuggestions,      setShowSuggestions]      = useState(false);
 	const mapRef          = useRef(null);
 	const cardRefs        = useRef({});
 	const suggestDebounce = useRef(null);
 	const searchWrapRef   = useRef(null);
 
 	const fetchFavorites = useCallback(async () => {
-        setLoadingFavorites(true);
-        try {
-            const favoritesLaundries = await laundryService.getFavoritesIds();
-            setFavoriteIds(favoritesLaundries.favorites);
-        } catch (err) {
-            console.error('Erreur chargement favoris:', err);
-        } finally {
-            setLoadingFavorites(false);
-        }
-    }, []);
+		setLoadingFavorites(true);
+		try {
+			const favoritesLaundries = await laundryService.getFavoritesIds();
+			setFavoriteIds(favoritesLaundries.favorites);
+		} catch (err) {
+			console.error('Erreur chargement favoris:', err);
+		} finally {
+			setLoadingFavorites(false);
+		}
+	}, []);
 
-    useEffect(() => {
-        if (authService.isAuthenticated()) {
-            fetchFavorites();
-        }
-    }, [fetchFavorites]);
+	useEffect(() => {
+		if (authService.isAuthenticated()) {
+			fetchFavorites();
+		}
+	}, [fetchFavorites]);
 
-    const handleToggleFavorite = async (laundryId) => {
-        const isFav = favoriteIds.includes(laundryId);
-        try {
-            if (isFav) {
-                await laundryService.removeFavorite(laundryId);
-            } else {
-                await laundryService.addFavorite(laundryId);
-            }
-            await fetchFavorites();
-        } catch (err) {
-            window.alert(t('explorer.favorite_error', 'Erreur lors de la mise à jour du favori.'));
-        }
-    };
+	const handleToggleFavorite = async (laundryId) => {
+		const isFav = favoriteIds.includes(laundryId);
+		try {
+			if (isFav) {
+				await laundryService.removeFavorite(laundryId);
+			} else {
+				await laundryService.addFavorite(laundryId);
+			}
+			await fetchFavorites();
+		} catch (err) {
+			window.alert(t('explorer.favorite_error', 'Erreur lors de la mise à jour du favori.'));
+		}
+	};
 
 	function handleRadiusChange(e) {
 		setRadiusValue(e.target.value.replace(/[^0-9]/g, ''));
@@ -270,7 +290,6 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 				setError(null);
 				console.error('[LaundryExplorer] Erreur récupération laveries:', err);
 			});
-
 	}, [selectedServices, selectedPayments, startTimeValue, endTimeValue, radiusValue]);
 
 	useEffect(() => {
@@ -285,8 +304,6 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 		const onSuccess = (pos) => {
 			const coords = [pos.coords.latitude, pos.coords.longitude];
 			setPosition(coords);
-			// Si initialMapCenter n'est pas encore défini, la carte va s'ouvrir directement dessus
-			// sans flyTo. Sinon (Paris déjà affiché), on anime vers la position.
 			setInitialMapCenter(prev => {
 				if (prev === null) return coords;
 				setFlyToTarget([...coords, 15]);
@@ -304,8 +321,6 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 			}
 		};
 
-		// Si la permission est déjà accordée, on attend la position avant d'afficher la carte.
-		// Sinon (prompt ou refus), on affiche Paris immédiatement sans bloquer.
 		if (navigator.permissions) {
 			navigator.permissions.query({ name: 'geolocation' }).then((result) => {
 				if (result.state !== 'granted') {
@@ -318,19 +333,6 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 			navigator.geolocation.getCurrentPosition(onSuccess, onError, { timeout: 8000 });
 		}
 	}, [t]);
-
-	function openFilterModal() {
-		setIsFilterModalOpen(true);
-		document.body.style.overflow = 'hidden';
-	}
-	function closeFilterModal() {
-		setIsFilterModalOpen(false);
-		document.body.style.overflow = '';
-	}
-	useEffect(() => {
-		if (!isFilterModalOpen) document.body.style.overflow = '';
-		return () => { document.body.style.overflow = ''; };
-	}, [isFilterModalOpen]);
 
 	function handleRecenter() {
 		if (mapRef.current) {
@@ -382,20 +384,20 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 				if (!res.ok) return;
 				const data = await res.json();
 				setSuggestions(data.map(item => {
-						const a = item.address || {};
-						const parts = [
-							a.house_number && a.road ? `${a.house_number} ${a.road}` : a.road,
-							a.city || a.town || a.village || a.municipality,
-							a.postcode,
-						].filter(Boolean);
-						return {
-							label: parts.length ? parts.join(', ') : item.display_name.split(',').slice(0, 3).join(',').trim(),
-							fullLabel: item.display_name,
-							lat: parseFloat(item.lat),
-							lng: parseFloat(item.lon),
-							type: item.type,
-						};
-					}));
+					const a = item.address || {};
+					const parts = [
+						a.house_number && a.road ? `${a.house_number} ${a.road}` : a.road,
+						a.city || a.town || a.village || a.municipality,
+						a.postcode,
+					].filter(Boolean);
+					return {
+						label: parts.length ? parts.join(', ') : item.display_name.split(',').slice(0, 3).join(',').trim(),
+						fullLabel: item.display_name,
+						lat: parseFloat(item.lat),
+						lng: parseFloat(item.lon),
+						type: item.type,
+					};
+				}));
 				setShowSuggestions(true);
 			} catch {
 				setSuggestions([]);
@@ -482,7 +484,6 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 	}
 
 	const isPositionNearestMode = !isLocationSearch && !!position;
-	const timeFilterState = getTimeFilterState();
 
 	const laundriesToDisplay = isLocationSearch
 		? laundriesVisible.slice(0, LOCATION_SEARCH_LIMIT)
@@ -494,260 +495,50 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 
 	const initialZoom = position ? 15 : 12;
 
+	const hasActiveFilters = radiusValue || selectedServices.length > 0 || selectedPayments.length > 0 || startTimeValue || endTimeValue;
+
 	return (
-		<div className={`flex flex-col md:flex-row gap-8 lg:gap-6 items-baseline lg:items-start w-full ${effectiveDarkTheme ? 'text-slate-100' : 'text-slate-900'}`}>
+		<div className="relative w-full overflow-hidden" style={{ height: mapHeight }}>
 
-			{error && (
-				<div className={`w-full mb-4 p-3 rounded text-center text-sm ${effectiveDarkTheme ? 'bg-red-900/40 border border-red-700/60 text-red-200' : 'bg-red-100 border border-red-300 text-red-700'}`}>
-					{error}
-				</div>
-			)}
+			{/* Carte plein écran */}
+			{initialMapCenter && (
+				<MapContainer
+					ref={mapRef}
+					center={initialMapCenter}
+					zoom={initialZoom}
+					style={{ position: 'absolute', inset: 0, height: '100%', width: '100%', zIndex: 0 }}
+					zoomControl={false}
+				>
+					{flyToTarget && <SetViewOnCenter target={flyToTarget} />}
+					<MapEventsSync mapRef={mapRef} setMapBounds={setMapBounds} />
 
-			<div className="flex-1 min-w-0 flex flex-col w-full md:w-auto lg:basis-[54%] xl:basis-[52%]">
+					<TileLayer
+						attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+						url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+					/>
 
-				<div className="w-full flex justify-center mb-2 mt-2 lg:mb-4">
-					<form
-						className="py-2 lg:py-3 flex gap-2 lg:gap-3 items-center w-full max-w-xl lg:max-w-3xl xl:max-w-4xl"
-						onSubmit={handleSearchSubmit}
-					>
-						<div className="relative flex-1" ref={searchWrapRef}>
-							<input
-								type="text"
-								placeholder={t('explorer.search_placeholder', 'Rechercher une laverie, une ville...')}
-								className={`w-full border rounded-lg h-[38px] lg:h-[46px] pl-3 text-sm lg:text-base focus:outline-none focus:ring-2 focus:ring-blue-200 ${effectiveDarkTheme ? 'border-slate-600 bg-slate-900 text-slate-100 placeholder-slate-400' : 'border-[#D1D5DB] bg-white text-slate-900'}`}
-								value={search}
-								onChange={handleSearchChange}
-								onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-								onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-								autoComplete="off"
-							/>
-							{search && (
-								<button
-									type="button"
-									onClick={() => {
-										setSearch('');
-										setSuggestions([]);
-										setShowSuggestions(false);
-										setSearchLocation(null);
-										setIsLocationSearch(false);
-										handleRecenter();
-									}}
-									className={`absolute right-2 top-1/2 -translate-y-1/2 text-lg font-bold focus:outline-none ${effectiveDarkTheme ? 'text-slate-400 hover:text-slate-200' : 'text-gray-400 hover:text-gray-700'}`}
-									aria-label={t('common.close', 'Effacer la recherche')}
-									style={{ background: 'none', border: 'none', padding: 0, margin: 0, lineHeight: 1 }}
-								>
-									×
-								</button>
-							)}
-							{showSuggestions && suggestions.length > 0 && (
-								<ul className={`absolute z-[9999] left-0 right-0 top-full mt-1 rounded-lg shadow-lg border overflow-hidden ${effectiveDarkTheme ? 'bg-slate-800 border-slate-600' : 'bg-white border-[#D1D5DB]'}`}>
-									{suggestions.map((s, i) => (
-										<li key={i}>
-											<button
-												type="button"
-												onMouseDown={() => handleSuggestionSelect(s)}
-												className={`w-full text-left px-3 py-2 text-sm truncate transition-colors ${effectiveDarkTheme ? 'text-slate-100 hover:bg-slate-700' : 'text-slate-800 hover:bg-blue-50'}`}
-											>
-												{s.label}
-											</button>
-										</li>
-									))}
-								</ul>
-							)}
-						</div>
+					{position && (
+						<Marker position={position} icon={userPositionIcon}>
+							<Popup>Vous êtes ici</Popup>
+						</Marker>
+					)}
 
-						<button
-							type="submit"
-							className="bg-[#3B82F6] w-[38px] h-[38px] lg:w-[46px] lg:h-[46px] rounded-lg py-1 flex items-center justify-center transition cursor-pointer"
-						>
-							<img
-								src={SearchIcon}
-								alt={t('explorer.search_placeholder', 'Rechercher')}
-								className="h-5 w-5 lg:h-6 lg:w-6"
-								style={{ filter: 'brightness(0) invert(1)' }}
-							/>
-						</button>
+					{laundries
+						.filter(l =>
+							typeof l.latitude === 'number' &&
+							typeof l.longitude === 'number' &&
+							!isNaN(l.latitude) &&
+							!isNaN(l.longitude)
+						)
+						.map(laundry => {
+							const addressLabel = typeof laundry.address === 'string'
+								? laundry.address
+								: (laundry.address?.address
+									|| [laundry.address?.street, laundry.address?.postalCode, laundry.address?.city]
+										.filter(Boolean)
+										.join(' '));
 
-						<button
-							type="button"
-							onClick={handleRecenter}
-							className={`bg-[#3B82F6] w-[38px] h-[38px] lg:w-[46px] lg:h-[46px] rounded-lg py-1 flex items-center justify-center transition ${!position ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-							title={t('explorer.locate_me', 'Revenir sur ma position')}
-						>
-							<img src={Logo} alt={t('explorer.locate_me', 'Ma position')} className="inline-block h-5 w-5 lg:h-6 lg:w-6" />
-						</button>
-
-						<button
-							type="button"
-							onClick={openFilterModal}
-							className="bg-white border border-[#3B82F6] text-[#3B82F6] rounded-lg h-[38px] w-[38px] lg:h-[46px] lg:w-[46px] flex items-center justify-center cursor-pointer"
-							title={t('explorer.open_filters', 'Filtres')}
-						>
-							<img src={SystemIcon} alt={t('explorer.open_filters', 'Filtres')} className="h-5 w-5" />
-						</button>
-					</form>
-				</div>
-
-				{isFilterModalOpen && (
-					<div className="fixed inset-0 z-1 flex items-end justify-center">
-						<div className="relative z-10 pb-4 w-full max-w-[600px] bg-white dark:bg-slate-900 rounded-t-2xl border-t-2 border-blue-500 shadow-xl flex flex-col">
-							
-							<div className="overflow-y-auto px-6 pb-6 pt-4">
-								<div className="flex items-start justify-between mb-4">
-									<div>
-										<h2 className="text-lg font-semibold">
-										{t('explorer.filters_title', 'Filtrage de la recherche')}
-										</h2>
-									</div>
-									<button
-										onClick={closeFilterModal}
-										className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xl leading-none"
-										aria-label={t('common.close', 'Fermer')}
-									>
-										×
-									</button>
-								</div>
-
-								<div className="flex justify-start">
-									<button
-									type="button"
-									onClick={() => {
-										setRadiusValue('');
-										setSelectedServices([]);
-										setSelectedPayments([]);
-										setStartTimeValue('');
-										setEndTimeValue('');
-										setShowAll(false);
-									}}
-									className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-white bg-[#3B82F6] dark:bg-blue-950 border rounded-lg px-3 py-1.5 mb-5 hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
-									>
-									<img src={EraseIcon} alt="" className="w-3 h-3" />
-									{t('explorer.clear_filters', 'Effacer les filtres')}
-									</button>
-								</div>
-
-								<div className="flex flex-col gap-5">
-									<div>
-										<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">
-										{t('explorer.filter_radius', 'Périmètre de recherche')}
-										</label>
-										<div className="flex items-center gap-2">
-											<input
-												type="text"
-												inputMode="numeric"
-												pattern="[0-9]*"
-												value={radiusValue}
-												onChange={handleRadiusChange}
-												placeholder={t('explorer.filter_radius_placeholder', 'ex : 10')}
-												className="flex-1 h-9 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 outline-none focus:border-blue-400 dark:focus:border-blue-500 transition-colors"
-											/>
-											<span className="text-sm text-slate-400 dark:text-slate-500 whitespace-nowrap">km</span>
-										</div>
-									</div>
-
-									<div className="flex flex-wrap items-center gap-2">
-										<div className="flex-1 min-w-20 flex flex-col gap-1">
-											<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
-											{t('explorer.filter_time_start', 'Ouverture')}
-											</label>
-											<input
-											type="text"
-											inputMode="numeric"
-											value={startTimeValue}
-											onChange={e => handleTimeChange(e.target.value, setStartTimeValue)}
-											onBlur={e => normalizeTimeOnBlur(e.target.value, setStartTimeValue)}
-											placeholder={t('explorer.filter_time_start_placeholder', '11:00')}
-											className="h-9 w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 text-sm text-center text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 outline-none focus:border-blue-400 dark:focus:border-blue-500 transition-colors"
-											/>
-										</div>
-										<span className="text-slate-300 dark:text-slate-600 text-base mt-4">→</span>
-										<div className="flex-1 min-w-20 flex flex-col gap-1">
-											<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
-											{t('explorer.filter_time_end', 'Fermeture')}
-											</label>
-											<input
-											type="text"
-											inputMode="numeric"
-											value={endTimeValue}
-											onChange={e => handleTimeChange(e.target.value, setEndTimeValue)}
-											onBlur={e => normalizeTimeOnBlur(e.target.value, setEndTimeValue)}
-											placeholder={t('explorer.filter_time_end_placeholder', '18:00')}
-											className="h-9 w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 text-sm text-center text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 outline-none focus:border-blue-400 dark:focus:border-blue-500 transition-colors"
-											/>
-										</div>
-									</div>
-
-									<div>
-										<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">
-										{t('explorer.filter_service', 'Services')}
-										</label>
-										<div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
-										<TagFilter items={[
-											{ value: 'wifi', label: t('explorer.filter_service_wifi') },
-											{ value: 'ironing-station',   label: t('explorer.filter_service_ironing') },
-											{ value: 'laundry-folding',   label: t('explorer.filter_service_folding') },
-										]} selected={selectedServices} onChange={setSelectedServices} />
-										</div>
-									</div>
-
-									<div>
-										<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">
-										{t('explorer.filter_payment', 'Moyens de paiement')}
-										</label>
-										<div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3">
-										<TagFilter items={[
-											{ value: 'card',        label: t('explorer.filter_payment_cb',          'Carte bancaire') },
-											{ value: 'cash',        label: t('explorer.filter_payment_cash',         'Espèces') },
-											{ value: 'contactless', label: t('explorer.filter_payment_contactless',  'Sans contact') },
-										]} selected={selectedPayments} onChange={setSelectedPayments} />
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				)}
-
-				<div className="h-[500px] lg:h-[680px] xl:h-[760px] w-full z-0">
-					{initialMapCenter && <MapContainer
-						ref={mapRef}
-						center={initialMapCenter}
-						zoom={initialZoom}
-						style={{ height: '100%', width: '100%' }}
-					>
-						{flyToTarget && <SetViewOnCenter target={flyToTarget} />}
-
-						<MapEventsSync mapRef={mapRef} setMapBounds={setMapBounds} />
-
-						<TileLayer
-							attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-							url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-						/>
-
-						{position && (
-							<Marker position={position} icon={userPositionIcon}>
-								<Popup>Vous êtes ici</Popup>
-							</Marker>
-						)}
-
-						{laundries
-							.filter(l =>
-								typeof l.latitude === 'number' &&
-								typeof l.longitude === 'number' &&
-								!isNaN(l.latitude) &&
-								!isNaN(l.longitude)
-							)
-							.map(laundry => {
-								const addressLabel = typeof laundry.address === 'string'
-									? laundry.address
-									: (typeof laundry.address?.address === 'string' && laundry.address.address)
-										? laundry.address.address
-										: [laundry.address?.street, laundry.address?.postalCode, laundry.address?.city]
-											.filter(Boolean)
-											.map(String)
-											.join(' ') || '-';
-
-								return (
+							return (
 								<Marker
 									key={laundry.id}
 									position={[laundry.latitude, laundry.longitude]}
@@ -757,11 +548,14 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 										mouseout:  () => setHighlightedLaundryId(null),
 										click: () => {
 											setHighlightedLaundryId(laundry.id);
+											setIsSidePanelOpen(true);
 											if (cardRefs.current[laundry.id]) {
-												cardRefs.current[laundry.id].scrollIntoView({
-													behavior: 'smooth',
-													block: 'center',
-												});
+												setTimeout(() => {
+													cardRefs.current[laundry.id]?.scrollIntoView({
+														behavior: 'smooth',
+														block: 'center',
+													});
+												}, 300);
 											}
 										},
 									}}
@@ -816,69 +610,222 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 											</a>
 										</div>
 									</Popup>
-									</Marker>
-								);
-							})}
-					</MapContainer>}
-				</div>
-			</div>
+								</Marker>
+							);
+						})}
+				</MapContainer>
+			)}
 
-			<div className="flex-1 min-w-[220px] max-w-[480px] mt-0 w-full md:w-auto lg:basis-[46%] xl:basis-[48%] lg:max-w-[980px] lg:self-start lg:overflow-x-hidden lg:pr-1">
-				<div className="lg:pt-6 mb-3">
-					<h3 className={`text-[12px] lg:text-base xl:text-lg font-semibold flex items-center justify-start gap-2 lg:gap-3 ${effectiveDarkTheme ? 'text-slate-100' : 'text-gray-800'}`}>
-						<img
-							src={AdressIcon}
-							alt={t('explorer.address_icon_alt', 'Icône de localisation')}
-							className="inline-block h-[26px] w-[26px] lg:h-8 lg:w-8 xl:h-9 xl:w-9 mr-1"
+			{/* Barre de recherche flottante — haut gauche */}
+			<div className="absolute top-4 left-4 z-[1000] w-full max-w-[460px] pr-4">
+				{error && (
+					<div className={`mb-2 px-3 py-2 rounded-lg text-xs text-center shadow ${effectiveDarkTheme ? 'bg-red-900/80 border border-red-700/60 text-red-200' : 'bg-red-100 border border-red-300 text-red-700'}`}>
+						{error}
+					</div>
+				)}
+
+				<form className="flex gap-2 items-center" onSubmit={handleSearchSubmit}>
+					<div className="relative flex-1" ref={searchWrapRef}>
+						<input
+							type="text"
+							placeholder={t('explorer.search_placeholder', 'Rechercher une laverie, une ville...')}
+							className={`w-full border rounded-xl h-[44px] pl-4 pr-9 text-sm shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-300 ${effectiveDarkTheme ? 'border-slate-600 bg-slate-900/90 text-slate-100 placeholder-slate-400' : 'border-slate-200 bg-white/95 text-slate-900'}`}
+							style={{ backdropFilter: 'blur(8px)' }}
+							value={search}
+							onChange={handleSearchChange}
+							onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+							onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+							autoComplete="off"
 						/>
-						{t('explorer.list_title', 'Laveries à proximité')}
-					</h3>
-				</div>
-
-				{laundriesVisible.length > 0 ? (
-					<>
-						<div className="flex flex-col items-stretch gap-4 lg:gap-6 p-1">
-							{laundriesToDisplay.map(laundry => (
-								<LaundryCard
-									key={laundry.id}
-									laundry={laundry}
-									userType={userType}
-									isHighlighted={highlightedLaundryId === laundry.id}
-									isFavorite={favoriteIds.includes(laundry.id)}
-									onToggleFavorite={() => handleToggleFavorite(laundry.id)}
-									isDarkTheme={effectiveDarkTheme}
-									onMouseEnter={() => setHighlightedLaundryId(laundry.id)}
-									onMouseLeave={() => setHighlightedLaundryId(null)}
-									onClick={() => {
-										if (mapRef.current) {
-											mapRef.current.closePopup();
-										}
-										setFlyToTarget([laundry.latitude, laundry.longitude, 16]);
-										setHighlightedLaundryId(laundry.id);
-									}}
-									ref={el => { cardRefs.current[laundry.id] = el; }}
-								/>
-							))}
-						</div>
-
-						{!isLocationSearch && !isPositionNearestMode && !showAll && laundriesVisible.length > LIST_INITIAL_LIMIT && (
+						{search && (
 							<button
-								onClick={() => setShowAll(true)}
-								className="mt-4 mb-2 px-3 py-1 lg:px-4 lg:py-2 cursor-pointer text-[12px] lg:text-sm text-[#3B82F6] font-medium"
-							>
-								{t('explorer.show_more', 'Afficher plus')}
-							</button>
+								type="button"
+								onClick={() => {
+									setSearch('');
+									setSuggestions([]);
+									setShowSuggestions(false);
+									setSearchLocation(null);
+									setIsLocationSearch(false);
+									handleRecenter();
+								}}
+								className={`absolute right-2 top-1/2 -translate-y-1/2 text-lg font-bold focus:outline-none ${effectiveDarkTheme ? 'text-slate-400 hover:text-slate-200' : 'text-gray-400 hover:text-gray-700'}`}
+								style={{ background: 'none', border: 'none', padding: 0, lineHeight: 1 }}
+							>×</button>
 						)}
-					</>
-				) : (
-					<div className={`text-sm ${effectiveDarkTheme ? 'text-slate-300' : 'text-gray-500'}`}>
-						{laundries.length === 0
-							? t('explorer.no_results', 'Aucune laverie trouvée.')
-							: t('explorer.no_results_hint', 'Aucune laverie dans cette zone.')
-						}
+						{showSuggestions && suggestions.length > 0 && (
+							<ul className={`absolute z-[9999] left-0 right-0 top-full mt-1 rounded-xl shadow-xl border overflow-hidden ${effectiveDarkTheme ? 'bg-slate-800 border-slate-600' : 'bg-white border-slate-200'}`}>
+								{suggestions.map((s, i) => (
+									<li key={i}>
+										<button
+											type="button"
+											onMouseDown={() => handleSuggestionSelect(s)}
+											className={`w-full text-left px-4 py-2.5 text-sm truncate transition-colors ${effectiveDarkTheme ? 'text-slate-100 hover:bg-slate-700' : 'text-slate-800 hover:bg-blue-50'}`}
+										>{s.label}</button>
+									</li>
+								))}
+							</ul>
+						)}
+					</div>
+
+					{/* Rechercher */}
+					<button
+						type="submit"
+						className="bg-[#3B82F6] w-[44px] h-[44px] rounded-xl flex items-center justify-center shadow-lg transition hover:bg-blue-600 cursor-pointer flex-shrink-0"
+					>
+						<img src={SearchIcon} alt={t('explorer.search_placeholder', 'Rechercher')} className="h-5 w-5" style={{ filter: 'brightness(0) invert(1)' }} />
+					</button>
+
+					{/* Recentrer */}
+					<button
+						type="button"
+						onClick={handleRecenter}
+						className={`w-[44px] h-[44px] rounded-xl flex items-center justify-center shadow-lg transition border flex-shrink-0 ${!position ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${effectiveDarkTheme ? 'bg-slate-900/90 border-slate-600 hover:bg-slate-800' : 'bg-white/95 border-slate-200 hover:bg-slate-50'}`}
+						title={t('explorer.locate_me', 'Revenir sur ma position')}
+					>
+						<img src={Logo} alt={t('explorer.locate_me', 'Ma position')} className="h-5 w-5" />
+					</button>
+
+					{/* Filtres */}
+					<button
+						type="button"
+						onClick={() => setIsFilterOpen(v => !v)}
+						className={`relative w-[44px] h-[44px] rounded-xl flex items-center justify-center shadow-lg transition border flex-shrink-0 cursor-pointer ${isFilterOpen || hasActiveFilters ? 'bg-[#3B82F6] border-[#3B82F6]' : effectiveDarkTheme ? 'bg-slate-900/90 border-slate-600 hover:bg-slate-800' : 'bg-white/95 border-slate-200 hover:bg-slate-50'}`}
+						title={t('explorer.open_filters', 'Filtres')}
+					>
+						<img src={SystemIcon} alt="" className="h-5 w-5" style={isFilterOpen || hasActiveFilters ? { filter: 'brightness(0) invert(1)' } : {}} />
+						{hasActiveFilters && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-400 rounded-full border-2 border-white" />}
+					</button>
+				</form>
+
+				{/* Panneau filtres flottant sous la barre */}
+				{isFilterOpen && (
+					<div className={`mt-2 rounded-2xl shadow-xl border overflow-y-auto max-h-[70vh] ${effectiveDarkTheme ? 'bg-slate-900/95 border-slate-700' : 'bg-white/97 border-slate-200'}`} style={{ backdropFilter: 'blur(8px)' }}>
+						<div className="px-4 py-4">
+							<div className="flex justify-end mb-3">
+								<button
+									type="button"
+									onClick={() => { setRadiusValue(''); setSelectedServices([]); setSelectedPayments([]); setStartTimeValue(''); setEndTimeValue(''); setShowAll(false); }}
+									className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-white bg-[#3B82F6] rounded-lg px-3 py-1.5 hover:bg-blue-600 transition-colors"
+								>
+									<img src={EraseIcon} alt="" className="w-3 h-3" />
+									{t('explorer.clear_filters', 'Effacer les filtres')}
+								</button>
+							</div>
+							<div className="flex flex-col gap-4">
+								<div>
+									<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-1.5">{t('explorer.filter_radius', 'Périmètre de recherche')}</label>
+									<div className="flex items-center gap-2">
+										<input type="text" inputMode="numeric" pattern="[0-9]*" value={radiusValue} onChange={handleRadiusChange} placeholder={t('explorer.filter_radius_placeholder', 'ex : 10')} className={`flex-1 h-9 border rounded-lg px-3 text-sm outline-none focus:border-blue-400 transition-colors ${effectiveDarkTheme ? 'bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'}`} />
+										<span className="text-sm text-slate-400 whitespace-nowrap">km</span>
+									</div>
+								</div>
+								<div className="flex flex-wrap items-center gap-2">
+									<div className="flex-1 min-w-20 flex flex-col gap-1">
+										<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400">{t('explorer.filter_time_start', 'Ouverture')}</label>
+										<input type="text" inputMode="numeric" value={startTimeValue} onChange={e => handleTimeChange(e.target.value, setStartTimeValue)} onBlur={e => normalizeTimeOnBlur(e.target.value, setStartTimeValue)} placeholder="11:00" className={`h-9 w-full border rounded-lg px-3 text-sm text-center outline-none focus:border-blue-400 transition-colors ${effectiveDarkTheme ? 'bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'}`} />
+									</div>
+									<span className="text-slate-300 text-base mt-4">→</span>
+									<div className="flex-1 min-w-20 flex flex-col gap-1">
+										<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400">{t('explorer.filter_time_end', 'Fermeture')}</label>
+										<input type="text" inputMode="numeric" value={endTimeValue} onChange={e => handleTimeChange(e.target.value, setEndTimeValue)} onBlur={e => normalizeTimeOnBlur(e.target.value, setEndTimeValue)} placeholder="18:00" className={`h-9 w-full border rounded-lg px-3 text-sm text-center outline-none focus:border-blue-400 transition-colors ${effectiveDarkTheme ? 'bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'}`} />
+									</div>
+								</div>
+								<div>
+									<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-2">{t('explorer.filter_service', 'Services')}</label>
+									<div className={`rounded-xl p-3 ${effectiveDarkTheme ? 'bg-slate-700' : 'bg-white border border-slate-200'}`}>
+										<TagFilter items={[{ value: 'wifi', label: t('explorer.filter_service_wifi') }, { value: 'ironing-station', label: t('explorer.filter_service_ironing') }, { value: 'laundry-folding', label: t('explorer.filter_service_folding') }]} selected={selectedServices} onChange={setSelectedServices} />
+									</div>
+								</div>
+								<div>
+									<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-2">{t('explorer.filter_payment', 'Moyens de paiement')}</label>
+									<div className={`rounded-xl p-3 ${effectiveDarkTheme ? 'bg-slate-700' : 'bg-white border border-slate-200'}`}>
+										<TagFilter items={[{ value: 'card', label: t('explorer.filter_payment_cb', 'Carte bancaire') }, { value: 'cash', label: t('explorer.filter_payment_cash', 'Espèces') }, { value: 'contactless', label: t('explorer.filter_payment_contactless', 'Sans contact') }]} selected={selectedPayments} onChange={setSelectedPayments} />
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 				)}
 			</div>
+
+			{/* Bouton burger — haut droite */}
+			<button
+				type="button"
+				onClick={() => setIsSidePanelOpen(v => !v)}
+				className={`absolute top-4 right-4 z-[1000] w-[44px] h-[44px] rounded-xl flex items-center justify-center shadow-lg transition cursor-pointer border ${effectiveDarkTheme ? 'bg-slate-900/90 border-slate-600 text-slate-100 hover:bg-slate-800' : 'bg-white/95 border-slate-200 text-slate-700 hover:bg-slate-50'}`}
+				title={t('explorer.toggle_list', 'Liste des laveries')}
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+					<path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+				</svg>
+			</button>
+
+			{/* Panneau liste — flottant droite */}
+			{isSidePanelOpen && (
+				<div
+					className={`absolute top-4 right-4 z-[999] w-full max-w-[360px] rounded-2xl shadow-2xl flex flex-col overflow-hidden ${effectiveDarkTheme ? 'bg-slate-900/95 text-slate-100' : 'bg-white/97 text-slate-900'}`}
+					style={{ backdropFilter: 'blur(8px)', maxHeight: 'calc(100% - 2rem)' }}
+				>
+					{/* En-tête */}
+					<div className={`flex items-center justify-between px-4 py-3 border-b flex-shrink-0 ${effectiveDarkTheme ? 'border-slate-700' : 'border-slate-200'}`}>
+						<h3 className="font-semibold text-sm flex items-center gap-2">
+							<img src={AdressIcon} alt="" className="h-5 w-5" />
+							{t('explorer.list_title', 'Laveries à proximité')}
+							<span className={`text-xs font-normal px-1.5 py-0.5 rounded-full ${effectiveDarkTheme ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-500'}`}>
+								{laundriesVisible.length}
+							</span>
+						</h3>
+						<button
+							type="button"
+							onClick={() => setIsSidePanelOpen(false)}
+							className={`w-8 h-8 rounded-lg flex items-center justify-center transition ${effectiveDarkTheme ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+							aria-label={t('common.close', 'Fermer')}
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+								<path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+							</svg>
+						</button>
+					</div>
+
+					{/* Liste */}
+					<div className="flex-1 overflow-y-auto px-4 py-4">
+						{laundriesVisible.length > 0 ? (
+							<>
+								<div className="flex flex-col gap-4">
+									{laundriesToDisplay.map(laundry => (
+										<LaundryCard
+											key={laundry.id}
+											laundry={laundry}
+											userType={userType}
+											isHighlighted={highlightedLaundryId === laundry.id}
+											isFavorite={favoriteIds.includes(laundry.id)}
+											onToggleFavorite={() => handleToggleFavorite(laundry.id)}
+											isDarkTheme={effectiveDarkTheme}
+											onMouseEnter={() => setHighlightedLaundryId(laundry.id)}
+											onMouseLeave={() => setHighlightedLaundryId(null)}
+											onClick={() => {
+												if (mapRef.current) mapRef.current.closePopup();
+												setFlyToTarget([laundry.latitude, laundry.longitude, 16]);
+												setHighlightedLaundryId(laundry.id);
+											}}
+											ref={el => { cardRefs.current[laundry.id] = el; }}
+										/>
+									))}
+								</div>
+								{!isLocationSearch && !isPositionNearestMode && !showAll && laundriesVisible.length > LIST_INITIAL_LIMIT && (
+									<button onClick={() => setShowAll(true)} className="mt-4 mb-2 w-full text-center py-2 text-sm text-[#3B82F6] font-medium hover:underline cursor-pointer">
+										{t('explorer.show_more', 'Afficher plus')}
+									</button>
+								)}
+							</>
+						) : (
+							<div className={`text-sm text-center py-8 ${effectiveDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>
+								{laundries.length === 0 ? t('explorer.no_results', 'Aucune laverie trouvée.') : t('explorer.no_results_hint', 'Aucune laverie dans cette zone.')}
+							</div>
+						)}
+					</div>
+				</div>
+			)}
 		</div>
 	);
 };

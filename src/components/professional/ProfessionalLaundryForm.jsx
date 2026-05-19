@@ -70,9 +70,9 @@ const initialClosedDays = openingHoursDays.reduce((acc, day) => { acc[day.key] =
 const initialAdditionalSlots = openingHoursDays.reduce((acc, day) => { acc[day.key] = 0; return acc; }, {});
 
 const STEPS = [
-  { id: 1, labelKey: 'professional.laundry_form.step_info', fallback: 'Infos & WI-LINE', icon: ShopIcon },
-  { id: 2, labelKey: 'professional.laundry_form.step_hours', fallback: 'Horaires', icon: OpenSignIcon },
-  { id: 3, labelKey: 'professional.laundry_form.step_equipment', fallback: 'Équipements', icon: ServicesIcon },
+  { id: 1, labelKey: 'professional.laundry_form.step_info', fallback: 'professional.laundry_form.step_info', icon: ShopIcon },
+  { id: 2, labelKey: 'professional.laundry_form.step_hours', fallback: 'professional.laundry_form.step_hours', icon: OpenSignIcon },
+  { id: 3, labelKey: 'professional.laundry_form.step_equipment', fallback: 'professional.laundry_form.step_equipment', icon: ServicesIcon },
 ];
 
 const createEquipment = (type = 'washing', capacity = '6kg') => ({
@@ -301,7 +301,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
           if (laundry.phone) setValue('contactPhone', laundry.phone);
 
           const wiLineToFormDay = {
-            monday: 'monday', thuesday: 'tuesday', wednesday: 'wednesday',
+            monday: 'monday', tuesday: 'tuesday', wednesday: 'wednesday',
             thursday: 'thursday', friday: 'friday', saturday: 'saturday', sunday: 'sunday',
           };
           const rawHours = laundry.openingHours || {};

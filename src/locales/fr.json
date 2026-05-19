@@ -280,7 +280,22 @@
       "payment_cash": "Espèces",
       "payment_contactless": "Sans contact",
       "payment_mobile": "Paiement mobile",
-      "wi_line_connectivity": "Connectivité WI-LINE (Optionnel)"
+      "wi_line_connectivity": "Connectivité WI-LINE",
+      "step_info": "Informations",
+      "step_hours": "Horaires",
+      "step_equipment": "Équipements",
+      "medias_title": "Visuels",
+      "change": "Changer le logo",
+      "current_medias": "Photos actuelles",
+      "no_washing_machines": "Aucune machine à laver ajoutée",
+      "no_dryers": "Aucun sèche-linge ajouté",
+      "add_washing_machine": "Ajouter",
+      "add_dryer": "Ajouter",
+      "capacity": "Capacité",
+      "price_per_wash": "Prix (€)",
+      "price_per_dry": "Prix (€)",
+      "no_services_available": "Aucun service disponible",
+      "no_payment_methods_available": "Aucun mode de paiement disponible"
     }
   },
   "profile": {
