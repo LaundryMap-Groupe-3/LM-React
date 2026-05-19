@@ -16,7 +16,7 @@ const resolveAddressLabel = (laundry) => {
   }
 
   const addressValue = laundry.address?.address;
-  if (typeof addressValue === 'string') {
+  if (addressValue) {
     return addressValue;
   }
 
@@ -24,7 +24,7 @@ const resolveAddressLabel = (laundry) => {
     laundry.address?.street,
     laundry.address?.postalCode,
     laundry.address?.city,
-  ].filter(Boolean).map(String);
+  ].filter(Boolean);
 
   return parts.join(' ');
 };

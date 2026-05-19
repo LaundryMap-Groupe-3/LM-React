@@ -218,7 +218,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                           <span className={`text-sm md:text-base font-semibold ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#0F172A]'} flex items-start gap-2`}>
                             <img src={AddressIcon} alt="Address Icon" className="w-4 h-4 mt-[2px] shrink-0" />
                             <span className="break-words">
-                              {laundry.address?.street}
+                              {laundry.address}
                             </span>
                           </span>
                           {laundry.status === 'approved' && laundry.averageNote != null && (
