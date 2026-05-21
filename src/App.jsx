@@ -29,6 +29,7 @@ import LaundryExplorer from './components/common/LaundryExplorer'
 import { useTranslation } from './context/I18nContext'
 import usePageTitle from './hooks/usePageTitle'
 import FavoritesLaundries from './components/user/FavoritesLaundries'
+import LaundryDetails from './components/common/LaundryDetails'
 
 // Composant pour la page d'accueil
 const Home = ({ isDarkTheme, userType }) => {
@@ -296,6 +297,11 @@ function App() {
                 isDarkTheme={isDarkTheme}
               />
             </ProtectedAdminRoute>
+          }/>
+          <Route path="/laundries/:id" element={
+              <LaundryDetails
+                isDarkTheme={isDarkTheme}
+              />
           }/>
           <Route path="/admin/laundries/:id" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>

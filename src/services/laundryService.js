@@ -25,6 +25,25 @@ function toQueryString(params = {}) {
 }
 
 const laundryService = {
+  async getLaundry(id) {
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/laundry/${id}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch laundry');
+    }
+
+    return await response.json();
+  },
   async getPendingLaudries(page = 1, limit = 10) {
     const response = await fetch(
       `${API_BASE_URL}/api/admin/laundries/pending?page=${page}&limit=${limit}`,
