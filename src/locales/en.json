@@ -30,6 +30,7 @@
     "profile": "My Profile",
     "laundries": "Laundries",
     "favorites_laundries": "My Favorite Laundries",
+    "my_reviews": "My Reviews",
     "dashboard": {
       "title": "Professional Dashboard",
       "subtitle": "Efficiently manage your laundries listed on LaundryMap.",
@@ -369,6 +370,7 @@
     "edit_laundry": "Edit a laundry - LaundryMap",
     "legal_notice": "Legal Notice - LaundryMap",
     "favorites": "My Favorite Laundries - LaundryMap",
+    "my_reviews": "My Reviews - LaundryMap",
     "404": "404 - Page Not Found",
     "500": "500 - Server Error"
   },
@@ -779,5 +781,23 @@
     "title": "My Favorite Laundries",
     "subtitle": "Find and manage all your saved laundries",
     "empty": "No favorite laundries yet."
+  },
+  "my_reviews": {
+    "title": "My Reviews & Comments",
+    "subtitle": "Manage all the reviews you have left on laundries",
+    "no_reviews_count": "No reviews",
+    "one_review_count": "1 review",
+    "reviews_count": "{count} reviews",
+    "empty_title": "You haven't left any review yet",
+    "empty_subtitle": "Visit a laundry and share your experience",
+    "explore_cta": "Explore laundries",
+    "unknown_laundry": "Unknown laundry",
+    "no_comment": "No comment",
+    "delete_confirm": "Are you sure you want to delete this review?",
+    "delete_success": "Review deleted successfully.",
+    "delete_error": "Error while deleting.",
+    "update_success": "Review updated successfully.",
+    "update_error": "Error while updating.",
+    "error_rating_required": "A rating is required."
   }
 }

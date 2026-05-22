@@ -42,7 +42,8 @@
     "dashboard_menu": "Tableau de bord",
     "pending_professionals": "Professionnels en attente",
     "pending_laundries": "Laveries en attente",
-    "favorites_laundries": "Mes laveries favorites"
+    "favorites_laundries": "Mes laveries favorites",
+    "my_reviews": "Mes avis"
   },
   "auth": {
     "login": "Se connecter",
@@ -368,6 +369,7 @@
     "admin_pending_laundries": "Laveries en attente - Administration",
     "legal_notice": "Mentions légales - LaundryMap",
     "favorites": "Mes laveries favorites - LaundryMap",
+    "my_reviews": "Mes avis - LaundryMap",
     "404": "404 - Page non trouvée",
     "500": "500 - Erreur serveur"
   },
@@ -779,5 +781,23 @@
     "title": "Mes laveries favorites",
     "subtitle": "Retrouvez et gérez toutes vos laveries sauvegardées",
     "empty": "Aucune laverie favorite pour le moment."
+  },
+  "my_reviews": {
+    "title": "Mes avis & commentaires",
+    "subtitle": "Gérez tous les avis que vous avez laissés sur les laveries",
+    "no_reviews_count": "Aucun avis",
+    "one_review_count": "1 avis",
+    "reviews_count": "{count} avis",
+    "empty_title": "Vous n'avez encore laissé aucun avis",
+    "empty_subtitle": "Visitez une laverie et partagez votre expérience",
+    "explore_cta": "Explorer les laveries",
+    "unknown_laundry": "Laverie inconnue",
+    "no_comment": "Aucun commentaire",
+    "delete_confirm": "Êtes-vous sûr de vouloir supprimer cet avis ?",
+    "delete_success": "Avis supprimé avec succès.",
+    "delete_error": "Erreur lors de la suppression.",
+    "update_success": "Avis mis à jour avec succès.",
+    "update_error": "Erreur lors de la mise à jour.",
+    "error_rating_required": "Une note est requise."
   }
 }

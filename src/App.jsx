@@ -28,6 +28,7 @@ import LaundryExplorer from './components/common/LaundryExplorer'
 import { useTranslation } from './context/I18nContext'
 import usePageTitle from './hooks/usePageTitle'
 import FavoritesLaundries from './components/user/FavoritesLaundries'
+import MyReviews from './components/user/MyReviews'
 import LaundryDetails from './components/common/LaundryDetails'
 
 // Composant pour la page d'accueil
@@ -76,6 +77,17 @@ const ProtectedProfessionalRoute = ({ isLoggedIn, userType, children }) => {
     return <Navigate to="/login" replace />
   }
   if (userType !== 'professional') {
+    return <Navigate to="/" replace />
+  }
+  return children
+}
+
+// Protected User Only Route Component (regular users only, not admin nor professional)
+const ProtectedUserOnlyRoute = ({ isLoggedIn, userType, children }) => {
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />
+  }
+  if (userType !== 'user') {
     return <Navigate to="/" replace />
   }
   return children
@@ -214,6 +226,11 @@ function App() {
                 userType={userType}
               />
             </ProtectedNonAdminRoute>
+          }/>
+          <Route path='/my-reviews' element={
+            <ProtectedUserOnlyRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <MyReviews isDarkTheme={isDarkTheme} />
+            </ProtectedUserOnlyRoute>
           }/>
           <Route path="/edit-profile" element={
             <ProtectedNonAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
