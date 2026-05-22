@@ -24,7 +24,6 @@ import authService from './services/authService'
 import './App.css'
 import ProfessionalDashboard from './components/professional/ProfessionalDashboard'
 import ProfessionalLaundryForm from './components/professional/ProfessionalLaundryForm'
-import ProfessionalLaundryDetails from './components/professional/ProfessionalLaundryDetails'
 import LaundryExplorer from './components/common/LaundryExplorer'
 import { useTranslation } from './context/I18nContext'
 import usePageTitle from './hooks/usePageTitle'
@@ -282,11 +281,6 @@ function App() {
               <ProfessionalLaundryForm isDarkTheme={isDarkTheme} />
             </ProtectedProfessionalRoute>
           }/>
-          <Route path="/laundry-details/:id" element={
-            <ProtectedProfessionalRoute isLoggedIn={isLoggedIn} userType={userType}>
-              <ProfessionalLaundryDetails isDarkTheme={isDarkTheme} />
-            </ProtectedProfessionalRoute>
-          }/>
           <Route path="/admin/laundries" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <AdminPendingLaundries 
@@ -294,7 +288,7 @@ function App() {
               />
             </ProtectedAdminRoute>
           }/>
-          <Route path="/laundries/:id" element={
+          <Route path="/laundry/:id" element={
               <LaundryDetails
                 isDarkTheme={isDarkTheme}
               />

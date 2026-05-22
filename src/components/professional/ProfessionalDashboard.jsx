@@ -272,7 +272,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                               className="flex-1 flex items-center justify-center gap-1 px-2 h-10 md:h-10 bg-[#4B5563] text-white text-xs sm:text-sm font-semibold rounded-[8px] whitespace-nowrap"
                               title={t('dashboard.view_sheet', 'Voir la fiche')}
                               type="button"
-                              onClick={() => navigate(`/laundry-details/${laundry.id}`)}
+                              onClick={() => navigate(`/laundry/${laundry.id}`)}
                             >
                               <img src={EyeIcon} alt={t('dashboard.view_sheet', 'Voir la fiche')} className="hidden sm:inline-block w-3 h-3 md:w-4 md:h-4" />
                               {t('dashboard.view_sheet', 'Voir la fiche')}
