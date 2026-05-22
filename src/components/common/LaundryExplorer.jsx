@@ -580,6 +580,27 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 												<img src={WazeIcon} alt="Waze" style={{ height: 16, width: 16, display: 'block', flexShrink: 0 }} />
 												<span>Waze</span>
 											</a>
+											<a
+												href={`/laundry/${laundry.id}`}
+												style={{
+													display: 'inline-flex',
+													alignItems: 'center',
+													justifyContent: 'center',
+													padding: '5px 10px',
+													background: '#3B82F6',
+													border: 'none',
+													borderRadius: 20,
+													textDecoration: 'none',
+													whiteSpace: 'nowrap',
+												}}
+												title="Voir la fiche"
+											>
+												<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+													<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+													<polyline points="15 3 21 3 21 9" />
+													<line x1="10" y1="14" x2="21" y2="3" />
+												</svg>
+											</a>
 										</div>
 									</Popup>
 								</Marker>

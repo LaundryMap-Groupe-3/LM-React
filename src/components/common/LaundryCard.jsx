@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart } from 'lucide-react'
 import StarIcon from '../../assets/images/icons/Star-yellow.svg';
 import AddressIcon from '../../assets/images/icons/Map.svg';
@@ -61,6 +62,7 @@ const LaundryCard = forwardRef(({
   onMouseLeave,
   onClick,
 }, ref) => {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const { isAuthenticated, isDarkTheme: preferenceDarkTheme } = usePreferences();
   const effectiveDarkTheme = preferenceDarkTheme ?? isDarkTheme;
@@ -171,7 +173,7 @@ const LaundryCard = forwardRef(({
           ) : <span />}
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); if (onClick) onClick(); }}
+            onClick={(e) => { e.stopPropagation(); navigate(`/laundry/${laundry.id}`); }}
             className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
           >
             <img src={ExternalLinkIcon} alt="" aria-hidden="true" className="h-4 w-4" />
