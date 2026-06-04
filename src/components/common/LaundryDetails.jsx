@@ -67,6 +67,12 @@ const LaundryDetails = ({ isDarkTheme }) => {
   const [reviewFormError, setReviewFormError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  const [replyOpenId, setReplyOpenId] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [replyLoading, setReplyLoading] = useState(false);
+  const [replyError, setReplyError] = useState('');
+  const [deleteResponseConfirmId, setDeleteResponseConfirmId] = useState(null);
+
   useEffect(() => {
     const loadLaundry = async () => {
       try {
@@ -196,6 +202,58 @@ const LaundryDetails = ({ isDarkTheme }) => {
   const handleLoadMore = () => {
     if (!reviewsLoading && reviewsHasMore) {
       setReviewCurrentPage(p => p + 1);
+    }
+  };
+
+  const openReplyForm = (review) => {
+    setReplyOpenId(review.id);
+    setReplyText(review.response ?? '');
+    setReplyError('');
+  };
+
+  const closeReplyForm = () => {
+    setReplyOpenId(null);
+    setReplyText('');
+    setReplyError('');
+  };
+
+  const handleReplySubmit = async (reviewId) => {
+    setReplyError('');
+    const trimmed = replyText.trim();
+    if (!trimmed) {
+      setReplyError(t('laundry.reply_required', 'La réponse ne peut pas être vide.'));
+      return;
+    }
+    setReplyLoading(true);
+    try {
+      const current = reviews.find(r => r.id === reviewId);
+      const isEdit = !!current?.response;
+      const data = isEdit
+        ? await laundryNoteService.updateResponse(reviewId, trimmed)
+        : await laundryNoteService.addResponse(reviewId, trimmed);
+      setReviews(prev => prev.map(r => r.id === reviewId ? data.laundryNote : r));
+      closeReplyForm();
+    } catch (err) {
+      console.error('Reply submit error:', err?.body?.message, '|', err?.body?.debug?.class, '@', err?.body?.debug?.file + ':' + err?.body?.debug?.line);
+      setReplyError(t('laundry.reply_error', 'Erreur lors de la publication de la réponse.'));
+    } finally {
+      setReplyLoading(false);
+    }
+  };
+
+  const handleReplyDelete = async (reviewId) => {
+    setReplyLoading(true);
+    try {
+      await laundryNoteService.removeResponse(reviewId);
+      setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, response: null, respondedAt: null } : r));
+      setDeleteResponseConfirmId(null);
+      setToastMessage(t('laundry.reply_deleted', 'Réponse supprimée.'));
+      setToastType('success');
+    } catch {
+      setToastMessage(t('laundry.reply_delete_error', 'Erreur lors de la suppression de la réponse.'));
+      setToastType('error');
+    } finally {
+      setReplyLoading(false);
     }
   };
 
@@ -866,24 +924,130 @@ const LaundryDetails = ({ isDarkTheme }) => {
                       </div>
                     )}
 
-                    {/* Réponse du professionnel */}
-                    {review.response && (
-                      <div className={`mx-4 mb-4 rounded-xl px-4 py-3 border-l-2 border-[#3B82F6] ${
+                    {/* Réponse du professionnel — affichage */}
+                    {review.response && replyOpenId !== review.id && (
+                      <div className={`mx-4 mb-3 rounded-xl px-4 py-3 border-l-2 border-[#3B82F6] ${
                         isDarkTheme ? 'bg-[#3B82F6]/8 border border-[#3B82F6]/20' : 'bg-[#EFF6FF] border border-[#BFDBFE]'
                       }`}>
-                        <div className="flex items-center gap-1.5 mb-1.5">
-                          <span className={`text-xs font-semibold ${isDarkTheme ? 'text-[#60a5fa]' : 'text-[#3B82F6]'}`}>
-                            {t('laundry.review_owner_reply', 'Réponse du propriétaire')}
-                          </span>
-                          {review.respondedAt && (
-                            <span className={`text-[11px] ${isDarkTheme ? 'text-gray-500' : 'text-slate-400'}`}>
-                              · {new Date(review.respondedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-xs font-semibold ${isDarkTheme ? 'text-[#60a5fa]' : 'text-[#3B82F6]'}`}>
+                              {t('laundry.review_owner_reply', 'Réponse du propriétaire')}
                             </span>
+                            {review.respondedAt && (
+                              <span className={`text-[11px] ${isDarkTheme ? 'text-gray-500' : 'text-slate-400'}`}>
+                                · {new Date(review.respondedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </span>
+                            )}
+                          </div>
+                          {isOwner && (
+                            <div className="flex gap-2 shrink-0">
+                              <button
+                                onClick={() => openReplyForm(review)}
+                                className={`text-[11px] font-medium transition-colors ${isDarkTheme ? 'text-blue-400 hover:text-blue-300' : 'text-[#3B82F6] hover:text-blue-700'}`}
+                              >
+                                {t('laundry.reply_edit_btn', 'Modifier')}
+                              </button>
+                              {deleteResponseConfirmId !== review.id ? (
+                                <button
+                                  onClick={() => setDeleteResponseConfirmId(review.id)}
+                                  className={`text-[11px] font-medium transition-colors ${isDarkTheme ? 'text-rose-400 hover:text-rose-300' : 'text-rose-500 hover:text-rose-700'}`}
+                                >
+                                  {t('laundry.reply_delete_btn', 'Supprimer')}
+                                </button>
+                              ) : (
+                                <span className="flex items-center gap-1.5">
+                                  <span className={`text-[11px] ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
+                                    {t('laundry.reply_delete_confirm', 'Supprimer ?')}
+                                  </span>
+                                  <button
+                                    onClick={() => handleReplyDelete(review.id)}
+                                    disabled={replyLoading}
+                                    className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 disabled:opacity-50"
+                                  >
+                                    {t('common.yes', 'Oui')}
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteResponseConfirmId(null)}
+                                    className={`text-[11px] font-medium ${isDarkTheme ? 'text-gray-400 hover:text-gray-200' : 'text-slate-400 hover:text-slate-600'}`}
+                                  >
+                                    {t('common.cancel', 'Non')}
+                                  </button>
+                                </span>
+                              )}
+                            </div>
                           )}
                         </div>
                         <p className={`text-sm leading-relaxed ${isDarkTheme ? 'text-gray-300' : 'text-slate-600'}`}>
                           {review.response}
                         </p>
+                      </div>
+                    )}
+
+                    {/* Bouton "Répondre" pour le propriétaire (quand pas encore de réponse) */}
+                    {isOwner && !review.response && replyOpenId !== review.id && (
+                      <div className="mx-4 mb-3">
+                        <button
+                          onClick={() => openReplyForm(review)}
+                          className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${
+                            isDarkTheme
+                              ? 'border-blue-700 text-blue-400 hover:bg-blue-900/30'
+                              : 'border-[#BFDBFE] text-[#3B82F6] hover:bg-[#EFF6FF]'
+                          }`}
+                        >
+                          {t('laundry.reply_btn', '↩ Répondre')}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Formulaire de saisie de la réponse */}
+                    {isOwner && replyOpenId === review.id && (
+                      <div className={`mx-4 mb-4 rounded-xl p-4 border ${
+                        isDarkTheme ? 'bg-[#3B82F6]/8 border-[#3B82F6]/20' : 'bg-[#EFF6FF] border-[#BFDBFE]'
+                      }`}>
+                        <p className={`text-xs font-semibold mb-2 ${isDarkTheme ? 'text-[#60a5fa]' : 'text-[#3B82F6]'}`}>
+                          {review.response
+                            ? t('laundry.reply_edit_title', 'Modifier votre réponse')
+                            : t('laundry.reply_add_title', 'Répondre à cet avis')}
+                        </p>
+                        <textarea
+                          value={replyText}
+                          onChange={e => setReplyText(e.target.value)}
+                          maxLength={500}
+                          rows={3}
+                          placeholder={t('laundry.reply_placeholder', 'Votre réponse publique...')}
+                          className={`w-full rounded-lg border px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/40 ${
+                            isDarkTheme
+                              ? 'bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-500'
+                              : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
+                          }`}
+                        />
+                        <div className="flex items-center justify-between mt-1 mb-2">
+                          {replyError && (
+                            <p className="text-xs text-rose-500">{replyError}</p>
+                          )}
+                          <span className={`text-[11px] ml-auto ${isDarkTheme ? 'text-gray-500' : 'text-slate-400'}`}>
+                            {replyText.length}/500
+                          </span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleReplySubmit(review.id)}
+                            disabled={replyLoading}
+                            className="px-4 py-1.5 rounded-lg bg-[#3B82F6] text-white text-xs font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                          >
+                            {replyLoading ? t('common.loading_text', 'En cours...') : t('laundry.reply_submit_btn', 'Publier')}
+                          </button>
+                          <button
+                            onClick={closeReplyForm}
+                            disabled={replyLoading}
+                            className={`px-4 py-1.5 rounded-lg border text-xs font-semibold transition-colors disabled:opacity-50 ${
+                              isDarkTheme ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                            }`}
+                          >
+                            {t('common.cancel', 'Annuler')}
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
