@@ -16,6 +16,7 @@ import AdminProfessionalDetails from './components/admin/AdminProfessionalDetail
 import AdminLaundryDetails from './components/admin/AdminLaundryDetails'
 import AdminLaundryList from './components/admin/AdminLaundryList'
 import AdminUserList from './components/admin/AdminUserList'
+import AdminHistory from './components/admin/AdminHistory'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import Page404 from './components/common/Page404'
@@ -338,6 +339,11 @@ function App() {
               <AdminLaundryDetails
                 isDarkTheme={isDarkTheme}
               />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/history" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminHistory isDarkTheme={isDarkTheme} />
             </ProtectedAdminRoute>
           }/>
           <Route path="/mentions-legales" element={<LegalNotice isDarkTheme={isDarkTheme} />} />

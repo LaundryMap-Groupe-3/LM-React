@@ -356,6 +356,31 @@ const adminService = {
     return await response.json();
   },
 
+  async getHistory(page = 1, limit = 15, type = 'all') {
+    const params = new URLSearchParams({ page, limit, type });
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/history?${params.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch history');
+    }
+
+    return await response.json();
+  },
+
   async rejectProfessional(professionalId, reason) {
     const response = await fetch(
       `${API_BASE_URL}/api/admin/professionals/${professionalId}/reject`,
