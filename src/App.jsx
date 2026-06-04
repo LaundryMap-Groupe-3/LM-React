@@ -10,10 +10,12 @@ import ResetPassword from './components/auth/ResetPassword'
 import Profile from './components/user/Profile'
 import EditProfile from './components/user/EditProfile'
 import AdminProfile from './components/admin/AdminProfile'
-import AdminPendingProfessionals from './components/admin/AdminPendingProfessionals'
-import AdminPendingLaundries from './components/admin/AdminPendingLaundries'
+import AdminDashboard from './components/admin/AdminDashboard'
+import AdminProfessionalList from './components/admin/AdminProfessionalList'
 import AdminProfessionalDetails from './components/admin/AdminProfessionalDetails'
 import AdminLaundryDetails from './components/admin/AdminLaundryDetails'
+import AdminLaundryList from './components/admin/AdminLaundryList'
+import AdminUserList from './components/admin/AdminUserList'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import Page404 from './components/common/Page404'
@@ -252,13 +254,21 @@ function App() {
           }/>
           <Route path="/admin/dashboard" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
-              <Navigate to="/admin/professionals" replace />
+              <AdminDashboard isDarkTheme={isDarkTheme} />
             </ProtectedAdminRoute>
           } />
           <Route path="/admin/professionals" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
-              <AdminPendingProfessionals 
+              <AdminProfessionalList
                 isDarkTheme={isDarkTheme}
+              />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/professionals/pending" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminProfessionalList
+                isDarkTheme={isDarkTheme}
+                initialStatus="pending"
               />
             </ProtectedAdminRoute>
           }/>
@@ -270,10 +280,10 @@ function App() {
             </ProtectedAdminRoute>
           }/>
           <Route path="/admin/pending-professionals" element={
-            <Navigate to="/admin/professionals" replace />
+            <Navigate to="/admin/professionals/pending" replace />
           }/>
           <Route path="/admin/pending-laundries" element={
-            <Navigate to="/admin/laundries" replace />
+            <Navigate to="/admin/laundries/pending" replace />
           }/>
           <Route path="/professional/dashboard" element={
             <ProtectedProfessionalRoute isLoggedIn={isLoggedIn} userType={userType}>
@@ -298,10 +308,23 @@ function App() {
               <ProfessionalLaundryForm isDarkTheme={isDarkTheme} />
             </ProtectedProfessionalRoute>
           }/>
+          <Route path="/admin/users" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminUserList isDarkTheme={isDarkTheme} />
+            </ProtectedAdminRoute>
+          }/>
           <Route path="/admin/laundries" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
-              <AdminPendingLaundries 
+              <AdminLaundryList
                 isDarkTheme={isDarkTheme}
+              />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/laundries/pending" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminLaundryList
+                isDarkTheme={isDarkTheme}
+                initialStatus="pending"
               />
             </ProtectedAdminRoute>
           }/>
@@ -316,9 +339,6 @@ function App() {
                 isDarkTheme={isDarkTheme}
               />
             </ProtectedAdminRoute>
-          }/>
-          <Route path="/admin/pending-laundries" element={
-            <Navigate to="/admin/laundries" replace />
           }/>
           <Route path="/mentions-legales" element={<LegalNotice isDarkTheme={isDarkTheme} />} />
           <Route path="*" element={<Page404 isDarkTheme={isDarkTheme} />} />

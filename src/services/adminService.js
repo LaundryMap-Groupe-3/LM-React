@@ -32,6 +32,58 @@ const adminService = {
       throw error;
     }
   },
+  async getStats() {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/stats`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch admin stats');
+    }
+
+    return await response.json();
+  },
+
+  async getAllProfessionals(page = 1, limit = 10, search = '', status = '') {
+    const params = new URLSearchParams({ page, limit });
+    if (search) params.set('search', search);
+    if (status) params.set('status', status);
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/professionals?${params.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch professionals');
+    }
+
+    return await response.json();
+  },
+
   async getPendingProfessionalsCount() {
     const response = await fetch(
       `${API_BASE_URL}/api/admin/professionals/pending/count`,
@@ -99,6 +151,61 @@ const adminService = {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to fetch pending laundries count');
+    }
+
+    return await response.json();
+  },
+
+  async getAllUsers(page = 1, limit = 10, search = '') {
+    const params = new URLSearchParams({ page, limit });
+    if (search) params.set('search', search);
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/users?${params.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch users');
+    }
+
+    return await response.json();
+  },
+
+  async getAllLaundries(page = 1, limit = 10, search = '', status = '') {
+    const params = new URLSearchParams({ page, limit });
+    if (search) params.set('search', search);
+    if (status) params.set('status', status);
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/laundries?${params.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch laundries');
     }
 
     return await response.json();

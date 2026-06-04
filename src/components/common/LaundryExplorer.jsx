@@ -73,7 +73,7 @@ function SetViewOnCenter({ target }) {
 		lastKey.current = key;
 		map.flyTo([lat, lng], targetZoom, {
 			animate: true,
-			duration: 1.2,
+			duration: 0.5,
 		});
 	}, [target, map]);
 

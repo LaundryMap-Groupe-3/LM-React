@@ -785,13 +785,13 @@ const LaundryDetails = ({ isDarkTheme }) => {
           ) : (
             <div className="space-y-4">
               {[...reviews].sort((a, b) => {
-                const aOwn = String(a.user?.id) === String(currentUser?.id);
-                const bOwn = String(b.user?.id) === String(currentUser?.id);
+                const aOwn = currentUser?.type === 'user' && String(a.user?.id) === String(currentUser?.id);
+                const bOwn = currentUser?.type === 'user' && String(b.user?.id) === String(currentUser?.id);
                 if (aOwn !== bOwn) return aOwn ? -1 : 1;
                 return new Date(b.ratedAt ?? 0) - new Date(a.ratedAt ?? 0);
               }).map((review, i) => {
                 const initials = `${review.user?.firstName?.[0] ?? ''}${review.user?.lastName?.[0] ?? ''}`.toUpperCase();
-                const isOwn = String(review.user?.id) === String(currentUser?.id);
+                const isOwn = currentUser?.type === 'user' && String(review.user?.id) === String(currentUser?.id);
                 return (
                   <div
                     key={review.id ?? i}
