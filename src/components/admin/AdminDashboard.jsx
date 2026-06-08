@@ -11,7 +11,7 @@ import EyeIcon from '../../assets/images/icons/External-Link-white.svg';
 import StarIcon from '../../assets/images/icons/Star-white.svg';
 import UserIcon from '../../assets/images/icons/User-black.svg';
 import ShopBlueIcon from '../../assets/images/icons/Shop-blue.svg';
-import { History } from 'lucide-react';
+import { History, ShieldAlert } from 'lucide-react';
 
 const AdminDashboard = ({ isDarkTheme }) => {
   const { t } = useTranslation();
@@ -224,6 +224,25 @@ const AdminDashboard = ({ isDarkTheme }) => {
             <div className="flex flex-col items-start">
               <span className={`text-[14px] ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#4B5563]'}`}>
                 {t('admin.history_title', 'Historique des actions')}
+              </span>
+            </div>
+          </div>
+          <img src={EyeIcon} alt="" className="w-4 h-4 opacity-40 shrink-0 ml-2" />
+        </button>
+
+        {/* Filtrage des contenus offensants */}
+        <button
+          type="button"
+          onClick={() => navigate('/admin/offensive-words')}
+          className={`shadow rounded-[10px] p-4 md:p-6 flex items-center justify-between min-w-0 text-left transition-colors hover:border-[#3B82F6] border ${effectiveDarkTheme ? 'bg-gray-800 border-gray-700 hover:bg-gray-700' : 'bg-white border-transparent hover:border-[#3B82F6]'} sm:col-span-1`}
+        >
+          <div className="flex items-center">
+            <div className="bg-[#EF4444] rounded-[4px] w-[30px] h-[30px] flex items-center justify-center mr-4 shrink-0">
+              <ShieldAlert className="w-[18px] h-[18px] text-white" />
+            </div>
+            <div className="flex flex-col items-start">
+              <span className={`text-[14px] ${effectiveDarkTheme ? 'text-gray-300' : 'text-[#4B5563]'}`}>
+                {t('admin.offensive_words_title', 'Filtrage des contenus offensants')}
               </span>
             </div>
           </div>

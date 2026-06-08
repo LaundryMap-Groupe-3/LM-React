@@ -10,6 +10,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import laundryService from '../../services/laundryService.js';
 import laundryNoteService from '../../services/laundryNoteService.js';
+import { containsOffensiveContent } from '../../utils/contentFilter.js';
 import authService from '../../services/authService.js';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import WashingMachineIcon from '../../assets/images/icons/washing_machine.svg';
@@ -151,9 +152,14 @@ const LaundryDetails = ({ isDarkTheme }) => {
       setReviewFormError(t('laundry.review_note_required', 'Veuillez sélectionner une note.'));
       return;
     }
+    const trimmedComment = reviewFormComment.trim();
+    if (await containsOffensiveContent(trimmedComment)) {
+      setReviewFormError(t('laundry.review_offensive_content', 'Votre commentaire contient des termes inappropriés. Merci de le reformuler.'));
+      return;
+    }
     setReviewFormLoading(true);
     try {
-      const payload = { note: reviewFormRating, comment: reviewFormComment.trim() || null };
+      const payload = { note: reviewFormRating, comment: trimmedComment || null };
       await laundryNoteService.addComment(id, payload);
       setToastMessage(t('laundry.review_success', 'Votre avis a été enregistré.'));
       setToastType('success');
@@ -222,6 +228,10 @@ const LaundryDetails = ({ isDarkTheme }) => {
     const trimmed = replyText.trim();
     if (!trimmed) {
       setReplyError(t('laundry.reply_required', 'La réponse ne peut pas être vide.'));
+      return;
+    }
+    if (await containsOffensiveContent(trimmed)) {
+      setReplyError(t('laundry.reply_offensive_content', 'Votre réponse contient des termes inappropriés. Merci de la reformuler.'));
       return;
     }
     setReplyLoading(true);
@@ -856,13 +866,13 @@ const LaundryDetails = ({ isDarkTheme }) => {
                     className={`rounded-2xl border overflow-hidden ${card} ${isOwn ? (isDarkTheme ? 'ring-1 ring-[#3B82F6]/40' : 'ring-1 ring-[#3B82F6]/20') : ''}`}
                   >
                     {/* En-tête avis */}
-                    <div className="px-5 pt-4 pb-3 flex items-start gap-3">
+                    <div className="px-3 pt-3 pb-2.5 sm:px-5 sm:pt-4 sm:pb-3 flex items-start gap-2.5 sm:gap-3">
                       {/* Avatar initiales */}
-                      <div className="shrink-0 w-9 h-9 rounded-full bg-[#3B82F6]/10 text-[#3B82F6] flex items-center justify-center text-xs font-bold">
+                      <div className="shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#3B82F6]/10 text-[#3B82F6] flex items-center justify-center text-xs font-bold">
                         {initials || '?'}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center flex-wrap gap-2">
+                        <div className="flex items-center flex-wrap gap-1.5 sm:gap-2">
                           <span className={`text-sm font-semibold ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
                             {review.user?.firstName} {review.user?.lastName}
                           </span>
@@ -880,7 +890,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
                             </button>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 mt-0.5">
                           <StarRating value={review.rating ?? 0} readonly size="sm" />
                           {review.ratedAt && (
                             <span className={`text-xs ${isDarkTheme ? 'text-gray-500' : 'text-slate-400'}`}>
@@ -926,11 +936,11 @@ const LaundryDetails = ({ isDarkTheme }) => {
 
                     {/* Réponse du professionnel — affichage */}
                     {review.response && replyOpenId !== review.id && (
-                      <div className={`mx-4 mb-3 rounded-xl px-4 py-3 border-l-2 border-[#3B82F6] ${
+                      <div className={`mx-2 sm:mx-4 mb-3 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 border-l-2 border-[#3B82F6] ${
                         isDarkTheme ? 'bg-[#3B82F6]/8 border border-[#3B82F6]/20' : 'bg-[#EFF6FF] border border-[#BFDBFE]'
                       }`}>
-                        <div className="flex items-center justify-between gap-1.5 mb-1.5">
-                          <div className="flex items-center gap-1.5">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 mb-1.5">
+                          <div className="flex flex-wrap items-center gap-1.5">
                             <span className={`text-xs font-semibold ${isDarkTheme ? 'text-[#60a5fa]' : 'text-[#3B82F6]'}`}>
                               {t('laundry.review_owner_reply', 'Réponse du propriétaire')}
                             </span>
@@ -941,7 +951,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
                             )}
                           </div>
                           {isOwner && (
-                            <div className="flex gap-2 shrink-0">
+                            <div className="flex flex-wrap gap-2 shrink-0">
                               <button
                                 onClick={() => openReplyForm(review)}
                                 className={`text-[11px] font-medium transition-colors ${isDarkTheme ? 'text-blue-400 hover:text-blue-300' : 'text-[#3B82F6] hover:text-blue-700'}`}
@@ -956,7 +966,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
                                   {t('laundry.reply_delete_btn', 'Supprimer')}
                                 </button>
                               ) : (
-                                <span className="flex items-center gap-1.5">
+                                <span className="flex flex-wrap items-center gap-1.5">
                                   <span className={`text-[11px] ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
                                     {t('laundry.reply_delete_confirm', 'Supprimer ?')}
                                   </span>

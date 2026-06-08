@@ -17,6 +17,7 @@ import AdminLaundryDetails from './components/admin/AdminLaundryDetails'
 import AdminLaundryList from './components/admin/AdminLaundryList'
 import AdminUserList from './components/admin/AdminUserList'
 import AdminHistory from './components/admin/AdminHistory'
+import AdminOffensiveWordList from './components/admin/AdminOffensiveWordList'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import Page404 from './components/common/Page404'
@@ -312,6 +313,11 @@ function App() {
           <Route path="/admin/users" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
               <AdminUserList isDarkTheme={isDarkTheme} />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/offensive-words" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminOffensiveWordList isDarkTheme={isDarkTheme} />
             </ProtectedAdminRoute>
           }/>
           <Route path="/admin/laundries" element={

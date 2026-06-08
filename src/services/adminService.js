@@ -405,6 +405,111 @@ const adminService = {
 
     return await response.json();
   },
+
+  async getOffensiveWords(page = 1, limit = 10, search = '') {
+    const params = new URLSearchParams({ page, limit });
+    if (search) params.set('search', search);
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/offensive-words?${params.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch offensive words');
+    }
+
+    return await response.json();
+  },
+
+  async createOffensiveWord(label) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/offensive-words`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+        body: JSON.stringify({ label }),
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      const err = new Error(error.error || error.errors?.label || 'Failed to create offensive word');
+      err.status = response.status;
+      throw err;
+    }
+
+    return await response.json();
+  },
+
+  async updateOffensiveWord(id, payload) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/offensive-words/${id}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      const err = new Error(error.error || error.errors?.label || 'Failed to update offensive word');
+      err.status = response.status;
+      throw err;
+    }
+
+    return await response.json();
+  },
+
+  async deleteOffensiveWord(id) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/offensive-words/${id}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to delete offensive word');
+    }
+
+    return await response.json();
+  },
 };
 
 export default adminService;
