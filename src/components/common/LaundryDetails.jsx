@@ -74,6 +74,52 @@ const LaundryDetails = ({ isDarkTheme }) => {
   const [replyError, setReplyError] = useState('');
   const [deleteResponseConfirmId, setDeleteResponseConfirmId] = useState(null);
 
+  const [reportOpenId, setReportOpenId] = useState(null);
+  const [reportReason, setReportReason] = useState('');
+  const [reportComment, setReportComment] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportedIds, setReportedIds] = useState(new Set());
+
+  const REPORT_REASONS = ['spam', 'insulting', 'inappropriate', 'off_topic', 'other'];
+
+  const openReportForm = (review) => {
+    setReportOpenId(review.id);
+    setReportReason('');
+    setReportComment('');
+  };
+
+  const closeReportForm = () => {
+    setReportOpenId(null);
+    setReportReason('');
+    setReportComment('');
+  };
+
+  const handleReportSubmit = async (review) => {
+    if (!reportReason) return;
+    setReportLoading(true);
+    try {
+      await laundryNoteService.reportComment(review.id, { reason: reportReason, comment: reportComment.trim() });
+      setReportedIds(prev => new Set(prev).add(review.id));
+      setToastMessage(t('laundry.report_success', 'Votre signalement a été envoyé.'));
+      setToastType('success');
+      closeReportForm();
+    } catch (err) {
+      const status = err?.status;
+      if (status === 409) {
+        setReportedIds(prev => new Set(prev).add(review.id));
+        setToastMessage(t('laundry.report_already_exists_error', 'Vous avez déjà signalé cet avis.'));
+        closeReportForm();
+      } else if (status === 403) {
+        setToastMessage(t('laundry.report_own_comment_error', 'Vous ne pouvez pas signaler votre propre avis.'));
+      } else {
+        setToastMessage(t('laundry.report_error', "Erreur lors de l'envoi du signalement."));
+      }
+      setToastType('error');
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
   useEffect(() => {
     const loadLaundry = async () => {
       try {
@@ -889,6 +935,20 @@ const LaundryDetails = ({ isDarkTheme }) => {
                               {t('laundry.review_delete_btn', 'Supprimer')}
                             </button>
                           )}
+                          {currentUser?.type === 'user' && !isOwn && review.comment && (
+                            reportedIds.has(review.id) ? (
+                              <span className={`ml-auto text-[11px] font-medium ${isDarkTheme ? 'text-gray-500' : 'text-slate-400'}`}>
+                                {t('laundry.report_already_done', 'Signalé')}
+                              </span>
+                            ) : reportOpenId !== review.id && (
+                              <button
+                                onClick={() => openReportForm(review)}
+                                className={`ml-auto text-[11px] font-medium transition-colors ${isDarkTheme ? 'text-gray-400 hover:text-gray-200' : 'text-slate-400 hover:text-slate-600'}`}
+                              >
+                                {t('laundry.report_btn', 'Signaler')}
+                              </button>
+                            )
+                          )}
                         </div>
                         <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 mt-0.5">
                           <StarRating value={review.rating ?? 0} readonly size="sm" />
@@ -907,6 +967,58 @@ const LaundryDetails = ({ isDarkTheme }) => {
                         <p className={`text-sm leading-relaxed ${isDarkTheme ? 'text-gray-300' : 'text-slate-600'}`}>
                           {review.comment}
                         </p>
+                      </div>
+                    )}
+
+                    {/* Formulaire de signalement */}
+                    {reportOpenId === review.id && (
+                      <div className={`mx-4 mb-4 p-4 rounded-xl border ${isDarkTheme ? 'bg-gray-700/40 border-gray-600' : 'bg-slate-50 border-slate-200'}`}>
+                        <p className={`text-sm font-medium mb-3 ${isDarkTheme ? 'text-gray-200' : 'text-slate-700'}`}>
+                          {t('laundry.report_title', 'Signaler cet avis')}
+                        </p>
+                        <label className={`block text-xs font-medium mb-1 ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
+                          {t('laundry.report_reason_label', 'Motif')}
+                        </label>
+                        <select
+                          value={reportReason}
+                          onChange={(e) => setReportReason(e.target.value)}
+                          className={`w-full mb-3 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'bg-gray-800 border-gray-600 text-gray-200' : 'bg-white border-slate-200 text-slate-700'}`}
+                        >
+                          <option value="">{t('laundry.report_reason_placeholder', 'Sélectionnez un motif...')}</option>
+                          {REPORT_REASONS.map((reason) => (
+                            <option key={reason} value={reason}>
+                              {t(`laundry.report_reason_${reason}`, reason)}
+                            </option>
+                          ))}
+                        </select>
+                        <label className={`block text-xs font-medium mb-1 ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
+                          {t('laundry.report_comment_label', 'Commentaire')}
+                          <span className={isDarkTheme ? 'text-gray-500' : 'text-slate-400'}> — {t('laundry.review_comment_optional', 'optionnel')}</span>
+                        </label>
+                        <textarea
+                          value={reportComment}
+                          onChange={(e) => setReportComment(e.target.value)}
+                          rows={2}
+                          maxLength={500}
+                          placeholder={t('laundry.report_comment_placeholder', 'Précisez la raison de votre signalement...')}
+                          className={`w-full mb-3 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'bg-gray-800 border-gray-600 text-gray-200' : 'bg-white border-slate-200 text-slate-700'}`}
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleReportSubmit(review)}
+                            disabled={reportLoading || !reportReason}
+                            className="px-4 py-1.5 rounded-lg bg-[#3B82F6] text-white text-xs font-semibold hover:bg-[#2563EB] disabled:opacity-50 transition-colors"
+                          >
+                            {reportLoading ? t('common.loading_text', 'en cours...') : t('laundry.report_submit_btn', 'Envoyer le signalement')}
+                          </button>
+                          <button
+                            onClick={closeReportForm}
+                            disabled={reportLoading}
+                            className={`px-4 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${isDarkTheme ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                          >
+                            {t('common.cancel', 'Annuler')}
+                          </button>
+                        </div>
                       </div>
                     )}
 

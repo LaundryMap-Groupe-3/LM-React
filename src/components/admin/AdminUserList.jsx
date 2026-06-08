@@ -6,7 +6,8 @@ import authService from '../../services/authService';
 import adminService from '../../services/adminService';
 import Toast from '../common/Toast';
 import Pagination from '../common/Pagination';
-import { Users } from 'lucide-react';
+import Button from '../common/Button';
+import { Users, Ban, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 const AdminUserList = ({ isDarkTheme }) => {
   const { t } = useTranslation();
@@ -23,6 +24,8 @@ const AdminUserList = ({ isDarkTheme }) => {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
   const [user, setUser] = useState(null);
+  const [blockTarget, setBlockTarget] = useState(null);
+  const [blockLoading, setBlockLoading] = useState(false);
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -66,13 +69,40 @@ const AdminUserList = ({ isDarkTheme }) => {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    return new Intl.DateTimeFormat('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    }).format(new Date(dateString));
+  const openBlockModal = (targetUser) => {
+    setBlockTarget(targetUser);
+  };
+
+  const closeBlockModal = () => {
+    if (blockLoading) return;
+    setBlockTarget(null);
+  };
+
+  const confirmToggleBlock = async () => {
+    if (!blockTarget) return;
+    const isSuspended = blockTarget.status === 'suspended';
+
+    try {
+      setBlockLoading(true);
+      await adminService.toggleUserBlock(blockTarget.id);
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === blockTarget.id ? { ...u, status: isSuspended ? 'verified' : 'suspended' } : u
+        )
+      );
+      setToastMessage(
+        isSuspended
+          ? t('admin.user_unblock_success', "L'utilisateur a été débloqué.")
+          : t('admin.user_block_success', "L'utilisateur a été bloqué.")
+      );
+      setToastType('success');
+      setBlockTarget(null);
+    } catch (error) {
+      setToastMessage(error.message || t('errors.fetch_error'));
+      setToastType('error');
+    } finally {
+      setBlockLoading(false);
+    }
   };
 
   if (!user) {
@@ -88,7 +118,7 @@ const AdminUserList = ({ isDarkTheme }) => {
       <Toast message={toastMessage} type={toastType} />
 
       {/* Header */}
-      <div className="flex items-center justify-between py-6">
+      <div className="flex items-start sm:items-center justify-between py-6">
         <div>
           <h1 className="text-[20px] text-[#3B82F6] font-bold text-left">
             {t('admin.users_list_title', 'Liste des utilisateurs')}
@@ -100,9 +130,11 @@ const AdminUserList = ({ isDarkTheme }) => {
         <button
           type="button"
           onClick={() => navigate('/admin/dashboard')}
-          className="text-[13px] text-[#3B82F6] hover:underline font-medium"
+          className="text-[11px] sm:text-[13px] text-[#3B82F6] hover:underline font-medium flex items-center mt-1 sm:mt-0"
         >
-          ← {t('admin.back_to_dashboard', 'Tableau de bord')}
+          <ArrowLeft size={14} className="sm:hidden mr-1" />
+          <ArrowLeft size={18} className="hidden sm:inline-block mr-1" />
+          {t('admin.back_to_dashboard', 'Tableau de bord')}
         </button>
       </div>
 
@@ -179,9 +211,27 @@ const AdminUserList = ({ isDarkTheme }) => {
                   </div>
 
                   <div className="flex items-center justify-between gap-4 pt-4 border-t border-gray-100">
-                    <p className="text-[11px] text-[#9CA3AF]">
-                      {t('admin.request_date', 'Inscrit le')} {formatDate(u.createdAt)}
-                    </p>
+                    <button
+                      type="button"
+                      onClick={() => openBlockModal(u)}
+                      className={`inline-flex items-center gap-1.5 text-[12px] font-medium px-3 py-1.5 rounded-lg transition-colors ${
+                        u.status === 'suspended'
+                          ? 'text-[#10B981] bg-[#10B981]/10 hover:bg-[#10B981]/20'
+                          : 'text-[#EF4444] bg-[#EF4444]/10 hover:bg-[#EF4444]/20'
+                      }`}
+                    >
+                      {u.status === 'suspended' ? (
+                        <>
+                          <ShieldCheck size={14} />
+                          {t('admin.unblock_user_btn', 'Débloquer')}
+                        </>
+                      ) : (
+                        <>
+                          <Ban size={14} />
+                          {t('admin.block_user_btn', "Bloquer l'utilisateur")}
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -190,6 +240,44 @@ const AdminUserList = ({ isDarkTheme }) => {
 
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
         </>
+      )}
+
+      {blockTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-5 text-left">
+            <h3 className="text-[15px] font-bold text-[#111827] mb-2">
+              {blockTarget.status === 'suspended'
+                ? t('admin.unblock_user_title', "Débloquer l'utilisateur")
+                : t('admin.block_user_title', "Bloquer l'utilisateur")}
+            </h3>
+            <p className="text-[13px] text-gray-600 mb-3">
+              {blockTarget.status === 'suspended'
+                ? t(
+                    'admin.unblock_user_confirm_text',
+                    'Cet utilisateur retrouvera l’accès à son compte. Confirmez-vous cette action ?'
+                  )
+                : t(
+                    'admin.block_user_confirm_text',
+                    'Cet utilisateur ne pourra plus accéder à son compte. Confirmez-vous cette action ?'
+                  )}
+            </p>
+            <div className="space-y-2">
+              <Button
+                variant={blockTarget.status === 'suspended' ? 'secondary' : 'danger'}
+                onClick={confirmToggleBlock}
+                disabled={blockLoading}
+                loading={blockLoading}
+                loadingLabel={t('admin.confirm_btn', 'Confirmer')}
+                className="w-full py-2 text-[13px]"
+              >
+                {t('admin.confirm_btn', 'Confirmer')}
+              </Button>
+              <Button variant="secondary" onClick={closeBlockModal} disabled={blockLoading} className="w-full py-2 text-[13px]">
+                {t('common.cancel', 'Annuler')}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

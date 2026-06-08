@@ -6,7 +6,7 @@ import authService from '../../services/authService';
 import adminService from '../../services/adminService';
 import Toast from '../common/Toast';
 import Pagination from '../common/Pagination';
-import { ShieldAlert, Plus, Search } from 'lucide-react';
+import { ShieldAlert, Plus, Search, ArrowLeft } from 'lucide-react';
 
 const AdminOffensiveWordList = ({ isDarkTheme }) => {
   const { t } = useTranslation();
@@ -157,7 +157,7 @@ const AdminOffensiveWordList = ({ isDarkTheme }) => {
       <Toast message={toastMessage} type={toastType} />
 
       {/* Header */}
-      <div className="flex items-center justify-between py-6">
+      <div className="flex items-start sm:items-center justify-between py-6">
         <div>
           <h1 className="text-[20px] text-[#3B82F6] font-bold text-left">
             {t('admin.offensive_words_title', 'Filtrage des contenus offensants')}
@@ -169,9 +169,11 @@ const AdminOffensiveWordList = ({ isDarkTheme }) => {
         <button
           type="button"
           onClick={() => navigate('/admin/dashboard')}
-          className="text-[13px] text-[#3B82F6] hover:underline font-medium"
+          className="text-[11px] sm:text-[13px] text-[#3B82F6] hover:underline font-medium flex items-center mt-1 sm:mt-0"
         >
-          ← {t('admin.back_to_dashboard', 'Tableau de bord')}
+          <ArrowLeft size={14} className="sm:hidden mr-1" />
+          <ArrowLeft size={18} className="hidden sm:inline-block mr-1" />
+          {t('admin.back_to_dashboard', 'Tableau de bord')}
         </button>
       </div>
 

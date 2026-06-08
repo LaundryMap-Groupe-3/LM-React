@@ -80,10 +80,10 @@ const AdminDashboard = ({ isDarkTheme }) => {
           </p>
         </div>
         <div className="bg-[#FFFFFF]/20 rounded-[10px] w-full md:w-[350px] max-w-full min-h-[57px] md:min-h-[120px] p-[9px] md:p-4 text-left flex flex-row md:flex-col justify-center md:items-center md:mx-auto">
-          <div className="flex flex-row md:flex-col gap-[10px] md:gap-[2px] items-center w-full h-full justify-center md:justify-center">
-            <img src={UserShield} alt="User Shield" className="mx-auto md:mx-auto" />
-            <div className="flex flex-col items-start text-left w-full md:justify-center md:h-full md:items-center">
-              <p className="text-white text-[14px] font-semibold md:text-[15px] text-left md:text-center">
+          <div className="flex flex-col gap-[10px] md:gap-[2px] items-center w-full h-full justify-center">
+            <img src={UserShield} alt="User Shield" className="mx-auto" />
+            <div className="flex flex-col items-center text-center w-full md:justify-center md:h-full md:items-center">
+              <p className="text-white text-[14px] font-semibold md:text-[15px] text-center md:text-center">
                 {user?.email ?? '--'}
               </p>
             </div>
@@ -177,7 +177,11 @@ const AdminDashboard = ({ isDarkTheme }) => {
         </div>
 
         {/* Avis signalés */}
-        <div className={`shadow rounded-[10px] p-4 md:p-6 flex items-center justify-between min-w-0 border ${effectiveDarkTheme ? 'bg-gray-800 border-gray-700' : 'bg-white border-transparent'}`}>
+        <button
+          type="button"
+          onClick={() => navigate('/admin/comment-reports')}
+          className={`shadow rounded-[10px] p-4 md:p-6 flex items-center justify-between min-w-0 text-left transition-colors hover:border-[#3B82F6] border ${effectiveDarkTheme ? 'bg-gray-800 border-gray-700 hover:bg-gray-700' : 'bg-white border-transparent hover:border-[#3B82F6]'} sm:col-span-1`}
+        >
           <div className="flex items-center">
             <div className="bg-[#EF4444] rounded-[4px] w-[30px] h-[30px] flex items-center justify-center mr-4 shrink-0">
               <img src={StarIcon} alt="" className="w-[21px] h-[21px]" />
@@ -189,7 +193,8 @@ const AdminDashboard = ({ isDarkTheme }) => {
               </span>
             </div>
           </div>
-        </div>
+          <img src={EyeIcon} alt="" className="w-4 h-4 opacity-40 shrink-0 ml-2" />
+        </button>
 
         {/* Liste des laveries */}
         <button

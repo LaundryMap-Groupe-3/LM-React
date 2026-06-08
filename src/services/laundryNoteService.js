@@ -183,6 +183,28 @@ const laundryNoteService = {
             throw err;
         }
     },
+    reportComment: async (noteId, { reason, comment }) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/note/${noteId}/report`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authService.getToken()}`,
+                },
+                body: JSON.stringify({ reason, comment: comment || null }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw { status: response.status, body: data };
+            }
+
+            return data;
+        } catch (err) {
+            throw err;
+        }
+    },
 }
 
 export default laundryNoteService;

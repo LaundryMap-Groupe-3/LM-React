@@ -1,7 +1,7 @@
 import { useTranslation } from '../../context/I18nContext';
 import { usePreferences } from '../../context/PreferencesContext';
 
-const LanguageSwitcher = ({ iconsOnly = false }) => {
+const LanguageSwitcher = ({ iconsOnly = false, isDarkTheme = false }) => {
   const { language, changeLanguage: changeI18nLanguage } = useTranslation();
   const { changeLanguage: changePrefLanguage, isAuthenticated } = usePreferences();
 
@@ -19,28 +19,28 @@ const LanguageSwitcher = ({ iconsOnly = false }) => {
 
   if (iconsOnly) {
     return (
-      <div className="flex gap-2">
+      <div className={`inline-flex rounded-full p-1 ${isDarkTheme ? 'bg-[#1E293B]' : 'bg-gray-100'}`}>
         <button
           onClick={() => handleChangeLanguage('fr')}
-          className={`w-[31px] h-[31px] flex items-center justify-center rounded transition-all text-lg ${
+          className={`px-4 h-[34px] flex items-center justify-center rounded-full transition-all text-[13px] font-semibold ${
             language === 'fr'
               ? 'bg-[#3B82F6] text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              : isDarkTheme ? 'text-[#94A3B8] hover:text-[#E2E8F0]' : 'text-gray-500 hover:text-gray-700'
           }`}
           title="Français"
         >
-          <span className="leading-none">🇫🇷</span>
+          FR
         </button>
         <button
           onClick={() => handleChangeLanguage('en')}
-          className={`w-[31px] h-[31px] flex items-center justify-center rounded transition-all text-lg ${
+          className={`px-4 h-[34px] flex items-center justify-center rounded-full transition-all text-[13px] font-semibold ${
             language === 'en'
               ? 'bg-[#3B82F6] text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              : isDarkTheme ? 'text-[#94A3B8] hover:text-[#E2E8F0]' : 'text-gray-500 hover:text-gray-700'
           }`}
           title="English"
         >
-          <span className="leading-none">🇬🇧</span>
+          EN
         </button>
       </div>
     );
@@ -56,7 +56,6 @@ const LanguageSwitcher = ({ iconsOnly = false }) => {
             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
         }`}
       >
-        <span>🇫🇷</span>
         FR
       </button>
       <button
@@ -67,7 +66,6 @@ const LanguageSwitcher = ({ iconsOnly = false }) => {
             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
         }`}
       >
-        <span>🇬🇧</span>
         EN
       </button>
     </div>

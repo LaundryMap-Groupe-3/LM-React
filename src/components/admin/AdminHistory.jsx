@@ -6,7 +6,7 @@ import authService from '../../services/authService';
 import adminService from '../../services/adminService';
 import Toast from '../common/Toast';
 import Pagination from '../common/Pagination';
-import { History } from 'lucide-react';
+import { History, ArrowLeft } from 'lucide-react';
 
 const ACTION_COLORS = {
   approve: 'bg-green-100 text-green-700',
@@ -14,6 +14,8 @@ const ACTION_COLORS = {
   create: 'bg-blue-100 text-blue-700',
   update: 'bg-yellow-100 text-yellow-700',
   delete: 'bg-gray-100 text-gray-700',
+  suspend: 'bg-orange-100 text-orange-700',
+  block_content: 'bg-red-100 text-red-700',
 };
 
 const TYPE_COLORS = {
@@ -111,7 +113,7 @@ const AdminHistory = ({ isDarkTheme }) => {
       <Toast message={toastMessage} type={toastType} />
 
       {/* Header */}
-      <div className="flex items-center justify-between py-6">
+      <div className="flex items-start sm:items-center justify-between py-6">
         <div>
           <h1 className="text-[20px] text-[#3B82F6] font-bold text-left">
             {t('admin.history_title', "Historique des actions")}
@@ -123,9 +125,11 @@ const AdminHistory = ({ isDarkTheme }) => {
         <button
           type="button"
           onClick={() => navigate('/admin/dashboard')}
-          className="text-[13px] text-[#3B82F6] hover:underline font-medium"
+          className="text-[11px] sm:text-[13px] text-[#3B82F6] hover:underline font-medium flex items-center mt-1 sm:mt-0"
         >
-          ← {t('admin.back_to_dashboard', 'Tableau de bord')}
+          <ArrowLeft size={14} className="sm:hidden mr-1" />
+          <ArrowLeft size={18} className="hidden sm:inline-block mr-1" />
+          {t('admin.back_to_dashboard', 'Tableau de bord')}
         </button>
       </div>
 

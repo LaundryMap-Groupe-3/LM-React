@@ -510,6 +510,154 @@ const adminService = {
 
     return await response.json();
   },
+
+  async getCommentReports(page = 1, limit = 10) {
+    const params = new URLSearchParams({ page, limit });
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/comment-reports?${params.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch comment reports');
+    }
+
+    return await response.json();
+  },
+
+  async getCommentReportDetails(laundryNoteId) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/comment-reports/${laundryNoteId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch comment report details');
+    }
+
+    return await response.json();
+  },
+
+  async dismissCommentReports(laundryNoteId) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/comment-reports/${laundryNoteId}/dismiss`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to dismiss comment reports');
+    }
+
+    return await response.json();
+  },
+
+  async blockReportedComment(laundryNoteId, reason) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/comment-reports/${laundryNoteId}/block-comment`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+        body: JSON.stringify({ reason }),
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to block comment');
+    }
+
+    return await response.json();
+  },
+
+  async blockReportedCommentAuthor(laundryNoteId, reason) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/comment-reports/${laundryNoteId}/block-author`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+        body: JSON.stringify({ reason }),
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to block comment author');
+    }
+
+    return await response.json();
+  },
+
+  async toggleUserBlock(userId) {
+    const response = await fetch(
+      `${API_BASE_URL}/api/admin/users/${userId}/toggle-block`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authService.getToken()}`,
+        },
+      }
+    );
+
+    if (response.status === 403) {
+      throw new Error('Unauthorized - Admin access required');
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to update user status');
+    }
+
+    return await response.json();
+  },
 };
 
 export default adminService;
