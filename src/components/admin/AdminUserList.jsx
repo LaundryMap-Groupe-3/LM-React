@@ -114,7 +114,7 @@ const AdminUserList = ({ isDarkTheme }) => {
   }
 
   return (
-    <div className="min-h-screen max-w-7xl mx-auto px-4 bg-white">
+    <div className="min-h-screen max-w-7xl mx-auto px-4 pb-10 bg-white">
       <Toast message={toastMessage} type={toastType} />
 
       {/* Header */}

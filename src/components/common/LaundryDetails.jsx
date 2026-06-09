@@ -416,7 +416,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
               <img
                 src={resolveMediaUrl(laundry.logo?.location)}
                 alt={laundry.establishmentName}
-                className="h-20 w-20 md:h-30 md:w-30 rounded-2xl object-cover border border-slate-200 shadow-sm shrink-0"
+                className="h-20 w-20 md:h-30 md:w-30 rounded-2xl object-cover shadow-sm shrink-0"
               />
             )}
 
@@ -446,7 +446,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
               </div>
 
               {/* Adresse */}
-              <p className={`flex items-start gap-1.5 text-sm mb-2 ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
+              <p className={`flex items-start gap-1.5 text-sm mb-2 ${isDarkTheme ? 'text-gray-200' : 'text-slate-500'}`}>
                 <img src={LocationIcon} alt="" className="mt-0.5 h-4 w-4 shrink-0" />
                 {addressLabel}
               </p>
@@ -467,7 +467,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
                 {laundry?.professional?.phone && (
                   <button
                     onClick={() => setShowPhone(!showPhone)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#dbf7d7] rounded-lg border-none cursor-pointer text-[#3d9e30] text-xs font-semibold transition-colors hover:bg-[#c9f0c4]"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-none cursor-pointer text-xs font-semibold transition-colors ${isDarkTheme ? 'bg-green-900/40 text-green-400 hover:bg-green-900/60' : 'bg-[#dbf7d7] text-[#3d9e30] hover:bg-[#c9f0c4]'}`}
                   >
                     <img src={Phone} alt="Phone" className="h-4 w-4 shrink-0" />
                     <span>{showPhone ? laundry?.professional?.phone : t('laundry.show_phone', 'Voir le numéro')}</span>
@@ -477,7 +477,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressLabel)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#E8F0FE] rounded-lg no-underline text-[#1a73e8] text-xs font-semibold hover:bg-[#d2e3fc] transition-colors"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg no-underline text-xs font-semibold transition-colors ${isDarkTheme ? 'bg-blue-900/40 text-blue-400 hover:bg-blue-900/60' : 'bg-[#E8F0FE] text-[#1a73e8] hover:bg-[#d2e3fc]'}`}
                   >
                     <img src={GoogleMapsIcon} alt="Google Maps" className="h-4 w-4 shrink-0" />
                     <span>Google Maps</span>
@@ -486,7 +486,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
                     href={`https://waze.com/ul?q=${encodeURIComponent(addressLabel)}&navigate=yes`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#E0F9FF] rounded-lg no-underline text-[#00b4d8] text-xs font-semibold hover:bg-[#ccf2fb] transition-colors"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg no-underline text-xs font-semibold transition-colors ${isDarkTheme ? 'bg-cyan-900/40 text-cyan-400 hover:bg-cyan-900/60' : 'bg-[#E0F9FF] text-[#00b4d8] hover:bg-[#ccf2fb]'}`}
                   >
                     <img src={WazeIcon} alt="Waze" className="h-4 w-4 shrink-0" />
                     <span>Waze</span>
@@ -824,11 +824,11 @@ const LaundryDetails = ({ isDarkTheme }) => {
                     <div className="flex items-center justify-between mb-1.5">
                       <label className={`text-xs font-medium ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
                         {t('laundry.review_comment_label', 'Commentaire')}
-                        <span className={`ml-1 font-normal ${isDarkTheme ? 'text-gray-600' : 'text-slate-400'}`}>
+                        <span className={`ml-1 font-normal ${isDarkTheme ? 'text-gray-400' : 'text-slate-400'}`}>
                           — {t('laundry.review_comment_optional', 'optionnel')}
                         </span>
                       </label>
-                      <span className={`text-xs ${isDarkTheme ? 'text-gray-600' : 'text-slate-400'}`}>
+                      <span className={`text-xs ${isDarkTheme ? 'text-gray-400' : 'text-slate-400'}`}>
                         {reviewFormComment.length}/500
                       </span>
                     </div>
@@ -937,7 +937,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
                           )}
                           {currentUser?.type === 'user' && !isOwn && review.comment && (
                             reportedIds.has(review.id) ? (
-                              <span className={`ml-auto text-[11px] font-medium ${isDarkTheme ? 'text-gray-500' : 'text-slate-400'}`}>
+                              <span className={`ml-auto text-[11px] font-medium ${isDarkTheme ? 'text-gray-400' : 'text-slate-400'}`}>
                                 {t('laundry.report_already_done', 'Signalé')}
                               </span>
                             ) : reportOpenId !== review.id && (
@@ -953,7 +953,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
                         <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 mt-0.5">
                           <StarRating value={review.rating ?? 0} readonly size="sm" />
                           {review.ratedAt && (
-                            <span className={`text-xs ${isDarkTheme ? 'text-gray-500' : 'text-slate-400'}`}>
+                            <span className={`text-xs ${isDarkTheme ? 'text-gray-400' : 'text-slate-400'}`}>
                               · {new Date(review.ratedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </span>
                           )}
@@ -993,7 +993,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
                         </select>
                         <label className={`block text-xs font-medium mb-1 ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
                           {t('laundry.report_comment_label', 'Commentaire')}
-                          <span className={isDarkTheme ? 'text-gray-500' : 'text-slate-400'}> — {t('laundry.review_comment_optional', 'optionnel')}</span>
+                          <span className={isDarkTheme ? 'text-gray-400' : 'text-slate-400'}> — {t('laundry.review_comment_optional', 'optionnel')}</span>
                         </label>
                         <textarea
                           value={reportComment}
@@ -1057,7 +1057,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
                               {t('laundry.review_owner_reply', 'Réponse du propriétaire')}
                             </span>
                             {review.respondedAt && (
-                              <span className={`text-[11px] ${isDarkTheme ? 'text-gray-500' : 'text-slate-400'}`}>
+                              <span className={`text-[11px] ${isDarkTheme ? 'text-gray-400' : 'text-slate-400'}`}>
                                 · {new Date(review.respondedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
                               </span>
                             )}
@@ -1148,7 +1148,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
                           {replyError && (
                             <p className="text-xs text-rose-500">{replyError}</p>
                           )}
-                          <span className={`text-[11px] ml-auto ${isDarkTheme ? 'text-gray-500' : 'text-slate-400'}`}>
+                          <span className={`text-[11px] ml-auto ${isDarkTheme ? 'text-gray-400' : 'text-slate-400'}`}>
                             {replyText.length}/500
                           </span>
                         </div>

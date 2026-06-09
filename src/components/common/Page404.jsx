@@ -25,7 +25,7 @@ const Page404 = ({ isDarkTheme }) => {
         </div>
 
         {/* Additional Help */}
-        <div className={`text-sm ${isDarkTheme ? 'text-gray-500' : 'text-gray-500'}`}>
+        <div className={`text-sm ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
           <p>{t('errors.404_error_code')}</p>
         </div>
       </div>

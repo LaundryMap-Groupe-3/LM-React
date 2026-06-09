@@ -4,9 +4,12 @@ import laundryService from "../../services/laundryService";
 import { useTranslation } from '../../context/I18nContext';
 import LaundryCard from "../common/LaundryCard";
 import usePageTitle from '../../hooks/usePageTitle';
+import { usePreferences } from '../../context/PreferencesContext';
 
 const FavoritesLaundries = ({ isDarkTheme, userType }) => {
   const { t } = useTranslation();
+  const { isDarkTheme: preferencesDark } = usePreferences();
+  const effectiveDark = preferencesDark ?? isDarkTheme;
   usePageTitle('page_titles.favorites', t);
   const [laundries, setLaundries] = useState([]);
   const [favoriteIds, setFavoriteIds] = useState([]);
@@ -72,21 +75,25 @@ const FavoritesLaundries = ({ isDarkTheme, userType }) => {
   };
 
   return (
-    <div className="min-h-screen max-w-7xl mx-auto md:pl-auto pl-4 md:pr-auto pr-4 bg-white">      
+    <div className={`min-h-screen max-w-7xl mx-auto md:pl-auto pl-4 md:pr-auto pr-4 ${effectiveDark ? 'bg-slate-900' : 'bg-white'}`}>
       {/* Header */}
       <div className="flex items-center justify-between py-6">
         <div>
           <h1 className="text-[20px] text-[#3B82F6] font-bold text-left">
             {t('laundry_favorite.title')}
           </h1>
-          <p className="mt-2 text-[#9CA3AF] text-[14px] text-left">
+          <p className={`mt-2 text-[14px] text-left ${effectiveDark ? 'text-slate-400' : 'text-[#9CA3AF]'}`}>
             {t('laundry_favorite.subtitle')}
           </p>
         </div>
       </div>
 
       {laundries.length === 0 ? (
-        <div className="rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-6 text-center text-[14px] text-[#6B7280]">
+        <div className={`rounded-lg border px-4 py-6 text-center text-[14px] ${
+          effectiveDark
+            ? 'border-slate-700 bg-slate-800 text-slate-400'
+            : 'border-[#E5E7EB] bg-[#F9FAFB] text-[#6B7280]'
+        }`}>
           {t('laundry_favorite.empty')}
         </div>
       ) : (
@@ -99,7 +106,7 @@ const FavoritesLaundries = ({ isDarkTheme, userType }) => {
               isHighlighted={false}
               isFavorite={favoriteIds.includes(laundry.id)}
               onToggleFavorite={() => handleToggleFavorite(laundry.id)}
-              isDarkTheme={isDarkTheme}
+              isDarkTheme={effectiveDark}
               ref={el => { cardRefs.current[laundry.id] = el; }}
             />
           ))}
@@ -114,8 +121,12 @@ const FavoritesLaundries = ({ isDarkTheme, userType }) => {
               disabled={currentPage === 1}
               className={`w-9 h-9 flex rounded-lg items-center justify-center text-lg font-medium ${
                 currentPage === 1
-                  ? 'border border-[#CBD5E1] text-black cursor-not-allowed bg-gray-50'
-                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
+                  ? effectiveDark
+                    ? 'border border-slate-600 text-slate-500 cursor-not-allowed bg-slate-800'
+                    : 'border border-[#CBD5E1] text-black cursor-not-allowed bg-gray-50'
+                  : effectiveDark
+                    ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
               }`}
             >
               &lt;
@@ -128,7 +139,9 @@ const FavoritesLaundries = ({ isDarkTheme, userType }) => {
                 className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-medium ${
                   currentPage === page
                     ? 'bg-[#3B82F6] text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
+                    : effectiveDark
+                      ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
+                      : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
                 }`}
               >
                 {page}
@@ -140,8 +153,12 @@ const FavoritesLaundries = ({ isDarkTheme, userType }) => {
               disabled={currentPage === totalPages}
               className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg font-medium ${
                 currentPage === totalPages
-                  ? 'border border-[#CBD5E1] text-gray-400 cursor-not-allowed bg-gray-50'
-                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
+                  ? effectiveDark
+                    ? 'border border-slate-600 text-slate-500 cursor-not-allowed bg-slate-800'
+                    : 'border border-[#CBD5E1] text-gray-400 cursor-not-allowed bg-gray-50'
+                  : effectiveDark
+                    ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-600'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
               }`}
             >
               &gt;

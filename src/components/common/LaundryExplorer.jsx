@@ -663,19 +663,19 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 					{/* Rechercher */}
 					<button
 						type="submit"
-						className="bg-[#3B82F6] w-[44px] h-[44px] rounded-xl flex items-center justify-center shadow-lg transition hover:bg-blue-600 cursor-pointer flex-shrink-0"
+						className={`relative w-[44px] h-[44px] rounded-xl flex items-center justify-center shadow-lg transition border flex-shrink-0 cursor-pointer ${effectiveDarkTheme ? 'bg-slate-900/90 border-slate-600 hover:bg-slate-800' : 'bg-white/95 border-slate-200 hover:bg-slate-50'}`}
 					>
-						<img src={SearchIcon} alt={t('explorer.search_placeholder', 'Rechercher')} className="h-5 w-5" style={{ filter: 'brightness(0) invert(1)' }} />
+						<img src={SearchIcon} alt={t('explorer.search_placeholder', 'Rechercher')} className="h-5 w-5" style={effectiveDarkTheme ? { filter: 'brightness(0) invert(1)' } : {}} />
 					</button>
 
 					{/* Recentrer */}
 					<button
 						type="button"
 						onClick={handleRecenter}
-						className={`w-[44px] h-[44px] rounded-xl flex items-center justify-center shadow-lg transition flex-shrink-0 bg-[#3B82F6] hover:bg-blue-600 ${!position ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+						className={`relative w-[44px] h-[44px] rounded-xl flex items-center justify-center shadow-lg transition border flex-shrink-0 ${effectiveDarkTheme ? 'bg-slate-900/90 border-slate-600 hover:bg-slate-800' : 'bg-white/95 border-slate-200 hover:bg-slate-50'} ${!position ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
 						title={t('explorer.locate_me', 'Revenir sur ma position')}
 					>
-						<img src={Logo} alt={t('explorer.locate_me', 'Ma position')} className="h-5 w-5" style={{ filter: 'brightness(0) invert(1)' }} />
+						<img src={Logo} alt={t('explorer.locate_me', 'Ma position')} className="h-5 w-5" style={effectiveDarkTheme ? { filter: 'brightness(0) invert(1)' } : {}} />
 					</button>
 
 					{/* Filtres */}
@@ -685,8 +685,8 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 						className={`relative w-[44px] h-[44px] rounded-xl flex items-center justify-center shadow-lg transition border flex-shrink-0 cursor-pointer ${isFilterOpen || hasActiveFilters ? 'bg-[#3B82F6] border-[#3B82F6]' : effectiveDarkTheme ? 'bg-slate-900/90 border-slate-600 hover:bg-slate-800' : 'bg-white/95 border-slate-200 hover:bg-slate-50'}`}
 						title={t('explorer.open_filters', 'Filtres')}
 					>
-						<img src={SystemIcon} alt="" className="h-5 w-5" style={isFilterOpen || hasActiveFilters ? { filter: 'brightness(0) invert(1)' } : {}} />
-						{hasActiveFilters && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-400 rounded-full border-2 border-white" />}
+						<img src={SystemIcon} alt="" className="h-5 w-5" style={isFilterOpen || hasActiveFilters ? { filter: 'brightness(0) invert(1)' } : effectiveDarkTheme ? { filter: 'brightness(0) invert(1)' } : {}} />
+						{hasActiveFilters && <span className={`absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-400 rounded-full border-2 ${effectiveDarkTheme ? 'border-slate-900' : 'border-white'}`} />}
 					</button>
 				</form>
 
@@ -706,33 +706,33 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 							</div>
 							<div className="flex flex-col gap-4">
 								<div>
-									<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-1.5">{t('explorer.filter_radius', 'Périmètre de recherche')}</label>
+									<label className={`block text-[10px] font-semibold uppercase tracking-widest mb-1.5 ${effectiveDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>{t('explorer.filter_radius', 'Périmètre de recherche')}</label>
 									<div className="flex items-center gap-2">
 										<input type="text" inputMode="numeric" pattern="[0-9]*" value={radiusValue} onChange={handleRadiusChange} placeholder={t('explorer.filter_radius_placeholder', 'ex : 10')} className={`flex-1 h-9 border rounded-lg px-3 text-sm outline-none focus:border-blue-400 transition-colors ${effectiveDarkTheme ? 'bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'}`} />
-										<span className="text-sm text-slate-400 whitespace-nowrap">km</span>
+										<span className={`text-sm whitespace-nowrap ${effectiveDarkTheme ? 'text-slate-300' : 'text-slate-500'}`}>km</span>
 									</div>
 								</div>
 								<div className="flex flex-wrap items-center gap-2">
 									<div className="flex-1 min-w-20 flex flex-col gap-1">
-										<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400">{t('explorer.filter_time_start', 'Ouverture')}</label>
+										<label className={`block text-[10px] font-semibold uppercase tracking-widest ${effectiveDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>{t('explorer.filter_time_start', 'Ouverture')}</label>
 										<input type="text" inputMode="numeric" value={startTimeValue} onChange={e => handleTimeChange(e.target.value, setStartTimeValue)} onBlur={e => normalizeTimeOnBlur(e.target.value, setStartTimeValue)} placeholder="11:00" className={`h-9 w-full border rounded-lg px-3 text-sm text-center outline-none focus:border-blue-400 transition-colors ${effectiveDarkTheme ? 'bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'}`} />
 									</div>
-									<span className="text-slate-300 text-base mt-4">→</span>
+									<span className={`text-base mt-4 ${effectiveDarkTheme ? 'text-slate-300' : 'text-slate-400'}`}>→</span>
 									<div className="flex-1 min-w-20 flex flex-col gap-1">
-										<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400">{t('explorer.filter_time_end', 'Fermeture')}</label>
+										<label className={`block text-[10px] font-semibold uppercase tracking-widest ${effectiveDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>{t('explorer.filter_time_end', 'Fermeture')}</label>
 										<input type="text" inputMode="numeric" value={endTimeValue} onChange={e => handleTimeChange(e.target.value, setEndTimeValue)} onBlur={e => normalizeTimeOnBlur(e.target.value, setEndTimeValue)} placeholder="18:00" className={`h-9 w-full border rounded-lg px-3 text-sm text-center outline-none focus:border-blue-400 transition-colors ${effectiveDarkTheme ? 'bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'}`} />
 									</div>
 								</div>
 								<div>
-									<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-2">{t('explorer.filter_service', 'Services')}</label>
+									<label className={`block text-[10px] font-semibold uppercase tracking-widest mb-2 ${effectiveDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>{t('explorer.filter_service', 'Services')}</label>
 									<div className={`rounded-xl p-3 ${effectiveDarkTheme ? 'bg-slate-700' : 'bg-white border border-slate-200'}`}>
-										<TagFilter items={[{ value: 'wifi', label: t('explorer.filter_service_wifi') }, { value: 'ironing-station', label: t('explorer.filter_service_ironing') }, { value: 'laundry-folding', label: t('explorer.filter_service_folding') }]} selected={selectedServices} onChange={setSelectedServices} />
+										<TagFilter items={[{ value: 'wifi', label: t('explorer.filter_service_wifi') }, { value: 'ironing-station', label: t('explorer.filter_service_ironing') }, { value: 'laundry-folding', label: t('explorer.filter_service_folding') }]} selected={selectedServices} onChange={setSelectedServices} isDarkTheme={effectiveDarkTheme} />
 									</div>
 								</div>
 								<div>
-									<label className="block text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-2">{t('explorer.filter_payment', 'Moyens de paiement')}</label>
+									<label className={`block text-[10px] font-semibold uppercase tracking-widest mb-2 ${effectiveDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>{t('explorer.filter_payment', 'Moyens de paiement')}</label>
 									<div className={`rounded-xl p-3 ${effectiveDarkTheme ? 'bg-slate-700' : 'bg-white border border-slate-200'}`}>
-										<TagFilter items={[{ value: 'card', label: t('explorer.filter_payment_cb', 'Carte bancaire') }, { value: 'coins', label: t('explorer.filter_payment_coins', 'Pièces') }, { value: 'bills', label: t('explorer.filter_payment_bills', 'Billets') }, { value: 'contactless', label: t('explorer.filter_payment_contactless', 'Sans contact') }, { value: 'fidelity', label: t('explorer.filter_payment_fidelity', 'Carte de fidélité') }]} selected={selectedPayments} onChange={setSelectedPayments} />
+										<TagFilter items={[{ value: 'card', label: t('explorer.filter_payment_cb', 'Carte bancaire') }, { value: 'coins', label: t('explorer.filter_payment_coins', 'Pièces') }, { value: 'bills', label: t('explorer.filter_payment_bills', 'Billets') }, { value: 'contactless', label: t('explorer.filter_payment_contactless', 'Sans contact') }, { value: 'fidelity', label: t('explorer.filter_payment_fidelity', 'Carte de fidélité') }]} selected={selectedPayments} onChange={setSelectedPayments} isDarkTheme={effectiveDarkTheme} />
 									</div>
 								</div>
 							</div>

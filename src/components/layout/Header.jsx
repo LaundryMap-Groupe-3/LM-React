@@ -43,7 +43,7 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
           {/* Menu Hamburger */}
           <button
             onClick={toggleMenu}
-            className={`flex flex-col space-y-1 p-2 hover:bg-gray-100 rounded-md transition-colors ${isMenuOpen ? 'hidden' : ''}`}
+            className={`flex flex-col space-y-1 p-2 ${isDarkTheme ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-md transition-colors ${isMenuOpen ? 'hidden' : ''}`}
             aria-label="Menu"
           >
             <div className={`w-6 h-0.5 ${isDarkTheme ? 'bg-[#E2E8F0]' : 'bg-[#374151]'} rounded-full`}></div>

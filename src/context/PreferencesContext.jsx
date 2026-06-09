@@ -24,6 +24,21 @@ export const PreferencesProvider = ({ children }) => {
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Listen to OS dark mode changes when not authenticated
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e) => {
+      if (!isAuthenticated) {
+        const newTheme = e.matches ? 'dark' : 'light';
+        setIsDarkTheme(e.matches);
+        localStorage.setItem('theme', newTheme);
+        setPreferences(prev => prev ? { ...prev, theme: newTheme } : prev);
+      }
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [isAuthenticated]);
+
   // Load preferences on mount
   useEffect(() => {
     const loadData = async () => {

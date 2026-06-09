@@ -95,7 +95,7 @@ const VerifyEmail = ({ isDarkTheme }) => {
               {message}
             </p>
             <p className={`text-center text-sm italic ${
-              isDarkTheme ? 'text-gray-500' : 'text-gray-500'
+              isDarkTheme ? 'text-gray-400' : 'text-gray-500'
             }`}>
               {t('auth.redirecting_in_3_seconds') || 'Redirection vers la connexion dans 3 secondes...'}
             </p>

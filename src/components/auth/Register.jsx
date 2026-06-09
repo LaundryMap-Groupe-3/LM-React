@@ -10,7 +10,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 import FormField from '../common/FormField';
 import PasswordField from '../common/PasswordField';
 
-const Register = ({ onLoginSuccess }) => {
+const Register = ({ onLoginSuccess, isDarkTheme }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   usePageTitle('page_titles.register', t);
@@ -113,29 +113,44 @@ const Register = ({ onLoginSuccess }) => {
     }
   };
 
+  const inputClass = (hasError) =>
+    `w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+      isDarkTheme
+        ? 'bg-gray-700 text-white placeholder-gray-400'
+        : 'bg-white text-gray-900'
+    } ${hasError ? 'border-red-500' : isDarkTheme ? 'border-gray-600' : 'border-gray-300'}`;
+
   return (
-    <div className="min-h-screen flex items-center justify-center py-8 px-4">
-      <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl p-4 sm:p-6 md:p-8">
+    <div className={`min-h-screen flex items-center justify-center py-8 px-4 ${isDarkTheme ? 'bg-gray-900' : 'bg-white'}`}>
+      <div className={`w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl p-4 sm:p-6 md:p-8 rounded-lg ${isDarkTheme ? 'bg-gray-800' : 'bg-white'}`}>
         <h1 className="text-center text-[#3B82F6] font-semibold text-2xl mb-4 sm:mb-6 font-sans">
           {t('auth.create_account')}
         </h1>
 
         {/* Error Alert */}
         {apiError && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm whitespace-pre-line">
+          <div className={`mb-4 p-3 border rounded-md text-sm whitespace-pre-line ${
+            isDarkTheme
+              ? 'bg-red-900/40 border-red-700 text-red-300'
+              : 'bg-red-100 border-red-400 text-red-700'
+          }`}>
             {apiError}
           </div>
         )}
 
         {/* Création avec Google sur la même ligne */}
         <div className="flex items-center justify-center gap-[17px] mb-6">
-          <h2 className="text-sm sm:text-base font-medium text-[#374151] text-[14px]">
+          <h2 className={`text-sm sm:text-base font-medium text-[14px] ${isDarkTheme ? 'text-gray-300' : 'text-[#374151]'}`}>
             {t('auth.sign_up_with')}
           </h2>
 
           <button
             type="button"
-            className="flex items-center justify-center gap-[14px] w-[118px] h-[48px] bg-[#C5DBFF] hover:bg-[#B7D2FF] text-[#3B82F6] rounded-[6px] border-0 transition-colors shadow-sm sm:shadow-md text-sm font-semibold"
+            className={`flex items-center justify-center gap-[14px] w-[118px] h-[48px] rounded-[6px] border-0 transition-colors shadow-sm sm:shadow-md text-sm font-semibold ${
+              isDarkTheme
+                ? 'bg-blue-900/50 hover:bg-blue-900/70 text-blue-300'
+                : 'bg-[#C5DBFF] hover:bg-[#B7D2FF] text-[#3B82F6]'
+            }`}
             onClick={() => {
               siginWithGoogle();
             }}
@@ -157,17 +172,17 @@ const Register = ({ onLoginSuccess }) => {
 
         {/* Séparateur */}
         <div className="flex items-center mb-6">
-          <div className="flex-1 border-t border-[#6A7282]"></div>
-          <span className="px-3 text-sm text-[#6A7282] font-extrabold">{t('common.or')}</span>
-          <div className="flex-1 border-t border-[#6A7282]"></div>
+          <div className={`flex-1 border-t ${isDarkTheme ? 'border-gray-600' : 'border-[#6A7282]'}`}></div>
+          <span className={`px-3 text-sm font-extrabold ${isDarkTheme ? 'text-gray-400' : 'text-[#6A7282]'}`}>{t('common.or')}</span>
+          <div className={`flex-1 border-t ${isDarkTheme ? 'border-gray-600' : 'border-[#6A7282]'}`}></div>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
-          <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
+          <h2 className={`text-left font-extrabold text-[14px] mb-4 sm:mb-6 font-sans ${isDarkTheme ? 'text-gray-300' : 'text-[#374151]'}`}>
             {t('auth.personal_info')}
-          </h1>
+          </h2>
 
-          <FormField label={t('auth.last_name')} error={errors.name?.message} required>
+          <FormField label={t('auth.last_name')} error={errors.name?.message} required isDarkTheme={isDarkTheme}>
             <input
               type="text"
               id="name"
@@ -176,12 +191,12 @@ const Register = ({ onLoginSuccess }) => {
                 maxLength: { value: 50, message: validationMessages.nameMaxLength },
               })}
               maxLength={50}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
+              className={inputClass(errors.name)}
               placeholder={t('auth.placeholder_last_name')}
             />
           </FormField>
 
-          <FormField label={t('auth.first_name')} error={errors.firstName?.message} required>
+          <FormField label={t('auth.first_name')} error={errors.firstName?.message} required isDarkTheme={isDarkTheme}>
             <input
               type="text"
               id="firstName"
@@ -190,16 +205,16 @@ const Register = ({ onLoginSuccess }) => {
                 maxLength: { value: 50, message: validationMessages.nameMaxLength },
               })}
               maxLength={50}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.firstName ? 'border-red-500' : 'border-gray-300'}`}
+              className={inputClass(errors.firstName)}
               placeholder={t('auth.placeholder_first_name')}
             />
           </FormField>
 
-          <h1 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
+          <h2 className={`text-left font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6 ${isDarkTheme ? 'text-gray-300' : 'text-[#374151]'}`}>
             {t('auth.connection_info')}
-          </h1>
+          </h2>
 
-          <FormField label={t('auth.email')} error={errors.email?.message} required>
+          <FormField label={t('auth.email')} error={errors.email?.message} required isDarkTheme={isDarkTheme}>
             <input
               type="email"
               id="email"
@@ -207,7 +222,7 @@ const Register = ({ onLoginSuccess }) => {
                 required: validationMessages.emailRequired,
                 pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: validationMessages.emailInvalid },
               })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+              className={inputClass(errors.email)}
               placeholder={t('auth.placeholder_email')}
             />
           </FormField>
@@ -217,6 +232,7 @@ const Register = ({ onLoginSuccess }) => {
             id="password"
             error={errors.password?.message}
             required
+            isDarkTheme={isDarkTheme}
             inputProps={register('password', getStrongPasswordRules(t))}
           />
 
@@ -225,6 +241,7 @@ const Register = ({ onLoginSuccess }) => {
             id="confirmPassword"
             error={errors.confirmPassword?.message}
             required
+            isDarkTheme={isDarkTheme}
             inputProps={register('confirmPassword', { required: validationMessages.passwordConfirmationRequired })}
           />
 
@@ -236,18 +253,18 @@ const Register = ({ onLoginSuccess }) => {
               {...register('acceptCGU', {
                 required: validationMessages.acceptTerms,
               })}
-              className="mt-1 h-4 w-4 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500"
+              className={`mt-1 h-4 w-4 text-blue-600 border-2 rounded focus:ring-blue-500 ${isDarkTheme ? 'border-gray-500 bg-gray-700' : 'border-gray-300'}`}
             />
             <div>
-              <label htmlFor="acceptCGU" className="block text-[13px] text-gray-700 text-left">
+              <label htmlFor="acceptCGU" className={`block text-[13px] text-left ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
                 {t('auth.accept_cgu')}
-                <a href="#" className="text-blue-600 hover:text-blue-500 underline">
+                <a href="#" className="text-blue-400 hover:text-blue-300 underline">
                   {t('auth.cgu_link')}
                 </a>
-                <span className="text-red-500">*</span>
+                <span className="text-red-400">*</span>
               </label>
               {errors.acceptCGU && (
-                <p className="text-red-500 text-xs mt-1">{errors.acceptCGU.message}</p>
+                <p className="text-red-400 text-xs mt-1">{errors.acceptCGU.message}</p>
               )}
             </div>
           </div>
@@ -257,7 +274,7 @@ const Register = ({ onLoginSuccess }) => {
             disabled={loading}
             className={`w-full py-3 sm:py-2 px-4 rounded-md text-white font-medium transition-colors text-base sm:text-sm ${
               loading
-                ? 'bg-gray-400 cursor-not-allowed'
+                ? 'bg-gray-500 cursor-not-allowed'
                 : 'bg-[#3B82F6] hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
             }`}
           >
@@ -266,22 +283,22 @@ const Register = ({ onLoginSuccess }) => {
         </form>
 
         {/* Link to login */}
-        <p className="text-center mt-4 text-sm text-gray-600">
+        <p className={`text-center mt-4 text-sm ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>
           {t('navigation.have_account')}{' '}
           <button
             onClick={() => navigate('/login')}
-            className="text-[#3B82F6] hover:text-blue-700 font-medium underline"
+            className="text-[#3B82F6] hover:text-blue-400 font-medium underline"
           >
             {t('auth.login')}
           </button>
         </p>
 
         {/* Link to professional registration */}
-        <p className="text-center mt-2 text-sm text-gray-600">
+        <p className={`text-center mt-2 text-sm ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>
           {t('common.or')}{' '}
           <button
             onClick={() => navigate('/register/professional')}
-            className="text-[#3B82F6] hover:text-blue-700 font-medium underline"
+            className="text-[#3B82F6] hover:text-blue-400 font-medium underline"
           >
             {t('auth.register_professional')}
           </button>

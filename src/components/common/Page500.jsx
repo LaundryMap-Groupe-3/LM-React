@@ -25,7 +25,7 @@ const Page500 = ({ isDarkTheme }) => {
         </div>
 
         {/* Additional Help */}
-        <div className={`text-sm ${isDarkTheme ? 'text-gray-500' : 'text-gray-500'}`}>
+        <div className={`text-sm ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>
           <p>{t('errors.500_error_code')}</p>
           <p className="mt-2">{t('errors.500_contact_support')}</p>
         </div>

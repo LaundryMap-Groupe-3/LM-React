@@ -11,7 +11,7 @@ import { getStrongPasswordRules } from '../../utils/passwordValidation';
 import FormField from '../common/FormField';
 import PasswordField from '../common/PasswordField';
 
-const ProfessionalRegister = () => {
+const ProfessionalRegister = ({ isDarkTheme }) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   usePageTitle('page_titles.register_professional', t);
@@ -139,27 +139,38 @@ const ProfessionalRegister = () => {
     }
   };
 
+  const inputClass = (hasError) =>
+    `w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+      isDarkTheme
+        ? 'bg-gray-700 text-white placeholder-gray-400'
+        : 'bg-white text-gray-900'
+    } ${hasError ? 'border-red-500' : isDarkTheme ? 'border-gray-600' : 'border-gray-300'}`;
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl p-4 sm:p-6 md:p-8">
+    <div className={`min-h-screen flex items-center justify-center px-4 py-6 ${isDarkTheme ? 'bg-gray-900' : 'bg-white'}`}>
+      <div className={`w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl p-4 sm:p-6 md:p-8 rounded-lg ${isDarkTheme ? 'bg-gray-800' : 'bg-white'}`}>
         <h1 className="text-center text-[#3B82F6] font-semibold text-2xl mb-4 sm:mb-6 font-sans">
           {t('auth.register_professional_title', 'Créer un compte professionnel')}
         </h1>
 
         {/* Error Alert */}
         {apiError && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm whitespace-pre-line">
+          <div className={`mb-4 p-3 border rounded-md text-sm whitespace-pre-line ${
+            isDarkTheme
+              ? 'bg-red-900/40 border-red-700 text-red-300'
+              : 'bg-red-100 border-red-400 text-red-700'
+          }`}>
             {apiError}
           </div>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
           {/* INFORMATIONS PERSONNELLES */}
-          <h2 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans">
+          <h2 className={`text-left font-extrabold text-[14px] mb-4 sm:mb-6 font-sans ${isDarkTheme ? 'text-gray-300' : 'text-[#374151]'}`}>
             {t('auth.personal_info')}
           </h2>
 
-          <FormField label={t('auth.last_name')} error={errors.name?.message} required>
+          <FormField label={t('auth.last_name')} error={errors.name?.message} required isDarkTheme={isDarkTheme}>
             <input
               type="text"
               id="name"
@@ -168,12 +179,12 @@ const ProfessionalRegister = () => {
                 maxLength: { value: 50, message: validationMessages.nameMaxLength },
               })}
               maxLength={50}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
+              className={inputClass(errors.name)}
               placeholder={t('auth.placeholder_last_name')}
             />
           </FormField>
 
-          <FormField label={t('auth.first_name')} error={errors.firstName?.message} required>
+          <FormField label={t('auth.first_name')} error={errors.firstName?.message} required isDarkTheme={isDarkTheme}>
             <input
               type="text"
               id="firstName"
@@ -182,17 +193,17 @@ const ProfessionalRegister = () => {
                 maxLength: { value: 50, message: validationMessages.nameMaxLength },
               })}
               maxLength={50}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.firstName ? 'border-red-500' : 'border-gray-300'}`}
+              className={inputClass(errors.firstName)}
               placeholder={t('auth.placeholder_first_name')}
             />
           </FormField>
 
           {/* INFORMATIONS PROFESSIONNELLES */}
-          <h2 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6">
+          <h2 className={`text-left font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6 ${isDarkTheme ? 'text-gray-300' : 'text-[#374151]'}`}>
             {t('auth.company_section_title')}
           </h2>
 
-          <FormField label={t('auth.siren')} error={errors.siren?.message} required>
+          <FormField label={t('auth.siren')} error={errors.siren?.message} required isDarkTheme={isDarkTheme}>
             <input
               type="text"
               id="siren"
@@ -203,24 +214,34 @@ const ProfessionalRegister = () => {
               onChange={handleSirenChange}
               maxLength={9}
               inputMode="numeric"
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.siren ? 'border-red-500' : sirenStatus === 'verified' ? 'border-green-500' : 'border-gray-300'}`}
+              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                isDarkTheme
+                  ? 'bg-gray-700 text-white placeholder-gray-400'
+                  : 'bg-white text-gray-900'
+              } ${
+                errors.siren
+                  ? 'border-red-500'
+                  : sirenStatus === 'verified'
+                    ? 'border-green-500'
+                    : isDarkTheme ? 'border-gray-600' : 'border-gray-300'
+              }`}
               placeholder={t('auth.placeholder_siren')}
             />
             {sirenStatus === 'checking' && (
-              <p className="text-xs text-gray-500 mt-1">{t('auth.siren_checking')}</p>
+              <p className={`text-xs mt-1 ${isDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>{t('auth.siren_checking')}</p>
             )}
             {sirenStatus === 'verified' && (
-              <p className="text-xs text-green-600 mt-1">✓ {t('auth.siren_verified')}</p>
+              <p className="text-xs text-green-500 mt-1">✓ {t('auth.siren_verified')}</p>
             )}
             {sirenStatus === 'not_found' && (
-              <p className="text-xs text-red-500 mt-1">{t('auth.siren_not_found_inline')}</p>
+              <p className="text-xs text-red-400 mt-1">{t('auth.siren_not_found_inline')}</p>
             )}
             {sirenStatus === 'error' && (
-              <p className="text-xs text-red-500 mt-1">{t('auth.siren_error_inline')}</p>
+              <p className="text-xs text-red-400 mt-1">{t('auth.siren_error_inline')}</p>
             )}
           </FormField>
 
-          <FormField label={t('auth.company_name')} error={errors.companyName?.message} required>
+          <FormField label={t('auth.company_name')} error={errors.companyName?.message} required isDarkTheme={isDarkTheme}>
             <input
               type="text"
               id="companyName"
@@ -229,32 +250,32 @@ const ProfessionalRegister = () => {
                 maxLength: { value: 50, message: validationMessages.companyNameMaxLength },
               })}
               maxLength={50}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.companyName ? 'border-red-500' : 'border-gray-300'}`}
+              className={inputClass(errors.companyName)}
               placeholder={t('auth.placeholder_company_name')}
             />
           </FormField>
 
-          <FormField label={t('auth.phone')} error={errors.phone?.message} required>
+          <FormField label={t('auth.phone')} error={errors.phone?.message} required isDarkTheme={isDarkTheme}>
             <input
               type="tel"
               id="phone"
               {...register('phone', { required: validationMessages.phoneRequired })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
+              className={inputClass(errors.phone)}
               placeholder={t('auth.placeholder_phone')}
             />
           </FormField>
 
-          <FormField label={t('auth.street')} error={errors.street?.message} required>
+          <FormField label={t('auth.street')} error={errors.street?.message} required isDarkTheme={isDarkTheme}>
             <input
               type="text"
               id="street"
               {...register('street', { required: validationMessages.streetRequired })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.street ? 'border-red-500' : 'border-gray-300'}`}
+              className={inputClass(errors.street)}
               placeholder={t('auth.placeholder_street')}
             />
           </FormField>
 
-          <FormField label={t('auth.postal_code')} error={errors.postalCode?.message} required>
+          <FormField label={t('auth.postal_code')} error={errors.postalCode?.message} required isDarkTheme={isDarkTheme}>
             <input
               type="text"
               id="postalCode"
@@ -262,22 +283,22 @@ const ProfessionalRegister = () => {
                 required: validationMessages.postalCodeRequired,
                 pattern: { value: /^\d{5}$/, message: validationMessages.postalCodeInvalid },
               })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.postalCode ? 'border-red-500' : 'border-gray-300'}`}
+              className={inputClass(errors.postalCode)}
               placeholder={t('auth.placeholder_postal_code')}
             />
           </FormField>
 
-          <FormField label={t('auth.city')} error={errors.city?.message} required>
+          <FormField label={t('auth.city')} error={errors.city?.message} required isDarkTheme={isDarkTheme}>
             <input
               type="text"
               id="city"
               {...register('city', { required: validationMessages.cityRequired })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.city ? 'border-red-500' : 'border-gray-300'}`}
+              className={inputClass(errors.city)}
               placeholder={t('auth.placeholder_city')}
             />
           </FormField>
 
-          <FormField label={t('auth.country')} error={errors.country?.message} required>
+          <FormField label={t('auth.country')} error={errors.country?.message} required isDarkTheme={isDarkTheme}>
             <Select
               inputId="country"
               options={countryOptions}
@@ -292,22 +313,50 @@ const ProfessionalRegister = () => {
                 control: (base, state) => ({
                   ...base,
                   minHeight: 44,
-                  borderColor: errors.country ? '#ef4444' : state.isFocused ? '#3b82f6' : '#d1d5db',
+                  backgroundColor: isDarkTheme ? '#374151' : base.backgroundColor,
+                  borderColor: errors.country
+                    ? '#ef4444'
+                    : state.isFocused
+                      ? '#3b82f6'
+                      : isDarkTheme ? '#4b5563' : '#d1d5db',
                   boxShadow: state.isFocused ? '0 0 0 2px rgba(59, 130, 246, 0.25)' : 'none',
-                  '&:hover': { borderColor: state.isFocused ? '#3b82f6' : '#9ca3af' },
+                  '&:hover': { borderColor: state.isFocused ? '#3b82f6' : isDarkTheme ? '#6b7280' : '#9ca3af' },
                 }),
-                menu: (base) => ({ ...base, zIndex: 30 }),
+                singleValue: (base) => ({
+                  ...base,
+                  color: isDarkTheme ? '#f9fafb' : base.color,
+                }),
+                input: (base) => ({
+                  ...base,
+                  color: isDarkTheme ? '#f9fafb' : base.color,
+                }),
+                placeholder: (base) => ({
+                  ...base,
+                  color: isDarkTheme ? '#9ca3af' : base.color,
+                }),
+                menu: (base) => ({
+                  ...base,
+                  zIndex: 30,
+                  backgroundColor: isDarkTheme ? '#1f2937' : base.backgroundColor,
+                }),
+                option: (base, state) => ({
+                  ...base,
+                  backgroundColor: state.isFocused
+                    ? isDarkTheme ? '#374151' : '#eff6ff'
+                    : isDarkTheme ? '#1f2937' : base.backgroundColor,
+                  color: isDarkTheme ? '#f9fafb' : base.color,
+                }),
               }}
             />
             <input type="hidden" {...register('country', { required: validationMessages.countryRequired })} />
           </FormField>
 
           {/* INFORMATIONS DE CONNEXION */}
-          <h2 className="text-left text-[#374151] font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6">
+          <h2 className={`text-left font-extrabold text-[14px] mb-4 sm:mb-6 font-sans mt-6 ${isDarkTheme ? 'text-gray-300' : 'text-[#374151]'}`}>
             {t('auth.connection_info')}
           </h2>
 
-          <FormField label={t('auth.email')} error={errors.email?.message} required>
+          <FormField label={t('auth.email')} error={errors.email?.message} required isDarkTheme={isDarkTheme}>
             <input
               type="email"
               id="email"
@@ -315,7 +364,7 @@ const ProfessionalRegister = () => {
                 required: validationMessages.emailRequired,
                 pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: validationMessages.emailInvalid },
               })}
-              className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+              className={inputClass(errors.email)}
               placeholder={t('auth.placeholder_email')}
             />
           </FormField>
@@ -325,6 +374,7 @@ const ProfessionalRegister = () => {
             id="password"
             error={errors.password?.message}
             required
+            isDarkTheme={isDarkTheme}
             inputProps={register('password', getStrongPasswordRules(t))}
           />
 
@@ -333,6 +383,7 @@ const ProfessionalRegister = () => {
             id="confirmPassword"
             error={errors.confirmPassword?.message}
             required
+            isDarkTheme={isDarkTheme}
             inputProps={register('confirmPassword', { required: validationMessages.passwordConfirmationRequired })}
           />
 
@@ -344,18 +395,18 @@ const ProfessionalRegister = () => {
               {...register('acceptCGU', {
                 required: validationMessages.acceptTerms,
               })}
-              className="mt-1 h-4 w-4 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500"
+              className={`mt-1 h-4 w-4 text-blue-600 border-2 rounded focus:ring-blue-500 ${isDarkTheme ? 'border-gray-500 bg-gray-700' : 'border-gray-300'}`}
             />
             <div>
-              <label htmlFor="acceptCGU" className="block text-[13px] text-gray-700 text-left">
+              <label htmlFor="acceptCGU" className={`block text-[13px] text-left ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
                 {t('auth.accept_cgu')}
-                <a href="#" className="text-blue-600 hover:text-blue-500 underline">
+                <a href="#" className="text-blue-400 hover:text-blue-300 underline">
                   {t('auth.cgu_link')}
                 </a>
-                <span className="text-red-500">*</span>
+                <span className="text-red-400">*</span>
               </label>
               {errors.acceptCGU && (
-                <p className="text-red-500 text-xs mt-1">{errors.acceptCGU.message}</p>
+                <p className="text-red-400 text-xs mt-1">{errors.acceptCGU.message}</p>
               )}
             </div>
           </div>
@@ -365,7 +416,7 @@ const ProfessionalRegister = () => {
             disabled={loading}
             className={`w-full py-3 sm:py-2 px-4 rounded-md text-white font-medium transition-colors text-base sm:text-sm ${
               loading
-                ? 'bg-gray-400 cursor-not-allowed'
+                ? 'bg-gray-500 cursor-not-allowed'
                 : 'bg-[#3B82F6] hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
             }`}
           >
@@ -374,22 +425,22 @@ const ProfessionalRegister = () => {
         </form>
 
         {/* Link to login */}
-        <p className="text-center mt-4 text-sm text-gray-600">
+        <p className={`text-center mt-4 text-sm ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>
           {t('navigation.have_account')}{' '}
           <button
             onClick={() => navigate('/login')}
-            className="text-[#3B82F6] hover:text-blue-700 font-medium underline"
+            className="text-[#3B82F6] hover:text-blue-400 font-medium underline"
           >
             {t('auth.login')}
           </button>
         </p>
 
         {/* Link to regular registration */}
-        <p className="text-center mt-2 text-sm text-gray-600">
+        <p className={`text-center mt-2 text-sm ${isDarkTheme ? 'text-gray-400' : 'text-gray-600'}`}>
           {t('common.or')}{' '}
           <button
             onClick={() => navigate('/register')}
-            className="text-[#3B82F6] hover:text-blue-700 font-medium underline"
+            className="text-[#3B82F6] hover:text-blue-400 font-medium underline"
           >
             {t('auth.register_user')}
           </button>

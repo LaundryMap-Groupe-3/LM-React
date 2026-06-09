@@ -410,25 +410,37 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout, userType 
         </div>
         
         {/* Data Protection Section */}
-        <div className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] p-4 sm:p-6 md:p-8 w-full flex flex-col items-start">
+        <div className={`rounded-lg border p-4 sm:p-6 md:p-8 w-full flex flex-col items-start ${
+          effectiveDarkTheme
+            ? 'border-red-900 bg-gray-800'
+            : 'border-[#FECACA] bg-[#FEF2F2]'
+        }`}>
           <div className="flex items-center w-full gap-2">
             <img src={User} alt={t('profile.data_protection')} className="w-[26px] h-[26px] shrink-0" />
-            <h1 className="text-left text-base sm:text-lg md:text-xl font-bold text-red-700">
+            <h1 className={`text-left text-base sm:text-lg md:text-xl font-bold ${
+              effectiveDarkTheme ? 'text-red-400' : 'text-red-700'
+            }`}>
               {t('profile.data_protection')}
             </h1>
           </div>
           {/* Separator */}
-          <div className="border-t border-[#FECACA] w-full my-4"></div>
-          <div className="rounded-lg p-4 sm:p-6 w-full flex flex-col items-start justify-center bg-[#FFF1DF]">
+          <div className={`border-t w-full my-4 ${
+            effectiveDarkTheme ? 'border-red-900' : 'border-[#FECACA]'
+          }`}></div>
+          <div className={`rounded-lg p-4 sm:p-6 w-full flex flex-col items-start justify-center ${
+            effectiveDarkTheme ? 'bg-gray-700' : 'bg-[#FFF1DF]'
+          }`}>
             <div className="flex flex-col items-center gap-2 mb-2 w-full">
               <img src={Error} alt="Attention" className="w-5 h-5" />
-              <p className="text-xs sm:text-sm text-[#C51D1D] font-light leading-relaxed text-left">
+              <p className={`text-xs sm:text-sm font-light leading-relaxed text-left ${
+                effectiveDarkTheme ? 'text-red-400' : 'text-[#C51D1D]'
+              }`}>
                 {t('profile.data_protection_text')}
                 <strong className="font-extrabold"> {t('profile.irreversible_warning')}</strong>
               </p>
             </div>
           </div>
-          <button 
+          <button
             onClick={() => setShowDeleteDialog(true)}
             className="mt-4 px-4 py-3 bg-[#C51D1D] w-full text-xs sm:text-sm text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors flex items-center justify-center gap-2">
             <img src={Remove} alt={t('profile.delete_account')} className="w-[17px] h-[17px]" />

@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from '../../context/I18nContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import { getStrongPasswordRules } from '../../utils/passwordValidation';
+import Alert from '../common/Alert';
+import Button from '../common/Button';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -150,23 +152,23 @@ const ResetPassword = ({ isDarkTheme }) => {
 
         {/* Error Alert */}
         {(apiError || !tokenValid) && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm">
+          <Alert type="error" isDarkTheme={isDarkTheme}>
             {apiError || t('auth.token_not_found')}
             <button
               onClick={() => navigate('/forgot-password')}
-              className="block mt-3 underline font-semibold hover:no-underline"
+              className="block mt-3 underline font-semibold hover:no-underline focus:outline-none focus:ring-2 focus:ring-current rounded"
             >
               {t('auth.request_new_reset_link')}
             </button>
-          </div>
+          </Alert>
         )}
 
         {/* Success Message */}
         {successMessage && (
-          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md text-sm">
+          <Alert type="success" isDarkTheme={isDarkTheme}>
             <p className="font-medium">{successMessage}</p>
-            <p className="text-xs mt-1">{t('auth.redirecting_to_login')}</p>
-          </div>
+            <p className="text-xs mt-1 opacity-80">{t('auth.redirecting_to_login')}</p>
+          </Alert>
         )}
 
         {tokenValid && !successMessage && (
@@ -174,41 +176,42 @@ const ResetPassword = ({ isDarkTheme }) => {
             {/* Password */}
             <div>
               <label htmlFor="password" className={`block text-left text-sm font-medium mb-2 ${
-                isDarkTheme ? 'text-gray-300' : 'text-gray-700'
+                isDarkTheme ? 'text-gray-200' : 'text-gray-700'
               }`}>
-                {t('auth.new_password')}<span className="text-red-500">*</span>
+                {t('auth.new_password')}<span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id="password"
                   {...register('password', getStrongPasswordRules(t))}
-                  className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                    errors.password ? 'border-red-500' : isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-gray-300 bg-white text-gray-900'
+                  className={`w-full h-[44px] px-3 pr-16 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                    isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100 placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900'
                   }`}
                   placeholder={t('auth.placeholder_new_password')}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm ${
-                    isDarkTheme ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'
+                  aria-label={showPassword ? t('auth.hide') : t('auth.show')}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 rounded ${
+                    isDarkTheme ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'
                   }`}
                 >
                   {showPassword ? t('auth.hide') : t('auth.show')}
                 </button>
               </div>
               {errors.password && (
-                <span className="text-red-500 text-xs mt-1">{errors.password.message}</span>
+                <span className="text-red-400 text-xs mt-1 block">{errors.password.message}</span>
               )}
             </div>
 
             {/* Confirm Password */}
             <div>
               <label htmlFor="confirmPassword" className={`block text-left text-sm font-medium mb-2 ${
-                isDarkTheme ? 'text-gray-300' : 'text-gray-700'
+                isDarkTheme ? 'text-gray-200' : 'text-gray-700'
               }`}>
-                {t('auth.confirm_password')}<span className="text-red-500">*</span>
+                {t('auth.confirm_password')}<span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <input
@@ -219,35 +222,36 @@ const ResetPassword = ({ isDarkTheme }) => {
                     validate: (value) =>
                       value === password || t('auth.passwords_not_match'),
                   })}
-                  className={`w-full h-[44px] px-3 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                    errors.confirmPassword ? 'border-red-500' : isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-gray-300 bg-white text-gray-900'
+                  className={`w-full h-[44px] px-3 pr-16 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
+                    isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100 placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900'
                   }`}
                   placeholder={t('auth.placeholder_confirm_password')}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm ${
-                    isDarkTheme ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'
+                  aria-label={showConfirmPassword ? t('auth.hide') : t('auth.show')}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 rounded ${
+                    isDarkTheme ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'
                   }`}
                 >
                   {showConfirmPassword ? t('auth.hide') : t('auth.show')}
                 </button>
               </div>
               {errors.confirmPassword && (
-                <span className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</span>
+                <span className="text-red-400 text-xs mt-1 block">{errors.confirmPassword.message}</span>
               )}
             </div>
 
             {/* Password Requirements */}
             <div className={`p-3 rounded-md text-xs space-y-1 ${
-              isDarkTheme ? 'bg-gray-700' : 'bg-gray-100'
+              isDarkTheme ? 'bg-gray-700/60' : 'bg-gray-100'
             }`}>
-              <p className={`font-medium ${isDarkTheme ? 'text-gray-300' : 'text-gray-700'}`}>
+              <p className={`font-medium ${isDarkTheme ? 'text-gray-200' : 'text-gray-700'}`}>
                 {t('auth.password_requirements')}
               </p>
-              <ul className={`list-disc list-inside ${
-                isDarkTheme ? 'text-gray-400' : 'text-gray-600'
+              <ul className={`list-disc list-inside space-y-0.5 ${
+                isDarkTheme ? 'text-gray-300' : 'text-gray-600'
               }`}>
                 <li>{t('auth.password_min_12_chars')}</li>
                 <li>{t('auth.password_one_lowercase')}</li>
@@ -258,29 +262,13 @@ const ResetPassword = ({ isDarkTheme }) => {
             </div>
 
             {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full py-3 px-4 rounded-md text-white font-medium transition-colors text-base sm:text-sm ${
-                loading
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-[#3B82F6] hover:bg-blue-700 focus:ring-2 focus:ring-blue-500'
-              }`}
-            >
-              {loading ? t('common.loading') : t('auth.reset_password')}
-            </button>
+            <Button type="submit" loading={loading} loadingLabel={t('common.loading')} className="w-full py-3">
+              {t('auth.reset_password')}
+            </Button>
 
-            <button
-              type="button"
-              onClick={() => navigate('/login')}
-              className={`w-full py-3 px-4 rounded-md font-medium transition-colors text-base sm:text-sm ${
-                isDarkTheme
-                  ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-                  : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-              }`}
-            >
+            <Button type="button" variant="secondary" isDarkTheme={isDarkTheme} onClick={() => navigate('/login')} className="w-full py-3">
               {t('common.cancel')}
-            </button>
+            </Button>
           </form>
         )}
       </div>

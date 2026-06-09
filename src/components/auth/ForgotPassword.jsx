@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from '../../context/I18nContext';
@@ -76,7 +77,7 @@ const ForgotPassword = ({ isDarkTheme }) => {
   };
 
   return (
-    <div className={`flex justify-center py-8 px-4 ${
+    <div className={`flex justify-center py-24 px-4 h-full ${
       isDarkTheme ? 'bg-gray-900' : 'bg-white'
     }`}>
       <div className={`w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl p-4 sm:p-6 md:p-8 rounded-lg ${
@@ -85,12 +86,15 @@ const ForgotPassword = ({ isDarkTheme }) => {
         {/* Back Button */}
         <div className="mb-6">
           <button
+            type="button"
             onClick={() => navigate('/login')}
-            className={`flex items-center gap-2 text-sm font-medium hover:underline ${
-              isDarkTheme ? 'text-[#3B82F6]' : 'text-[#3B82F6]'
+            className={`flex items-center gap-2 text-sm font-semibold rounded-[6px] px-3 py-2 transition-colors ${
+              isDarkTheme
+                ? 'text-blue-400 hover:bg-gray-700'
+                : 'text-[#3B82F6] hover:bg-blue-50'
             }`}
           >
-            <span>←</span>
+            <ArrowLeft size={16} />
             {t('common.back')}
           </button>
         </div>
@@ -107,12 +111,12 @@ const ForgotPassword = ({ isDarkTheme }) => {
           {t('auth.forgot_password_description')}
         </p>
 
-        <Alert type="error">{apiError}</Alert>
+        <Alert type="error" isDarkTheme={isDarkTheme}>{apiError}</Alert>
 
         {successMessage && (
-          <Alert type="success">
+          <Alert type="success" isDarkTheme={isDarkTheme}>
             <p className="font-medium mb-2">{successMessage}</p>
-            <p className={`text-xs ${isDarkTheme ? 'text-gray-600' : 'text-gray-700'}`}>
+            <p className="text-xs opacity-80">
               {t('auth.check_email_for_reset_link')}
             </p>
           </Alert>
@@ -135,7 +139,7 @@ const ForgotPassword = ({ isDarkTheme }) => {
         ) : (
           /* Email Form */
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <FormField label={t('auth.email')} error={errors.email?.message} required>
+            <FormField label={t('auth.email')} error={errors.email?.message} required isDarkTheme={isDarkTheme}>
               <input
                 type="email"
                 id="email"
@@ -143,8 +147,7 @@ const ForgotPassword = ({ isDarkTheme }) => {
                   required: t('validation.email_required'),
                   pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: t('validation.email_invalid') },
                 })}
-                className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                  errors.email ? 'border-red-500' : isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-gray-300 bg-white text-gray-900'
+                className={`w-full h-[44px] px-3 border rounded-md text-base sm:text-sm ${isDarkTheme ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400' : 'border-gray-300 bg-white text-gray-900'
                 }`}
                 placeholder={t('auth.placeholder_email')}
               />
@@ -154,7 +157,7 @@ const ForgotPassword = ({ isDarkTheme }) => {
               {t('auth.send_reset_link')}
             </Button>
 
-            <Button type="button" variant="secondary" onClick={() => navigate('/login')} className="w-full py-3">
+            <Button type="button" variant="secondary" isDarkTheme={isDarkTheme} onClick={() => navigate('/login')} className="w-full py-3">
               {t('common.cancel')}
             </Button>
           </form>

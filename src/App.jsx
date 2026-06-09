@@ -160,8 +160,8 @@ function App() {
   }
 
   return (
-    <>
-      <Header 
+    <div className="flex flex-col min-h-screen">
+      <Header
         isDarkTheme={isDarkTheme}
         isLoggedIn={isLoggedIn}
         userType={userType}
@@ -169,6 +169,7 @@ function App() {
         onLogout={handleLogout}
       />
       <ErrorBoundary isDarkTheme={isDarkTheme} userType={userType}>
+        <div className={`flex-1 ${isDarkTheme ? 'bg-[#0F172A]' : 'bg-white'}`}>
         <Routes>
           <Route path="/" element={<Home isDarkTheme={isDarkTheme} userType={userType} />} />
           <Route path="/register" element={
@@ -367,9 +368,10 @@ function App() {
           <Route path="/mentions-legales" element={<LegalNotice isDarkTheme={isDarkTheme} />} />
           <Route path="*" element={<Page404 isDarkTheme={isDarkTheme} />} />
         </Routes>
+        </div>
       </ErrorBoundary>
       <Footer isDarkTheme={isDarkTheme} isLoggedIn={isLoggedIn} />
-    </>
+    </div>
   )
 }
 

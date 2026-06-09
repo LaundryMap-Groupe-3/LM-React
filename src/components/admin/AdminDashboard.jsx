@@ -79,11 +79,11 @@ const AdminDashboard = ({ isDarkTheme }) => {
             {t('admin.dashboard_subtitle', 'Gérez les demandes en attente et supervisez la plateforme LaundryMap.')}
           </p>
         </div>
-        <div className="bg-[#FFFFFF]/20 rounded-[10px] w-full md:w-[350px] max-w-full min-h-[57px] md:min-h-[120px] p-[9px] md:p-4 text-left flex flex-row md:flex-col justify-center md:items-center md:mx-auto">
+        <div className={`${effectiveDarkTheme ? 'bg-black/20' : 'bg-[#FFFFFF]/20'} rounded-[10px] w-full md:w-[350px] max-w-full min-h-[57px] md:min-h-[120px] p-[9px] md:p-4 text-left flex flex-row md:flex-col justify-center md:items-center md:mx-auto`}>
           <div className="flex flex-col gap-[10px] md:gap-[2px] items-center w-full h-full justify-center">
             <img src={UserShield} alt="User Shield" className="mx-auto" />
             <div className="flex flex-col items-center text-center w-full md:justify-center md:h-full md:items-center">
-              <p className="text-white text-[14px] font-semibold md:text-[15px] text-center md:text-center">
+              <p className={`${effectiveDarkTheme ? 'text-blue-200' : 'text-white'} text-[14px] font-semibold md:text-[15px] text-center md:text-center`}>
                 {user?.email ?? '--'}
               </p>
             </div>
