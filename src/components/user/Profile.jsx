@@ -112,7 +112,7 @@ const Profile = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, onLogout, userType 
         navigate('/');
       }, 2000);
     } catch (error) {
-      const errorKey = error.body?.message || 'errors.account_deletion_error';
+      const errorKey = error.body?.error || error.body?.message || 'errors.account_deletion_error';
       setToastMessage(t(errorKey));
       setToastType('error');
       setDeletePassword('');

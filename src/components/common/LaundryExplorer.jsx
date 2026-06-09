@@ -663,19 +663,19 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 					{/* Rechercher */}
 					<button
 						type="submit"
-						className={`relative w-[44px] h-[44px] rounded-xl flex items-center justify-center shadow-lg transition border flex-shrink-0 cursor-pointer ${effectiveDarkTheme ? 'bg-slate-900/90 border-slate-600 hover:bg-slate-800' : 'bg-white/95 border-slate-200 hover:bg-slate-50'}`}
+						className={`relative w-[44px] h-[44px] rounded-xl flex items-center justify-center shadow-lg transition border flex-shrink-0 cursor-pointer ${effectiveDarkTheme ? 'bg-slate-900/90 border-slate-600 hover:bg-slate-800' : 'bg-[#3B82F6] border-[#3B82F6] hover:bg-blue-600'}`}
 					>
-						<img src={SearchIcon} alt={t('explorer.search_placeholder', 'Rechercher')} className="h-5 w-5" style={effectiveDarkTheme ? { filter: 'brightness(0) invert(1)' } : {}} />
+						<img src={SearchIcon} alt={t('explorer.search_placeholder', 'Rechercher')} className="h-5 w-5" style={effectiveDarkTheme ? { filter: 'brightness(0) invert(1)' } : { filter: 'brightness(0) invert(1)' }} />
 					</button>
 
 					{/* Recentrer */}
 					<button
 						type="button"
 						onClick={handleRecenter}
-						className={`relative w-[44px] h-[44px] rounded-xl flex items-center justify-center shadow-lg transition border flex-shrink-0 ${effectiveDarkTheme ? 'bg-slate-900/90 border-slate-600 hover:bg-slate-800' : 'bg-white/95 border-slate-200 hover:bg-slate-50'} ${!position ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+						className={`relative w-[44px] h-[44px] rounded-xl flex items-center justify-center shadow-lg transition border flex-shrink-0 ${effectiveDarkTheme ? 'bg-slate-900/90 border-slate-600 hover:bg-slate-800' : 'bg-[#3B82F6] border-[#3B82F6] hover:bg-blue-600'} ${!position ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
 						title={t('explorer.locate_me', 'Revenir sur ma position')}
 					>
-						<img src={Logo} alt={t('explorer.locate_me', 'Ma position')} className="h-5 w-5" style={effectiveDarkTheme ? { filter: 'brightness(0) invert(1)' } : {}} />
+						<img src={Logo} alt={t('explorer.locate_me', 'Ma position')} className="h-5 w-5" style={effectiveDarkTheme ? { filter: 'brightness(0) invert(1)' } : { filter: 'brightness(0) invert(1)' }} />
 					</button>
 
 					{/* Filtres */}
