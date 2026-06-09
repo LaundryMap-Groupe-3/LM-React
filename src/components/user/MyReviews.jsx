@@ -248,7 +248,7 @@ const MyReviews = ({ isDarkTheme }) => {
                           <div className="flex items-center justify-between mb-1.5">
                             <label className={`text-xs font-medium ${textSecondary}`}>
                               {t('laundry.review_comment_label', 'Commentaire')}
-                              <span className={`ml-1 font-normal ${isDarkTheme ? 'text-gray-600' : 'text-slate-400'}`}>
+                              <span className={`ml-1 font-normal ${isDarkTheme ? 'text-gray-400' : 'text-slate-400'}`}>
                                 — {t('laundry.review_comment_optional', 'optionnel')}
                               </span>
                             </label>

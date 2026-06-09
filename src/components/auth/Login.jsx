@@ -199,10 +199,10 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
           {t('auth.login_title', 'Connexion')}
         </h1>
 
-        <Alert type="success">{registrationSuccessMessage}</Alert>
+        <Alert type="success" isDarkTheme={isDarkTheme}>{registrationSuccessMessage}</Alert>
 
         {apiError && !resendMessage && (
-          <Alert type="error">
+          <Alert type="error" isDarkTheme={isDarkTheme}>
             <div className="flex flex-col gap-2">
               <p>{apiError}</p>
               {errorCode === 'email_not_verified' && (
@@ -219,12 +219,12 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
         )}
 
         {resendMessage && (
-          <Alert type={resendMessage.type}>{resendMessage.text}</Alert>
+          <Alert type={resendMessage.type} isDarkTheme={isDarkTheme}>{resendMessage.text}</Alert>
         )}
 
         {/* Connexion avec Google */}
         <div className="flex items-center justify-center gap-[17px] mb-6">
-          <h2 className={`text-sm sm:text-base text-[#374151] font-extrabold text-[14px] ${
+          <h2 className={`text-sm sm:text-base font-extrabold text-[14px] ${
             isDarkTheme ? 'text-gray-300' : 'text-[#374151]'
           }`}>
             {t('auth.login_with')}
@@ -232,7 +232,11 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
 
           <button
             type="button"
-            className="flex items-center justify-center gap-[14px] w-[118px] h-[48px] bg-[#C5DBFF] hover:bg-[#B7D2FF] text-[#3B82F6] rounded-[6px] border-0 transition-colors shadow-sm sm:shadow-md text-sm font-semibold"
+            className={`flex items-center justify-center gap-[14px] w-[118px] h-[48px] rounded-[6px] border-0 transition-colors shadow-sm sm:shadow-md text-sm font-semibold ${
+              isDarkTheme
+                ? 'bg-blue-900/50 hover:bg-blue-900/70 text-blue-300'
+                : 'bg-[#C5DBFF] hover:bg-[#B7D2FF] text-[#3B82F6]'
+            }`}
             onClick={loginWithGoogle}
           >
             <svg
@@ -261,7 +265,7 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
 
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
-          <FormField label={t('auth.email')} error={errors.email?.message} required>
+          <FormField label={t('auth.email')} error={errors.email?.message} required isDarkTheme={isDarkTheme}>
             <input
               type="email"
               id="email"
@@ -270,7 +274,9 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
                 pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: validationMessages.emailInvalid },
               })}
               className={`w-full h-[44px] px-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-sm ${
-                errors.email ? 'border-red-500' : isDarkTheme ? 'border-gray-600 bg-gray-700 text-gray-100' : 'border-gray-300 bg-white text-gray-900'
+                isDarkTheme
+                  ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400'
+                  : 'border-gray-300 bg-white text-gray-900'
               }`}
               placeholder={t('auth.placeholder_email')}
             />
@@ -281,6 +287,7 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
             id="password"
             error={errors.password?.message}
             required
+            isDarkTheme={isDarkTheme}
             inputProps={register('password', { required: validationMessages.passwordRequired })}
           />
 
@@ -295,32 +302,40 @@ const Login = ({ isDarkTheme, onLoginSuccess }) => {
             </button>
           </div>
 
-          <Button type="submit" loading={loading} loadingLabel={t('auth.loading')} className="w-full py-3 sm:py-2">
+          <Button type="submit" loading={loading} loadingLabel={t('auth.loading')} isDarkTheme={isDarkTheme} className="w-full py-3 sm:py-2">
             {t('auth.login')}
           </Button>
         </form>
 
         {/* Sign up paths */}
-        <div className="mt-6 rounded-lg bg-[#C5DBFF] p-4 text-white">
+        <div className={`mt-6 rounded-lg p-4 ${
+          isDarkTheme ? 'bg-gray-700' : 'bg-[#C5DBFF]'
+        }`}>
           <h2 className="text-left text-[#3B82F6] text-[14px] font-extrabold mb-3">
             {t('auth.create_account', 'Créer un compte')}
           </h2>
-          <p className="text-left text-[#374151] text-[11px] font-medium mb-4">
+          <p className={`text-left text-[11px] font-medium mb-4 ${
+            isDarkTheme ? 'text-gray-300' : 'text-[#374151]'
+          }`}>
             {t('auth.signup_benefits_text', 'Pour beneficier de fonctionnalites supplementaires.')}
           </p>
           <div className="flex flex-col sm:flex-row gap-2 justify-start">
             <button
               onClick={() => navigate('/register')}
-              className="w-full px-4 py-2 text-sm text-[#0F172A] font-semibold underline flex items-center justify-start gap-2"
+              className={`w-full px-4 py-2 text-sm font-semibold underline flex items-center justify-start gap-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                isDarkTheme ? 'text-gray-100 hover:text-white' : 'text-[#0F172A] hover:text-gray-700'
+              }`}
             >
-              <img src={UserBlackIcon} alt="" className="w-4 h-4" aria-hidden="true" />
+              <img src={UserBlackIcon} alt="" className={`w-4 h-4 ${isDarkTheme ? 'invert' : ''}`} aria-hidden="true" />
               {t('auth.register_user')}
             </button>
             <button
               onClick={() => navigate('/register/professional')}
-              className="w-full px-4 py-2 text-sm text-[#0F172A] font-semibold underline flex items-center justify-start gap-2"
+              className={`w-full px-4 py-2 text-sm font-semibold underline flex items-center justify-start gap-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                isDarkTheme ? 'text-gray-100 hover:text-white' : 'text-[#0F172A] hover:text-gray-700'
+              }`}
             >
-              <img src={AdministratorBlackIcon} alt="" className="w-4 h-4" aria-hidden="true" />
+              <img src={AdministratorBlackIcon} alt="" className={`w-4 h-4 ${isDarkTheme ? 'invert' : ''}`} aria-hidden="true" />
               {t('auth.register_professional_label', 'Inscription professionnel')}
             </button>
           </div>

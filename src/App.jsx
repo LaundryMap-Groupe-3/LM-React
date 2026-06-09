@@ -10,10 +10,16 @@ import ResetPassword from './components/auth/ResetPassword'
 import Profile from './components/user/Profile'
 import EditProfile from './components/user/EditProfile'
 import AdminProfile from './components/admin/AdminProfile'
-import AdminPendingProfessionals from './components/admin/AdminPendingProfessionals'
-import AdminPendingLaundries from './components/admin/AdminPendingLaundries'
+import AdminDashboard from './components/admin/AdminDashboard'
+import AdminProfessionalList from './components/admin/AdminProfessionalList'
 import AdminProfessionalDetails from './components/admin/AdminProfessionalDetails'
 import AdminLaundryDetails from './components/admin/AdminLaundryDetails'
+import AdminLaundryList from './components/admin/AdminLaundryList'
+import AdminUserList from './components/admin/AdminUserList'
+import AdminHistory from './components/admin/AdminHistory'
+import AdminOffensiveWordList from './components/admin/AdminOffensiveWordList'
+import AdminCommentReportList from './components/admin/AdminCommentReportList'
+import AdminCommentReportDetails from './components/admin/AdminCommentReportDetails'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 import Page404 from './components/common/Page404'
@@ -154,8 +160,8 @@ function App() {
   }
 
   return (
-    <>
-      <Header 
+    <div className="flex flex-col min-h-screen">
+      <Header
         isDarkTheme={isDarkTheme}
         isLoggedIn={isLoggedIn}
         userType={userType}
@@ -163,6 +169,7 @@ function App() {
         onLogout={handleLogout}
       />
       <ErrorBoundary isDarkTheme={isDarkTheme} userType={userType}>
+        <div className={`flex-1 ${isDarkTheme ? 'bg-[#0F172A]' : 'bg-white'}`}>
         <Routes>
           <Route path="/" element={<Home isDarkTheme={isDarkTheme} userType={userType} />} />
           <Route path="/register" element={
@@ -252,13 +259,21 @@ function App() {
           }/>
           <Route path="/admin/dashboard" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
-              <Navigate to="/admin/professionals" replace />
+              <AdminDashboard isDarkTheme={isDarkTheme} />
             </ProtectedAdminRoute>
           } />
           <Route path="/admin/professionals" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
-              <AdminPendingProfessionals 
+              <AdminProfessionalList
                 isDarkTheme={isDarkTheme}
+              />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/professionals/pending" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminProfessionalList
+                isDarkTheme={isDarkTheme}
+                initialStatus="pending"
               />
             </ProtectedAdminRoute>
           }/>
@@ -270,10 +285,10 @@ function App() {
             </ProtectedAdminRoute>
           }/>
           <Route path="/admin/pending-professionals" element={
-            <Navigate to="/admin/professionals" replace />
+            <Navigate to="/admin/professionals/pending" replace />
           }/>
           <Route path="/admin/pending-laundries" element={
-            <Navigate to="/admin/laundries" replace />
+            <Navigate to="/admin/laundries/pending" replace />
           }/>
           <Route path="/professional/dashboard" element={
             <ProtectedProfessionalRoute isLoggedIn={isLoggedIn} userType={userType}>
@@ -298,10 +313,38 @@ function App() {
               <ProfessionalLaundryForm isDarkTheme={isDarkTheme} />
             </ProtectedProfessionalRoute>
           }/>
+          <Route path="/admin/users" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminUserList isDarkTheme={isDarkTheme} />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/offensive-words" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminOffensiveWordList isDarkTheme={isDarkTheme} />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/comment-reports" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminCommentReportList isDarkTheme={isDarkTheme} />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/comment-reports/:laundryNoteId" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminCommentReportDetails isDarkTheme={isDarkTheme} />
+            </ProtectedAdminRoute>
+          }/>
           <Route path="/admin/laundries" element={
             <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
-              <AdminPendingLaundries 
+              <AdminLaundryList
                 isDarkTheme={isDarkTheme}
+              />
+            </ProtectedAdminRoute>
+          }/>
+          <Route path="/admin/laundries/pending" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminLaundryList
+                isDarkTheme={isDarkTheme}
+                initialStatus="pending"
               />
             </ProtectedAdminRoute>
           }/>
@@ -317,15 +360,18 @@ function App() {
               />
             </ProtectedAdminRoute>
           }/>
-          <Route path="/admin/pending-laundries" element={
-            <Navigate to="/admin/laundries" replace />
+          <Route path="/admin/history" element={
+            <ProtectedAdminRoute isLoggedIn={isLoggedIn} userType={userType}>
+              <AdminHistory isDarkTheme={isDarkTheme} />
+            </ProtectedAdminRoute>
           }/>
           <Route path="/mentions-legales" element={<LegalNotice isDarkTheme={isDarkTheme} />} />
           <Route path="*" element={<Page404 isDarkTheme={isDarkTheme} />} />
         </Routes>
+        </div>
       </ErrorBoundary>
       <Footer isDarkTheme={isDarkTheme} isLoggedIn={isLoggedIn} />
-    </>
+    </div>
   )
 }
 

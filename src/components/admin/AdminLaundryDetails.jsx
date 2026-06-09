@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
+import { usePreferences } from '../../context/PreferencesContext';
 import usePageTitle from '../../hooks/usePageTitle';
 import authService from '../../services/authService';
 import adminService from '../../services/adminService';
@@ -22,6 +23,8 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { isDarkTheme: preferenceDarkTheme } = usePreferences();
+  const effectiveDarkTheme = preferenceDarkTheme ?? isDarkTheme;
   usePageTitle('page_titles.admin_laundry_details', t);
 
   const [laundry, setLaundry] = useState(null);
@@ -177,7 +180,7 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className={`min-h-screen flex items-center justify-center ${effectiveDarkTheme ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3B82F6]" />
       </div>
     );
@@ -185,9 +188,9 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
 
   if (!loading && user.type !== 'admin') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="p-8 rounded-lg border-2 border-red-500 bg-red-50">
-          <p className="text-red-600 font-semibold">{t('errors.admin_access_required')}</p>
+      <div className={`min-h-screen flex items-center justify-center ${effectiveDarkTheme ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className={`p-8 rounded-lg border-2 ${effectiveDarkTheme ? 'border-red-500/60 bg-red-950/40' : 'border-red-500 bg-red-50'}`}>
+          <p className={`font-semibold ${effectiveDarkTheme ? 'text-red-400' : 'text-red-600'}`}>{t('errors.admin_access_required')}</p>
         </div>
       </div>
     );
@@ -195,7 +198,7 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className={`min-h-screen flex items-center justify-center ${effectiveDarkTheme ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3B82F6]"></div>
       </div>
     );
@@ -203,9 +206,9 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
 
   if (!laundry) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="p-8 rounded-lg border-2 border-red-500 bg-red-50">
-          <p className="text-red-600 font-semibold">{t('errors.generic_error')}</p>
+      <div className={`min-h-screen flex items-center justify-center ${effectiveDarkTheme ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className={`p-8 rounded-lg border-2 ${effectiveDarkTheme ? 'border-red-500/60 bg-red-950/40' : 'border-red-500 bg-red-50'}`}>
+          <p className={`font-semibold ${effectiveDarkTheme ? 'text-red-400' : 'text-red-600'}`}>{t('errors.generic_error')}</p>
         </div>
       </div>
     );
@@ -288,11 +291,12 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
     : [];
 
   return (
-    <div className="min-h-screen max-w-6xl mx-auto md:pl-auto pl-4 md:pr-auto pr-4 bg-white py-6">
+    <div className={`min-h-screen ${effectiveDarkTheme ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
+    <div className="max-w-6xl mx-auto px-4 md:px-6 py-6">
       <div className="flex items-center gap-4 mb-6">
         <button
           onClick={() => navigate('/admin/laundries')}
-          className="flex items-center gap-2 text-[#3B82F6] hover:text-[#2563EB] font-medium text-sm transition-colors"
+          className={`flex items-center gap-2 font-medium text-sm transition-colors ${effectiveDarkTheme ? 'text-blue-300 hover:text-blue-200' : 'text-[#3B82F6] hover:text-[#2563EB]'}`}
         >
           <ArrowLeft size={20} />
           {t('admin.back_to_list')}
@@ -303,26 +307,26 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
         <div className="lg:col-span-2">
           <div className="mb-6">
             <div className="flex items-start justify-between gap-4">
-              <h1 className="text-[24px] font-bold text-[#111827]">
+              <h1 className={`text-[24px] font-bold ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
                 {laundry.establishmentName || '-'}
               </h1>
               <div className="flex gap-2">
-                {isApproved && <StatusBadge status="approved" label={t('admin.approved')} />}
-                {isRejected && <StatusBadge status="rejected" label={t('admin.rejected')} />}
+                {isApproved && <StatusBadge status="approved" label={t('admin.approved')} darkTheme={effectiveDarkTheme} />}
+                {isRejected && <StatusBadge status="rejected" label={t('admin.rejected')} darkTheme={effectiveDarkTheme} />}
                 {!isApproved && !isRejected && (
-                  <StatusBadge status="pending" label={t('admin.pending')} icon={<img src={PendingClockIcon} alt="" className="h-3 w-3" />} />
+                  <StatusBadge status="pending" label={t('admin.pending')} icon={<img src={PendingClockIcon} alt="" className="h-3 w-3" />} darkTheme={effectiveDarkTheme} />
                 )}
               </div>
             </div>
-            <p className="flex text-[12px] items-center mt-2">
-              <img src={CalendarIcon} alt="Calendar Icon" className="inline-block w-[13px] h-[13px] mr-1" />
+            <p className={`flex text-[12px] items-center mt-2 ${effectiveDarkTheme ? 'text-gray-400' : 'text-gray-700'}`}>
+              <img src={CalendarIcon} alt="Calendar Icon" className={`inline-block w-[13px] h-[13px] mr-1 ${effectiveDarkTheme ? 'brightness-0 invert' : ''}`} />
               {t('admin.request_date')} {formatDate(laundry.createdAt)}
             </p>
           </div>
 
-          <div className="rounded-lg shadow-md border border-gray-200 overflow-hidden bg-white">
-            <div className="bg-[#F3F4F6] px-6 py-4 border-b border-gray-200">
-              <h2 className="text-[16px] font-bold text-[#111827]">
+          <div className={`rounded-lg shadow-md border overflow-hidden ${effectiveDarkTheme ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
+            <div className={`px-6 py-4 border-b ${effectiveDarkTheme ? 'bg-gray-700/50 border-gray-700' : 'bg-[#F3F4F6] border-gray-200'}`}>
+              <h2 className={`text-[16px] font-bold ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
                 {t('admin.laundry_section')}
               </h2>
             </div>
@@ -330,39 +334,39 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
               <div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">
+                    <p className={`text-[12px] font-semibold uppercase mb-1 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
                       {t('auth.email')}
                     </p>
-                    <p className="text-[14px] text-[#111827] break-all">
+                    <p className={`text-[14px] break-all ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
                       {laundry.contactEmail || owner.email || '-'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">
+                    <p className={`text-[12px] font-semibold uppercase mb-1 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
                       {t('dashboard.contact_phone')}
                     </p>
-                    <p className="text-[14px] text-[#111827]">
+                    <p className={`text-[14px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
                       {laundry.contactPhone || '-'}
                     </p>
                   </div>
                   <div className="md:col-span-2">
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">
+                    <p className={`text-[12px] font-semibold uppercase mb-1 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
                       {t('dashboard.description')}
                     </p>
-                    <p className="text-[14px] text-[#111827]">
+                    <p className={`text-[14px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
                       {laundry.description || '-'}
                     </p>
                   </div>
                   <div className="md:col-span-2">
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">
+                    <p className={`text-[12px] font-semibold uppercase mb-1 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
                       {t('dashboard.address')}
                     </p>
-                    <p className={`text-[14px] ${isAddressPending ? 'text-red-600 font-semibold' : 'text-[#111827]'}`}>
-                      <img src={LocationIcon} alt="Location Icon" className="inline-block w-[13px] h-[13px] mr-1" />
+                    <p className={`text-[14px] ${isAddressPending ? (effectiveDarkTheme ? 'text-red-400 font-semibold' : 'text-red-600 font-semibold') : (effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]')}`}>
+                      <img src={LocationIcon} alt="Location Icon" className={`inline-block w-[13px] h-[13px] mr-1 ${effectiveDarkTheme ? 'brightness-0 invert' : ''}`} />
                       {laundryLocation}
                     </p>
                     {isAddressPending && (
-                      <p className="text-[12px] text-red-600 mt-1 ml-[18px]">
+                      <p className={`text-[12px] mt-1 ml-[18px] ${effectiveDarkTheme ? 'text-red-400' : 'text-red-600'}`}>
                         {t('admin.address_geolocation_pending')}
                       </p>
                     )}
@@ -370,29 +374,29 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
                 </div>
               </div>
 
-              <div className="border-t border-gray-200"></div>
+              <div className={`border-t ${effectiveDarkTheme ? 'border-gray-700' : 'border-gray-200'}`}></div>
 
               <div>
-                <h3 className="text-[14px] font-semibold text-[#111827] mb-4">
+                <h3 className={`text-[14px] font-semibold mb-4 ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
                   {t('admin.logo_and_photos')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">
+                    <p className={`text-[12px] font-semibold uppercase mb-1 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
                       {t('admin.logo')}
                     </p>
                     {logoUrl ? (
                       <img
                         src={logoUrl}
                         alt={t('admin.logo')}
-                        className="mt-1 h-20 w-20 rounded-md border border-gray-200 object-cover mx-auto block"
+                        className={`mt-1 h-20 w-20 rounded-md border object-cover mx-auto block ${effectiveDarkTheme ? 'border-gray-700' : 'border-gray-200'}`}
                       />
                     ) : (
-                      <p className="text-[14px] text-[#111827]">-</p>
+                      <p className={`text-[14px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>-</p>
                     )}
                   </div>
                   <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">
+                    <p className={`text-[12px] font-semibold uppercase mb-1 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
                       {t('admin.photos')}
                     </p>
                     {medias.length > 0 ? (
@@ -406,27 +410,27 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
                               key={`${media.id || 'media'}-${index}`}
                               src={mediaUrl}
                               alt={media.description || `${t('admin.photos')} ${index + 1}`}
-                              className="h-24 w-full rounded-md border border-gray-200 object-cover"
+                              className={`h-24 w-full rounded-md border object-cover ${effectiveDarkTheme ? 'border-gray-700' : 'border-gray-200'}`}
                             />
                           );
                         })}
                       </div>
                     ) : (
-                      <p className="text-[14px] text-[#111827]">-</p>
+                      <p className={`text-[14px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>-</p>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className="border-t border-gray-200"></div>
+              <div className={`border-t ${effectiveDarkTheme ? 'border-gray-700' : 'border-gray-200'}`}></div>
 
               <div>
-                <h3 className="text-[14px] font-semibold text-[#111827] mb-4">
+                <h3 className={`text-[14px] font-semibold mb-4 ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
                   {t('dashboard.services_and_equipment')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">
+                    <p className={`text-[12px] font-semibold uppercase mb-1 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
                       {t('dashboard.services')}
                     </p>
                     {serviceLabels.length > 0 ? (
@@ -434,18 +438,18 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
                         {serviceLabels.map((label, index) => (
                           <span
                             key={`${label}-${index}`}
-                            className="w-fit self-center rounded-md bg-gray-100 px-2.5 py-1 text-[11px] text-[#111827]"
+                            className={`w-fit self-center rounded-md px-2.5 py-1 text-[11px] ${effectiveDarkTheme ? 'bg-gray-700 text-gray-100' : 'bg-gray-100 text-[#111827]'}`}
                           >
                             {label}
                           </span>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-[14px] text-[#111827]">-</p>
+                      <p className={`text-[14px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>-</p>
                     )}
                   </div>
                   <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">
+                    <p className={`text-[12px] font-semibold uppercase mb-1 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
                       {t('dashboard.payment_methods')}
                     </p>
                     {paymentLabels.length > 0 ? (
@@ -453,36 +457,36 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
                         {paymentLabels.map((label, index) => (
                           <span
                             key={`${label}-${index}`}
-                            className="w-fit self-center rounded-md bg-gray-100 px-2.5 py-1 text-[11px] text-[#111827]"
+                            className={`w-fit self-center rounded-md px-2.5 py-1 text-[11px] ${effectiveDarkTheme ? 'bg-gray-700 text-gray-100' : 'bg-gray-100 text-[#111827]'}`}
                           >
                             {label}
                           </span>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-[14px] text-[#111827]">-</p>
+                      <p className={`text-[14px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>-</p>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className="border-t border-gray-200"></div>
+              <div className={`border-t ${effectiveDarkTheme ? 'border-gray-700' : 'border-gray-200'}`}></div>
 
               <div>
-                <h3 className="text-[14px] font-semibold text-[#111827] mb-4">
+                <h3 className={`text-[14px] font-semibold mb-4 ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
                   {t('dashboard.machines')}
                 </h3>
                 {sortedEquipmentItems.length > 0 ? (
                   <div className="mt-3 space-y-6">
                     <div>
-                      <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-2">
+                      <p className={`text-[12px] font-semibold uppercase mb-2 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
                         {t('admin.equipment_type_washing_machine')}
                       </p>
                       {washingMachineItems.length > 0 ? (
                         <div className="overflow-x-auto">
-                          <table className="min-w-[520px] mx-auto text-center text-[12px] text-[#111827]">
-                            <thead className="text-[11px] uppercase text-[#6B7280]">
-                              <tr className="border-b border-gray-200">
+                          <table className={`min-w-[520px] mx-auto text-center text-[12px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
+                            <thead className={`text-[11px] uppercase ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
+                              <tr className={`border-b ${effectiveDarkTheme ? 'border-gray-700' : 'border-gray-200'}`}>
                                 <th className="py-2 px-3 font-semibold">{t('admin.equipment_name')}</th>
                                 <th className="py-2 px-3 font-semibold">{t('admin.equipment_capacity')}</th>
                                 <th className="py-2 px-3 font-semibold">{t('admin.equipment_price')}</th>
@@ -493,7 +497,7 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
                               {washingMachineItems.map((equipment, index) => (
                                 <tr
                                   key={equipment?.id ?? `${equipment?.name || 'equipment'}-${index}`}
-                                  className="border-b border-gray-100 last:border-b-0"
+                                  className={`border-b last:border-b-0 ${effectiveDarkTheme ? 'border-gray-700/60' : 'border-gray-100'}`}
                                 >
                                   <td className="py-2 px-3">{equipment?.name || '-'}</td>
                                   <td className="py-2 px-3">{formatCapacity(equipment?.capacity)}</td>
@@ -505,18 +509,18 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
                           </table>
                         </div>
                       ) : (
-                        <p className="text-[14px] text-[#111827]">{t('admin.no_equipments')}</p>
+                        <p className={`text-[14px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>{t('admin.no_equipments')}</p>
                       )}
                     </div>
                     <div>
-                      <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-2">
+                      <p className={`text-[12px] font-semibold uppercase mb-2 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
                         {t('admin.equipment_type_dryer')}
                       </p>
                       {dryerItems.length > 0 ? (
                         <div className="overflow-x-auto">
-                          <table className="min-w-[520px] mx-auto text-center text-[12px] text-[#111827]">
-                            <thead className="text-[11px] uppercase text-[#6B7280]">
-                              <tr className="border-b border-gray-200">
+                          <table className={`min-w-[520px] mx-auto text-center text-[12px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
+                            <thead className={`text-[11px] uppercase ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
+                              <tr className={`border-b ${effectiveDarkTheme ? 'border-gray-700' : 'border-gray-200'}`}>
                                 <th className="py-2 px-3 font-semibold">{t('admin.equipment_name')}</th>
                                 <th className="py-2 px-3 font-semibold">{t('admin.equipment_capacity')}</th>
                                 <th className="py-2 px-3 font-semibold">{t('admin.equipment_price')}</th>
@@ -527,7 +531,7 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
                               {dryerItems.map((equipment, index) => (
                                 <tr
                                   key={equipment?.id ?? `${equipment?.name || 'equipment'}-${index}`}
-                                  className="border-b border-gray-100 last:border-b-0"
+                                  className={`border-b last:border-b-0 ${effectiveDarkTheme ? 'border-gray-700/60' : 'border-gray-100'}`}
                                 >
                                   <td className="py-2 px-3">{equipment?.name || '-'}</td>
                                   <td className="py-2 px-3">{formatCapacity(equipment?.capacity)}</td>
@@ -539,71 +543,141 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
                           </table>
                         </div>
                       ) : (
-                        <p className="text-[14px] text-[#111827]">{t('admin.no_equipments')}</p>
+                        <p className={`text-[14px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>{t('admin.no_equipments')}</p>
                       )}
                     </div>
                   </div>
                 ) : (
-                  <p className="text-[14px] text-[#111827]">{t('admin.no_equipments')}</p>
+                  <p className={`text-[14px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>{t('admin.no_equipments')}</p>
                 )}
               </div>
 
-              <div className="border-t border-gray-200"></div>
+              <div className={`border-t ${effectiveDarkTheme ? 'border-gray-700' : 'border-gray-200'}`}></div>
 
               <div>
-                <h3 className="text-[14px] font-semibold text-[#111827] mb-4">
+                <h3 className={`text-[14px] font-semibold mb-4 ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
+                  {t('dashboard.opening_hours')}
+                </h3>
+                {openingHoursRows.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className={`min-w-full text-[13px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
+                      <thead className={`text-[11px] uppercase ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
+                        <tr className={`border-b ${effectiveDarkTheme ? 'border-gray-700' : 'border-gray-200'}`}>
+                          <th className="py-2 px-3 text-center font-semibold">{t('common.day')}</th>
+                          <th className="py-2 px-3 text-center font-semibold">{t('professional.laundry_form.opening_hours')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {openingHoursRows.map((row) => (
+                          <tr key={row.key} className={`border-b last:border-b-0 ${effectiveDarkTheme ? 'border-gray-700/60' : 'border-gray-100'}`}>
+                            <td className="py-2 px-3 font-medium capitalize">{row.label}</td>
+                            <td className="py-2 px-3">
+                              {row.slots.length > 0 ? (
+                                <span className="flex flex-col gap-1">
+                                  {row.slots.map((slot, i) => (
+                                    <span key={i}>{slot}</span>
+                                  ))}
+                                </span>
+                              ) : (
+                                <span className={effectiveDarkTheme ? 'text-gray-400' : 'text-gray-500'}>{t('common.closed')}</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : openingHours.length > 0 ? (
+                  <ul className="space-y-1">
+                    {openingHours.map((entry, index) => (
+                      <li key={index} className={`text-[13px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
+                        {entry}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className={`text-[14px] ${effectiveDarkTheme ? 'text-gray-400' : 'text-gray-500'}`}>-</p>
+                )}
+              </div>
+
+              {exceptionalClosures.length > 0 && (
+                <>
+                  <div className={`border-t ${effectiveDarkTheme ? 'border-gray-700' : 'border-gray-200'}`}></div>
+                  <div>
+                    <h3 className={`text-[14px] font-semibold mb-4 ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
+                      {t('admin.exceptional_closures')}
+                    </h3>
+                    <ul className="space-y-1">
+                      {exceptionalClosures.map((closure, index) => (
+                        <li
+                          key={index}
+                          className={`text-[13px] px-3 py-2 rounded-md ${effectiveDarkTheme ? 'bg-gray-700/50 text-gray-100' : 'bg-gray-50 text-[#111827]'}`}
+                        >
+                          {closure.date ? formatDateOnly(closure.date) : '-'}
+                          {closure.label ? ` — ${closure.label}` : ''}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </>
+              )}
+
+              <div className={`border-t ${effectiveDarkTheme ? 'border-gray-700' : 'border-gray-200'}`}></div>
+
+              <div>
+                <h3 className={`text-[14px] font-semibold mb-4 ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
                   {t('admin.professional_section')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('auth.first_name')}</p>
-                    <p className="text-[14px] text-[#111827]">
-                      <img src={UserIcon} alt="User Icon" className="inline-block w-[13px] h-[13px] mr-1" />
+                    <p className={`text-[12px] font-semibold uppercase mb-1 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>{t('auth.first_name')}</p>
+                    <p className={`text-[14px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
+                      <img src={UserIcon} alt="User Icon" className={`inline-block w-[13px] h-[13px] mr-1 ${effectiveDarkTheme ? 'brightness-0 invert' : ''}`} />
                       {owner.firstName || '-'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('auth.last_name')}</p>
-                    <p className="text-[14px] text-[#111827]">
+                    <p className={`text-[12px] font-semibold uppercase mb-1 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>{t('auth.last_name')}</p>
+                    <p className={`text-[14px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
                       {owner.lastName || '-'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('auth.email')}</p>
-                    <p className="text-[14px] text-[#111827] break-all">
-                      <img src={EmailIcon} alt="Email Icon" className="inline-block w-[13px] h-[13px] mr-1" />
+                    <p className={`text-[12px] font-semibold uppercase mb-1 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>{t('auth.email')}</p>
+                    <p className={`text-[14px] break-all ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
+                      <img src={EmailIcon} alt="Email Icon" className={`inline-block w-[13px] h-[13px] mr-1 ${effectiveDarkTheme ? 'brightness-0 invert' : ''}`} />
                       {owner.email || '-'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('auth.company_name')}</p>
-                    <p className="text-[14px] text-[#111827]">
-                      <img src={DepartmentIcon} alt="Department Icon" className="inline-block w-[13px] h-[13px] mr-1" />
+                    <p className={`text-[12px] font-semibold uppercase mb-1 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>{t('auth.company_name')}</p>
+                    <p className={`text-[14px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
+                      <img src={DepartmentIcon} alt="Department Icon" className={`inline-block w-[13px] h-[13px] mr-1 ${effectiveDarkTheme ? 'brightness-0 invert' : ''}`} />
                       {laundry.professional?.companyName || '-'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('admin.siren')}</p>
-                    <p className="text-[14px] text-[#111827]">
+                    <p className={`text-[12px] font-semibold uppercase mb-1 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>{t('admin.siren')}</p>
+                    <p className={`text-[14px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
                       {laundry.professional?.siren || '-'}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="border-t border-gray-200"></div>
+              <div className={`border-t ${effectiveDarkTheme ? 'border-gray-700' : 'border-gray-200'}`}></div>
 
               <div>
-                <h3 className="text-[14px] font-semibold text-[#111827] mb-4">
+                <h3 className={`text-[14px] font-semibold mb-4 ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
                   {t('dashboard.timeline')}
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-[13px] text-[#111827]">
+                <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 text-[13px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
                   <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('dashboard.created_at')}</p>
+                    <p className={`text-[12px] font-semibold uppercase mb-1 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>{t('dashboard.created_at')}</p>
                     <p>{formatDate(laundry.createdAt)}</p>
                   </div>
                   <div>
-                    <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-1">{t('dashboard.updated_at')}</p>
+                    <p className={`text-[12px] font-semibold uppercase mb-1 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>{t('dashboard.updated_at')}</p>
                     <p>{formatDate(laundry.updatedAt)}</p>
                   </div>
                 </div>
@@ -613,58 +687,58 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
         </div>
 
         <div className="lg:col-span-1">
-          <div className="rounded-lg shadow-md border border-gray-200 overflow-hidden bg-white sticky top-6">
-            <div className="bg-[#F3F4F6] px-6 py-4 border-b border-gray-200">
-              <h3 className="text-[16px] font-bold text-[#111827]">
+          <div className={`rounded-lg shadow-md border overflow-hidden sticky top-6 ${effectiveDarkTheme ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
+            <div className={`px-6 py-4 border-b ${effectiveDarkTheme ? 'bg-gray-700/50 border-gray-700' : 'bg-[#F3F4F6] border-gray-200'}`}>
+              <h3 className={`text-[16px] font-bold ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
                 {t('admin.approval_section')}
               </h3>
             </div>
 
             <div className="p-6">
               {(isApproved || isRejected) && (
-                <div className="mb-6 p-4 rounded-lg bg-gray-50 border border-gray-200">
-                  <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-2">
+                <div className={`mb-6 p-4 rounded-lg border ${effectiveDarkTheme ? 'bg-gray-700/40 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+                  <p className={`text-[12px] font-semibold uppercase mb-2 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
                     {t('admin.approval_status')}
                   </p>
                   <p className="text-[14px] font-semibold">
                     {isApproved ? (
-                      <span className="text-green-700">{t('admin.approved')}</span>
+                      <span className={effectiveDarkTheme ? 'text-green-400' : 'text-green-700'}>{t('admin.approved')}</span>
                     ) : (
-                      <span className="text-red-700">{t('admin.rejected')}</span>
+                      <span className={effectiveDarkTheme ? 'text-red-400' : 'text-red-700'}>{t('admin.rejected')}</span>
                     )}
                   </p>
                   {isRejected && laundry.rejectionReason && (
-                    <div className="mt-3 pt-3 border-t border-gray-300">
-                      <p className="text-[12px] font-semibold text-[#6B7280] uppercase mb-2">
+                    <div className={`mt-3 pt-3 border-t ${effectiveDarkTheme ? 'border-gray-700' : 'border-gray-300'}`}>
+                      <p className={`text-[12px] font-semibold uppercase mb-2 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
                         {t('admin.rejection_reason')}
                       </p>
-                      <p className="text-[13px] text-[#111827]">{laundry.rejectionReason}</p>
+                      <p className={`text-[13px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>{laundry.rejectionReason}</p>
                     </div>
                   )}
                 </div>
               )}
 
               {!isApproved && !isRejected && showRejectModal && (
-                <div className="mb-6 p-4 rounded-lg border-2 border-red-200 bg-red-50">
-                  <label className="block text-[12px] font-semibold text-[#111827] uppercase mb-2">
+                <div className={`mb-6 p-4 rounded-lg border-2 ${effectiveDarkTheme ? 'border-red-500/40 bg-red-950/30' : 'border-red-200 bg-red-50'}`}>
+                  <label className={`block text-[12px] font-semibold uppercase mb-2 ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
                     {t('admin.rejection_reason')}
                   </label>
-                  <p className="text-[12px] text-[#6B7280] mb-2">
+                  <p className={`text-[12px] mb-2 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
                     {t('admin.rejection_reason_helper_laundry')}
                   </p>
                   <textarea
                     value={rejectionReason}
                     onChange={(e) => setRejectionReason(e.target.value)}
                     placeholder={t('admin.rejection_reason_placeholder')}
-                    className="w-full px-3 py-2 text-[13px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                    className={`w-full px-3 py-2 text-[13px] border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none ${effectiveDarkTheme ? 'border-gray-600 bg-gray-900 text-gray-100 placeholder:text-gray-500' : 'border-gray-300 bg-white text-gray-900'}`}
                     rows="4"
                   />
                 </div>
               )}
 
               {!isApproved && !isRejected && showApproveConfirm && (
-                <div className="mb-6 p-4 rounded-lg border-2 border-green-200 bg-green-50">
-                  <p className="text-[13px] text-[#111827] font-medium mb-3">
+                <div className={`mb-6 p-4 rounded-lg border-2 ${effectiveDarkTheme ? 'border-green-500/40 bg-green-950/30' : 'border-green-200 bg-green-50'}`}>
+                  <p className={`text-[13px] font-medium mb-3 ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
                     {t('admin.approve_confirmation')}
                   </p>
                   <div className="space-y-2">
@@ -717,6 +791,7 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

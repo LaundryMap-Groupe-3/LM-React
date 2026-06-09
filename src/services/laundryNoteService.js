@@ -118,6 +118,93 @@ const laundryNoteService = {
             throw err;
         }
     },
+    addResponse: async (noteId, responseText) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/note/${noteId}/response`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authService.getToken()}`,
+                },
+                body: JSON.stringify({ response: responseText }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw { status: response.status, body: data };
+            }
+
+            return data;
+        } catch (err) {
+            throw err;
+        }
+    },
+    updateResponse: async (noteId, responseText) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/note/${noteId}/response`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authService.getToken()}`,
+                },
+                body: JSON.stringify({ response: responseText }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw { status: response.status, body: data };
+            }
+
+            return data;
+        } catch (err) {
+            throw err;
+        }
+    },
+    removeResponse: async (noteId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/note/${noteId}/response`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authService.getToken()}`,
+                },
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw { status: response.status, body: data };
+            }
+
+            return data;
+        } catch (err) {
+            throw err;
+        }
+    },
+    reportComment: async (noteId, { reason, comment }) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/note/${noteId}/report`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authService.getToken()}`,
+                },
+                body: JSON.stringify({ reason, comment: comment || null }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw { status: response.status, body: data };
+            }
+
+            return data;
+        } catch (err) {
+            throw err;
+        }
+    },
 }
 
 export default laundryNoteService;

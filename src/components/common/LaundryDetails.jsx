@@ -10,6 +10,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import laundryService from '../../services/laundryService.js';
 import laundryNoteService from '../../services/laundryNoteService.js';
+import { containsOffensiveContent } from '../../utils/contentFilter.js';
 import authService from '../../services/authService.js';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import WashingMachineIcon from '../../assets/images/icons/washing_machine.svg';
@@ -66,6 +67,58 @@ const LaundryDetails = ({ isDarkTheme }) => {
   const [reviewFormLoading, setReviewFormLoading] = useState(false);
   const [reviewFormError, setReviewFormError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const [replyOpenId, setReplyOpenId] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [replyLoading, setReplyLoading] = useState(false);
+  const [replyError, setReplyError] = useState('');
+  const [deleteResponseConfirmId, setDeleteResponseConfirmId] = useState(null);
+
+  const [reportOpenId, setReportOpenId] = useState(null);
+  const [reportReason, setReportReason] = useState('');
+  const [reportComment, setReportComment] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportedIds, setReportedIds] = useState(new Set());
+
+  const REPORT_REASONS = ['spam', 'insulting', 'inappropriate', 'off_topic', 'other'];
+
+  const openReportForm = (review) => {
+    setReportOpenId(review.id);
+    setReportReason('');
+    setReportComment('');
+  };
+
+  const closeReportForm = () => {
+    setReportOpenId(null);
+    setReportReason('');
+    setReportComment('');
+  };
+
+  const handleReportSubmit = async (review) => {
+    if (!reportReason) return;
+    setReportLoading(true);
+    try {
+      await laundryNoteService.reportComment(review.id, { reason: reportReason, comment: reportComment.trim() });
+      setReportedIds(prev => new Set(prev).add(review.id));
+      setToastMessage(t('laundry.report_success', 'Votre signalement a été envoyé.'));
+      setToastType('success');
+      closeReportForm();
+    } catch (err) {
+      const status = err?.status;
+      if (status === 409) {
+        setReportedIds(prev => new Set(prev).add(review.id));
+        setToastMessage(t('laundry.report_already_exists_error', 'Vous avez déjà signalé cet avis.'));
+        closeReportForm();
+      } else if (status === 403) {
+        setToastMessage(t('laundry.report_own_comment_error', 'Vous ne pouvez pas signaler votre propre avis.'));
+      } else {
+        setToastMessage(t('laundry.report_error', "Erreur lors de l'envoi du signalement."));
+      }
+      setToastType('error');
+    } finally {
+      setReportLoading(false);
+    }
+  };
 
   useEffect(() => {
     const loadLaundry = async () => {
@@ -145,9 +198,14 @@ const LaundryDetails = ({ isDarkTheme }) => {
       setReviewFormError(t('laundry.review_note_required', 'Veuillez sélectionner une note.'));
       return;
     }
+    const trimmedComment = reviewFormComment.trim();
+    if (await containsOffensiveContent(trimmedComment)) {
+      setReviewFormError(t('laundry.review_offensive_content', 'Votre commentaire contient des termes inappropriés. Merci de le reformuler.'));
+      return;
+    }
     setReviewFormLoading(true);
     try {
-      const payload = { note: reviewFormRating, comment: reviewFormComment.trim() || null };
+      const payload = { note: reviewFormRating, comment: trimmedComment || null };
       await laundryNoteService.addComment(id, payload);
       setToastMessage(t('laundry.review_success', 'Votre avis a été enregistré.'));
       setToastType('success');
@@ -196,6 +254,62 @@ const LaundryDetails = ({ isDarkTheme }) => {
   const handleLoadMore = () => {
     if (!reviewsLoading && reviewsHasMore) {
       setReviewCurrentPage(p => p + 1);
+    }
+  };
+
+  const openReplyForm = (review) => {
+    setReplyOpenId(review.id);
+    setReplyText(review.response ?? '');
+    setReplyError('');
+  };
+
+  const closeReplyForm = () => {
+    setReplyOpenId(null);
+    setReplyText('');
+    setReplyError('');
+  };
+
+  const handleReplySubmit = async (reviewId) => {
+    setReplyError('');
+    const trimmed = replyText.trim();
+    if (!trimmed) {
+      setReplyError(t('laundry.reply_required', 'La réponse ne peut pas être vide.'));
+      return;
+    }
+    if (await containsOffensiveContent(trimmed)) {
+      setReplyError(t('laundry.reply_offensive_content', 'Votre réponse contient des termes inappropriés. Merci de la reformuler.'));
+      return;
+    }
+    setReplyLoading(true);
+    try {
+      const current = reviews.find(r => r.id === reviewId);
+      const isEdit = !!current?.response;
+      const data = isEdit
+        ? await laundryNoteService.updateResponse(reviewId, trimmed)
+        : await laundryNoteService.addResponse(reviewId, trimmed);
+      setReviews(prev => prev.map(r => r.id === reviewId ? data.laundryNote : r));
+      closeReplyForm();
+    } catch (err) {
+      console.error('Reply submit error:', err?.body?.message, '|', err?.body?.debug?.class, '@', err?.body?.debug?.file + ':' + err?.body?.debug?.line);
+      setReplyError(t('laundry.reply_error', 'Erreur lors de la publication de la réponse.'));
+    } finally {
+      setReplyLoading(false);
+    }
+  };
+
+  const handleReplyDelete = async (reviewId) => {
+    setReplyLoading(true);
+    try {
+      await laundryNoteService.removeResponse(reviewId);
+      setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, response: null, respondedAt: null } : r));
+      setDeleteResponseConfirmId(null);
+      setToastMessage(t('laundry.reply_deleted', 'Réponse supprimée.'));
+      setToastType('success');
+    } catch {
+      setToastMessage(t('laundry.reply_delete_error', 'Erreur lors de la suppression de la réponse.'));
+      setToastType('error');
+    } finally {
+      setReplyLoading(false);
     }
   };
 
@@ -302,7 +416,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
               <img
                 src={resolveMediaUrl(laundry.logo?.location)}
                 alt={laundry.establishmentName}
-                className="h-20 w-20 md:h-30 md:w-30 rounded-2xl object-cover border border-slate-200 shadow-sm shrink-0"
+                className="h-20 w-20 md:h-30 md:w-30 rounded-2xl object-cover shadow-sm shrink-0"
               />
             )}
 
@@ -332,7 +446,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
               </div>
 
               {/* Adresse */}
-              <p className={`flex items-start gap-1.5 text-sm mb-2 ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
+              <p className={`flex items-start gap-1.5 text-sm mb-2 ${isDarkTheme ? 'text-gray-200' : 'text-slate-500'}`}>
                 <img src={LocationIcon} alt="" className="mt-0.5 h-4 w-4 shrink-0" />
                 {addressLabel}
               </p>
@@ -353,7 +467,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
                 {laundry?.professional?.phone && (
                   <button
                     onClick={() => setShowPhone(!showPhone)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#dbf7d7] rounded-lg border-none cursor-pointer text-[#3d9e30] text-xs font-semibold transition-colors hover:bg-[#c9f0c4]"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-none cursor-pointer text-xs font-semibold transition-colors ${isDarkTheme ? 'bg-green-900/40 text-green-400 hover:bg-green-900/60' : 'bg-[#dbf7d7] text-[#3d9e30] hover:bg-[#c9f0c4]'}`}
                   >
                     <img src={Phone} alt="Phone" className="h-4 w-4 shrink-0" />
                     <span>{showPhone ? laundry?.professional?.phone : t('laundry.show_phone', 'Voir le numéro')}</span>
@@ -363,7 +477,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressLabel)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#E8F0FE] rounded-lg no-underline text-[#1a73e8] text-xs font-semibold hover:bg-[#d2e3fc] transition-colors"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg no-underline text-xs font-semibold transition-colors ${isDarkTheme ? 'bg-blue-900/40 text-blue-400 hover:bg-blue-900/60' : 'bg-[#E8F0FE] text-[#1a73e8] hover:bg-[#d2e3fc]'}`}
                   >
                     <img src={GoogleMapsIcon} alt="Google Maps" className="h-4 w-4 shrink-0" />
                     <span>Google Maps</span>
@@ -372,7 +486,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
                     href={`https://waze.com/ul?q=${encodeURIComponent(addressLabel)}&navigate=yes`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#E0F9FF] rounded-lg no-underline text-[#00b4d8] text-xs font-semibold hover:bg-[#ccf2fb] transition-colors"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg no-underline text-xs font-semibold transition-colors ${isDarkTheme ? 'bg-cyan-900/40 text-cyan-400 hover:bg-cyan-900/60' : 'bg-[#E0F9FF] text-[#00b4d8] hover:bg-[#ccf2fb]'}`}
                   >
                     <img src={WazeIcon} alt="Waze" className="h-4 w-4 shrink-0" />
                     <span>Waze</span>
@@ -710,11 +824,11 @@ const LaundryDetails = ({ isDarkTheme }) => {
                     <div className="flex items-center justify-between mb-1.5">
                       <label className={`text-xs font-medium ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
                         {t('laundry.review_comment_label', 'Commentaire')}
-                        <span className={`ml-1 font-normal ${isDarkTheme ? 'text-gray-600' : 'text-slate-400'}`}>
+                        <span className={`ml-1 font-normal ${isDarkTheme ? 'text-gray-400' : 'text-slate-400'}`}>
                           — {t('laundry.review_comment_optional', 'optionnel')}
                         </span>
                       </label>
-                      <span className={`text-xs ${isDarkTheme ? 'text-gray-600' : 'text-slate-400'}`}>
+                      <span className={`text-xs ${isDarkTheme ? 'text-gray-400' : 'text-slate-400'}`}>
                         {reviewFormComment.length}/500
                       </span>
                     </div>
@@ -785,26 +899,26 @@ const LaundryDetails = ({ isDarkTheme }) => {
           ) : (
             <div className="space-y-4">
               {[...reviews].sort((a, b) => {
-                const aOwn = String(a.user?.id) === String(currentUser?.id);
-                const bOwn = String(b.user?.id) === String(currentUser?.id);
+                const aOwn = currentUser?.type === 'user' && String(a.user?.id) === String(currentUser?.id);
+                const bOwn = currentUser?.type === 'user' && String(b.user?.id) === String(currentUser?.id);
                 if (aOwn !== bOwn) return aOwn ? -1 : 1;
                 return new Date(b.ratedAt ?? 0) - new Date(a.ratedAt ?? 0);
               }).map((review, i) => {
                 const initials = `${review.user?.firstName?.[0] ?? ''}${review.user?.lastName?.[0] ?? ''}`.toUpperCase();
-                const isOwn = String(review.user?.id) === String(currentUser?.id);
+                const isOwn = currentUser?.type === 'user' && String(review.user?.id) === String(currentUser?.id);
                 return (
                   <div
                     key={review.id ?? i}
                     className={`rounded-2xl border overflow-hidden ${card} ${isOwn ? (isDarkTheme ? 'ring-1 ring-[#3B82F6]/40' : 'ring-1 ring-[#3B82F6]/20') : ''}`}
                   >
                     {/* En-tête avis */}
-                    <div className="px-5 pt-4 pb-3 flex items-start gap-3">
+                    <div className="px-3 pt-3 pb-2.5 sm:px-5 sm:pt-4 sm:pb-3 flex items-start gap-2.5 sm:gap-3">
                       {/* Avatar initiales */}
-                      <div className="shrink-0 w-9 h-9 rounded-full bg-[#3B82F6]/10 text-[#3B82F6] flex items-center justify-center text-xs font-bold">
+                      <div className="shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#3B82F6]/10 text-[#3B82F6] flex items-center justify-center text-xs font-bold">
                         {initials || '?'}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center flex-wrap gap-2">
+                        <div className="flex items-center flex-wrap gap-1.5 sm:gap-2">
                           <span className={`text-sm font-semibold ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
                             {review.user?.firstName} {review.user?.lastName}
                           </span>
@@ -821,11 +935,25 @@ const LaundryDetails = ({ isDarkTheme }) => {
                               {t('laundry.review_delete_btn', 'Supprimer')}
                             </button>
                           )}
+                          {currentUser?.type === 'user' && !isOwn && review.comment && (
+                            reportedIds.has(review.id) ? (
+                              <span className={`ml-auto text-[11px] font-medium ${isDarkTheme ? 'text-gray-400' : 'text-slate-400'}`}>
+                                {t('laundry.report_already_done', 'Signalé')}
+                              </span>
+                            ) : reportOpenId !== review.id && (
+                              <button
+                                onClick={() => openReportForm(review)}
+                                className={`ml-auto text-[11px] font-medium transition-colors ${isDarkTheme ? 'text-gray-400 hover:text-gray-200' : 'text-slate-400 hover:text-slate-600'}`}
+                              >
+                                {t('laundry.report_btn', 'Signaler')}
+                              </button>
+                            )
+                          )}
                         </div>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 mt-0.5">
                           <StarRating value={review.rating ?? 0} readonly size="sm" />
                           {review.ratedAt && (
-                            <span className={`text-xs ${isDarkTheme ? 'text-gray-500' : 'text-slate-400'}`}>
+                            <span className={`text-xs ${isDarkTheme ? 'text-gray-400' : 'text-slate-400'}`}>
                               · {new Date(review.ratedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </span>
                           )}
@@ -839,6 +967,58 @@ const LaundryDetails = ({ isDarkTheme }) => {
                         <p className={`text-sm leading-relaxed ${isDarkTheme ? 'text-gray-300' : 'text-slate-600'}`}>
                           {review.comment}
                         </p>
+                      </div>
+                    )}
+
+                    {/* Formulaire de signalement */}
+                    {reportOpenId === review.id && (
+                      <div className={`mx-4 mb-4 p-4 rounded-xl border ${isDarkTheme ? 'bg-gray-700/40 border-gray-600' : 'bg-slate-50 border-slate-200'}`}>
+                        <p className={`text-sm font-medium mb-3 ${isDarkTheme ? 'text-gray-200' : 'text-slate-700'}`}>
+                          {t('laundry.report_title', 'Signaler cet avis')}
+                        </p>
+                        <label className={`block text-xs font-medium mb-1 ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
+                          {t('laundry.report_reason_label', 'Motif')}
+                        </label>
+                        <select
+                          value={reportReason}
+                          onChange={(e) => setReportReason(e.target.value)}
+                          className={`w-full mb-3 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'bg-gray-800 border-gray-600 text-gray-200' : 'bg-white border-slate-200 text-slate-700'}`}
+                        >
+                          <option value="">{t('laundry.report_reason_placeholder', 'Sélectionnez un motif...')}</option>
+                          {REPORT_REASONS.map((reason) => (
+                            <option key={reason} value={reason}>
+                              {t(`laundry.report_reason_${reason}`, reason)}
+                            </option>
+                          ))}
+                        </select>
+                        <label className={`block text-xs font-medium mb-1 ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
+                          {t('laundry.report_comment_label', 'Commentaire')}
+                          <span className={isDarkTheme ? 'text-gray-400' : 'text-slate-400'}> — {t('laundry.review_comment_optional', 'optionnel')}</span>
+                        </label>
+                        <textarea
+                          value={reportComment}
+                          onChange={(e) => setReportComment(e.target.value)}
+                          rows={2}
+                          maxLength={500}
+                          placeholder={t('laundry.report_comment_placeholder', 'Précisez la raison de votre signalement...')}
+                          className={`w-full mb-3 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6] ${isDarkTheme ? 'bg-gray-800 border-gray-600 text-gray-200' : 'bg-white border-slate-200 text-slate-700'}`}
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleReportSubmit(review)}
+                            disabled={reportLoading || !reportReason}
+                            className="px-4 py-1.5 rounded-lg bg-[#3B82F6] text-white text-xs font-semibold hover:bg-[#2563EB] disabled:opacity-50 transition-colors"
+                          >
+                            {reportLoading ? t('common.loading_text', 'en cours...') : t('laundry.report_submit_btn', 'Envoyer le signalement')}
+                          </button>
+                          <button
+                            onClick={closeReportForm}
+                            disabled={reportLoading}
+                            className={`px-4 py-1.5 rounded-lg border text-xs font-semibold transition-colors ${isDarkTheme ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                          >
+                            {t('common.cancel', 'Annuler')}
+                          </button>
+                        </div>
                       </div>
                     )}
 
@@ -866,24 +1046,130 @@ const LaundryDetails = ({ isDarkTheme }) => {
                       </div>
                     )}
 
-                    {/* Réponse du professionnel */}
-                    {review.response && (
-                      <div className={`mx-4 mb-4 rounded-xl px-4 py-3 border-l-2 border-[#3B82F6] ${
+                    {/* Réponse du professionnel — affichage */}
+                    {review.response && replyOpenId !== review.id && (
+                      <div className={`mx-2 sm:mx-4 mb-3 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 border-l-2 border-[#3B82F6] ${
                         isDarkTheme ? 'bg-[#3B82F6]/8 border border-[#3B82F6]/20' : 'bg-[#EFF6FF] border border-[#BFDBFE]'
                       }`}>
-                        <div className="flex items-center gap-1.5 mb-1.5">
-                          <span className={`text-xs font-semibold ${isDarkTheme ? 'text-[#60a5fa]' : 'text-[#3B82F6]'}`}>
-                            {t('laundry.review_owner_reply', 'Réponse du propriétaire')}
-                          </span>
-                          {review.respondedAt && (
-                            <span className={`text-[11px] ${isDarkTheme ? 'text-gray-500' : 'text-slate-400'}`}>
-                              · {new Date(review.respondedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 mb-1.5">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className={`text-xs font-semibold ${isDarkTheme ? 'text-[#60a5fa]' : 'text-[#3B82F6]'}`}>
+                              {t('laundry.review_owner_reply', 'Réponse du propriétaire')}
                             </span>
+                            {review.respondedAt && (
+                              <span className={`text-[11px] ${isDarkTheme ? 'text-gray-400' : 'text-slate-400'}`}>
+                                · {new Date(review.respondedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </span>
+                            )}
+                          </div>
+                          {isOwner && (
+                            <div className="flex flex-wrap gap-2 shrink-0">
+                              <button
+                                onClick={() => openReplyForm(review)}
+                                className={`text-[11px] font-medium transition-colors ${isDarkTheme ? 'text-blue-400 hover:text-blue-300' : 'text-[#3B82F6] hover:text-blue-700'}`}
+                              >
+                                {t('laundry.reply_edit_btn', 'Modifier')}
+                              </button>
+                              {deleteResponseConfirmId !== review.id ? (
+                                <button
+                                  onClick={() => setDeleteResponseConfirmId(review.id)}
+                                  className={`text-[11px] font-medium transition-colors ${isDarkTheme ? 'text-rose-400 hover:text-rose-300' : 'text-rose-500 hover:text-rose-700'}`}
+                                >
+                                  {t('laundry.reply_delete_btn', 'Supprimer')}
+                                </button>
+                              ) : (
+                                <span className="flex flex-wrap items-center gap-1.5">
+                                  <span className={`text-[11px] ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
+                                    {t('laundry.reply_delete_confirm', 'Supprimer ?')}
+                                  </span>
+                                  <button
+                                    onClick={() => handleReplyDelete(review.id)}
+                                    disabled={replyLoading}
+                                    className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 disabled:opacity-50"
+                                  >
+                                    {t('common.yes', 'Oui')}
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteResponseConfirmId(null)}
+                                    className={`text-[11px] font-medium ${isDarkTheme ? 'text-gray-400 hover:text-gray-200' : 'text-slate-400 hover:text-slate-600'}`}
+                                  >
+                                    {t('common.cancel', 'Non')}
+                                  </button>
+                                </span>
+                              )}
+                            </div>
                           )}
                         </div>
                         <p className={`text-sm leading-relaxed ${isDarkTheme ? 'text-gray-300' : 'text-slate-600'}`}>
                           {review.response}
                         </p>
+                      </div>
+                    )}
+
+                    {/* Bouton "Répondre" pour le propriétaire (quand pas encore de réponse) */}
+                    {isOwner && !review.response && replyOpenId !== review.id && (
+                      <div className="mx-4 mb-3">
+                        <button
+                          onClick={() => openReplyForm(review)}
+                          className={`text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors ${
+                            isDarkTheme
+                              ? 'border-blue-700 text-blue-400 hover:bg-blue-900/30'
+                              : 'border-[#BFDBFE] text-[#3B82F6] hover:bg-[#EFF6FF]'
+                          }`}
+                        >
+                          {t('laundry.reply_btn', '↩ Répondre')}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Formulaire de saisie de la réponse */}
+                    {isOwner && replyOpenId === review.id && (
+                      <div className={`mx-4 mb-4 rounded-xl p-4 border ${
+                        isDarkTheme ? 'bg-[#3B82F6]/8 border-[#3B82F6]/20' : 'bg-[#EFF6FF] border-[#BFDBFE]'
+                      }`}>
+                        <p className={`text-xs font-semibold mb-2 ${isDarkTheme ? 'text-[#60a5fa]' : 'text-[#3B82F6]'}`}>
+                          {review.response
+                            ? t('laundry.reply_edit_title', 'Modifier votre réponse')
+                            : t('laundry.reply_add_title', 'Répondre à cet avis')}
+                        </p>
+                        <textarea
+                          value={replyText}
+                          onChange={e => setReplyText(e.target.value)}
+                          maxLength={500}
+                          rows={3}
+                          placeholder={t('laundry.reply_placeholder', 'Votre réponse publique...')}
+                          className={`w-full rounded-lg border px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/40 ${
+                            isDarkTheme
+                              ? 'bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-500'
+                              : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
+                          }`}
+                        />
+                        <div className="flex items-center justify-between mt-1 mb-2">
+                          {replyError && (
+                            <p className="text-xs text-rose-500">{replyError}</p>
+                          )}
+                          <span className={`text-[11px] ml-auto ${isDarkTheme ? 'text-gray-400' : 'text-slate-400'}`}>
+                            {replyText.length}/500
+                          </span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleReplySubmit(review.id)}
+                            disabled={replyLoading}
+                            className="px-4 py-1.5 rounded-lg bg-[#3B82F6] text-white text-xs font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                          >
+                            {replyLoading ? t('common.loading_text', 'En cours...') : t('laundry.reply_submit_btn', 'Publier')}
+                          </button>
+                          <button
+                            onClick={closeReplyForm}
+                            disabled={replyLoading}
+                            className={`px-4 py-1.5 rounded-lg border text-xs font-semibold transition-colors disabled:opacity-50 ${
+                              isDarkTheme ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                            }`}
+                          >
+                            {t('common.cancel', 'Annuler')}
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>

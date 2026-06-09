@@ -180,9 +180,9 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
       <div className="w-full max-w-sm sm:max-w-2xl lg:max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         
         {/* Profile Edit Form */}
-        <div className={`p-4 sm:p-6 md:p-8 w-full flex flex-col items-start ${
-          isDarkTheme 
-            ? 'border-gray-600 bg-gray-800' 
+        <div className={`p-4 sm:p-6 md:p-8 w-full flex flex-col items-start rounded-xl border ${
+          isDarkTheme
+            ? 'border-gray-700 bg-gray-800'
             : 'border-[#E5E7EB] bg-white'
         }`}>
           <form id="edit-profile-form" onSubmit={handleSubmitProfile(onProfileSubmit)} className="w-full space-y-6 text-left">
@@ -191,9 +191,9 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
             </h2>
 
             <div>
-              <label 
+              <label
                 htmlFor="firstName"
-                className="block text-[12px] font-normal mb-2 text-[#374151]"
+                className={`block text-[12px] font-normal mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-[#374151]'}`}
               >
                 {t('auth.first_name')}
               </label>
@@ -206,11 +206,11 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
                   maxLength: { value: 50, message: t('validation.name_max_length') },
                 })}
                 maxLength={50}
-                className={`w-full min-h-[44px] px-3 py-2 text-[11px] font-normal border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  isDarkTheme 
-                    ? 'bg-gray-700 border-[#D1D5DB] text-gray-100' 
-                    : 'bg-white border-[#D1D5DB] text-[#111827]'
-                } placeholder:text-[11px] placeholder:font-normal placeholder:text-black ${profileErrors.firstName ? 'border-red-500' : ''}`}
+                className={`w-full min-h-[44px] px-3 py-2 text-[11px] font-normal border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  isDarkTheme
+                    ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder:text-gray-400'
+                    : 'bg-white border-[#D1D5DB] text-[#111827] placeholder:text-gray-400'
+                } placeholder:text-[11px] placeholder:font-normal ${profileErrors.firstName ? 'border-red-500' : ''}`}
                 placeholder={t('profile.placeholder_first_name')}
                 disabled={profileLoading || isProfileSubmitting}
               />
@@ -220,9 +220,9 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
             </div>
 
             <div>
-              <label 
+              <label
                 htmlFor="lastName"
-                className="block text-[12px] font-normal mb-2 text-[#374151]"
+                className={`block text-[12px] font-normal mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-[#374151]'}`}
               >
                 {t('auth.last_name')}
               </label>
@@ -235,11 +235,11 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
                   maxLength: { value: 50, message: t('validation.name_max_length') },
                 })}
                 maxLength={50}
-                className={`w-full min-h-[44px] px-3 py-2 text-[11px] font-normal border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  isDarkTheme 
-                    ? 'bg-gray-700 border-[#D1D5DB] text-gray-100' 
-                    : 'bg-white border-[#D1D5DB] text-[#111827]'
-                } placeholder:text-[11px] placeholder:font-normal placeholder:text-black ${profileErrors.lastName ? 'border-red-500' : ''}`}
+                className={`w-full min-h-[44px] px-3 py-2 text-[11px] font-normal border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  isDarkTheme
+                    ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder:text-gray-400'
+                    : 'bg-white border-[#D1D5DB] text-[#111827] placeholder:text-gray-400'
+                } placeholder:text-[11px] placeholder:font-normal ${profileErrors.lastName ? 'border-red-500' : ''}`}
                 placeholder={t('profile.placeholder_last_name')}
                 disabled={profileLoading || isProfileSubmitting}
               />
@@ -251,7 +251,7 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
             <div>
               <label
                 htmlFor="email"
-                className="block text-[12px] font-normal mb-2 text-[#374151]"
+                className={`block text-[12px] font-normal mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-[#374151]'}`}
               >
                 {t('auth.email')}
               </label>
@@ -259,11 +259,11 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
                 type="email"
                 id="email"
                 {...registerProfile('email')}
-                className={`w-full min-h-[44px] px-3 py-2 text-[11px] font-normal border border-[#D1D5DB] rounded-md cursor-not-allowed opacity-60 ${
+                className={`w-full min-h-[44px] px-3 py-2 text-[11px] font-normal border rounded-md cursor-not-allowed opacity-60 ${
                   isDarkTheme
-                    ? 'bg-gray-700 border-[#D1D5DB] text-gray-100'
-                    : 'bg-gray-100 border-[#D1D5DB] text-[#111827]'
-                } placeholder:text-[11px] placeholder:font-normal placeholder:text-black`}
+                    ? 'bg-gray-600 border-gray-500 text-gray-300 placeholder:text-gray-400'
+                    : 'bg-gray-100 border-[#D1D5DB] text-[#111827] placeholder:text-gray-400'
+                } placeholder:text-[11px] placeholder:font-normal`}
                 placeholder={t('profile.placeholder_email')}
                 readOnly
                 disabled
@@ -287,9 +287,9 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
         </div>
 
         {/* Password Reset Form */}
-        <div className={`p-4 sm:p-6 md:p-8 flex flex-col items-start ${
-          isDarkTheme 
-            ? 'border-gray-600 bg-gray-800' 
+        <div className={`p-4 sm:p-6 md:p-8 flex flex-col items-start rounded-xl border ${
+          isDarkTheme
+            ? 'border-gray-700 bg-gray-800'
             : 'border-[#E5E7EB] bg-white'
         }`}>
           <form id="reset-password-form" onSubmit={handleSubmitPassword(onPasswordSubmit)} className="w-full space-y-6 text-left">
@@ -302,9 +302,9 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
             )}
 
             <div>
-              <label 
+              <label
                 htmlFor="currentPassword"
-                className="block text-[12px] font-normal mb-2 text-[#374151]"
+                className={`block text-[12px] font-normal mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-[#374151]'}`}
               >
                 {t('profile.current_password')}
               </label>
@@ -315,11 +315,11 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
                   {...registerPassword('currentPassword', {
                     required: t('validation.password_required'),
                   })}
-                  className={`w-full min-h-[44px] px-3 pr-10 py-2 text-[11px] font-normal border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    isDarkTheme 
-                      ? 'bg-gray-700 border-[#D1D5DB] text-gray-100' 
-                      : 'bg-white border-[#D1D5DB] text-[#111827]'
-                  } placeholder:text-[11px] placeholder:font-normal placeholder:text-black ${passwordErrors.currentPassword ? 'border-red-500' : ''}`}
+                  className={`w-full min-h-[44px] px-3 pr-10 py-2 text-[11px] font-normal border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    isDarkTheme
+                      ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder:text-gray-400'
+                      : 'bg-white border-[#D1D5DB] text-[#111827] placeholder:text-gray-400'
+                  } placeholder:text-[11px] placeholder:font-normal ${passwordErrors.currentPassword ? 'border-red-500' : ''}`}
                   placeholder={t('profile.placeholder_current_password')}
                   disabled={isPasswordSubmitting}
                 />
@@ -344,9 +344,9 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
             </div>
 
             <div>
-              <label 
+              <label
                 htmlFor="newPassword"
-                className="block text-[12px] font-normal mb-2 text-[#374151]"
+                className={`block text-[12px] font-normal mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-[#374151]'}`}
               >
                 {t('profile.new_password')}
               </label>
@@ -355,11 +355,11 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
                   type={showNewPassword ? 'text' : 'password'}
                   id="newPassword"
                   {...registerPassword('newPassword', getStrongPasswordRules(t))}
-                  className={`w-full min-h-[44px] px-3 pr-10 py-2 text-[11px] font-normal border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    isDarkTheme 
-                      ? 'bg-gray-700 border-[#D1D5DB] text-gray-100' 
-                      : 'bg-white border-[#D1D5DB] text-[#111827]'
-                  } placeholder:text-[11px] placeholder:font-normal placeholder:text-black ${passwordErrors.newPassword ? 'border-red-500' : ''}`}
+                  className={`w-full min-h-[44px] px-3 pr-10 py-2 text-[11px] font-normal border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    isDarkTheme
+                      ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder:text-gray-400'
+                      : 'bg-white border-[#D1D5DB] text-[#111827] placeholder:text-gray-400'
+                  } placeholder:text-[11px] placeholder:font-normal ${passwordErrors.newPassword ? 'border-red-500' : ''}`}
                   placeholder={t('profile.placeholder_new_password')}
                   disabled={isPasswordSubmitting}
                 />
@@ -384,9 +384,9 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
             </div>
 
             <div>
-              <label 
+              <label
                 htmlFor="confirmNewPassword"
-                className="block text-[12px] font-normal mb-2 text-[#374151]"
+                className={`block text-[12px] font-normal mb-2 ${isDarkTheme ? 'text-gray-300' : 'text-[#374151]'}`}
               >
                 {t('profile.confirm_new_password')}
               </label>
@@ -399,9 +399,11 @@ const EditProfile = ({ isDarkTheme, isLoggedIn }) => {
                     validate: (value) =>
                       value === newPassword || t('auth.passwords_not_match'),
                   })}
-                  className={`w-full min-h-[44px] px-3 pr-10 py-2 text-[11px] font-normal border border-[#D1D5DB] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    isDarkTheme ? 'bg-gray-700 border-[#D1D5DB] text-gray-100' : 'bg-white border-[#D1D5DB] text-[#111827]'
-                  } placeholder:text-[11px] placeholder:font-normal placeholder:text-black ${passwordErrors.confirmPassword ? 'border-red-500' : ''}`}
+                  className={`w-full min-h-[44px] px-3 pr-10 py-2 text-[11px] font-normal border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    isDarkTheme
+                      ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder:text-gray-400'
+                      : 'bg-white border-[#D1D5DB] text-[#111827] placeholder:text-gray-400'
+                  } placeholder:text-[11px] placeholder:font-normal ${passwordErrors.confirmPassword ? 'border-red-500' : ''}`}
                   placeholder={t('profile.placeholder_confirm_password')}
                   disabled={isPasswordSubmitting}
                 />

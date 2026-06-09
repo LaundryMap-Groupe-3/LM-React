@@ -39,20 +39,20 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
   return (
     <header className={`${isDarkTheme ? 'bg-[#1E293B] border-b border-[#334155]' : 'bg-white border-b border-[#E5E7EB]'}`}>
       <div className="container mx-auto px-4 py-4 md:py-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-start gap-3">
           {/* Menu Hamburger */}
-          <button 
+          <button
             onClick={toggleMenu}
-            className={`flex flex-col space-y-1 p-2 hover:bg-gray-100 rounded-md transition-colors ${isMenuOpen ? 'hidden' : ''}`}
+            className={`flex flex-col space-y-1 p-2 ${isDarkTheme ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-md transition-colors ${isMenuOpen ? 'hidden' : ''}`}
             aria-label="Menu"
           >
             <div className={`w-6 h-0.5 ${isDarkTheme ? 'bg-[#E2E8F0]' : 'bg-[#374151]'} rounded-full`}></div>
             <div className={`w-6 h-0.5 ${isDarkTheme ? 'bg-[#E2E8F0]' : 'bg-[#374151]'} rounded-full`}></div>
             <div className={`w-6 h-0.5 ${isDarkTheme ? 'bg-[#E2E8F0]' : 'bg-[#374151]'} rounded-full`}></div>
           </button>
-          
-          {/* Logo à droite */}
-          <div className="flex items-center">
+
+          {/* Logo à gauche */}
+          <div className={`flex items-center ${isMenuOpen ? 'invisible' : ''}`}>
             <div className="w-8 h-8 bg-[#3B82F6] rounded-lg justify-center items-center flex">
                 <img src={Logo} alt='LaundryMap Logo' className="w-5 h-5 object-contain" />
             </div>
@@ -153,14 +153,13 @@ const Header = ({ isDarkTheme, isLoggedIn, toggleDarkTheme, toggleLogin, onLogou
                         </button>
                     )}
                 </div>
-                <div className="pb-4 justify-end flex">
-                  <LanguageSwitcher iconsOnly={true} />
-                </div>
-
               </nav>
-              
+
               {/* Copyright */}
               <div className={`absolute bottom-0 left-0 right-0 p-4 border-t text-center ${isDarkTheme ? 'border-[#334155]' : 'border-[#E5E7EB]'}`}>
+                <div className="flex justify-center mb-3">
+                  <LanguageSwitcher iconsOnly={true} isDarkTheme={isDarkTheme} />
+                </div>
                 <p className={`text-[11px] ${isDarkTheme ? 'text-[#94A3B8]' : 'text-[#6B7280]'}`}>
                   {`© ${new Date().getFullYear()} LaundryMap`}
                 </p>

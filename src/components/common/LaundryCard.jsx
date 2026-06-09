@@ -91,10 +91,10 @@ const LaundryCard = forwardRef(({
         }
       }}
       className={[
-        'w-full cursor-pointer rounded-xl border transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500',
+        'w-full rounded-xl border transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500',
         isHighlighted ? 'ring-2 ring-sky-500 shadow-md' : 'shadow-sm hover:shadow-md',
         effectiveDarkTheme
-          ? 'border-slate-700 bg-slate-900/70 text-slate-200'
+          ? 'border-slate-600 bg-slate-800 text-slate-200 shadow-md shadow-black/40'
           : 'border-[#E5E7EB] bg-white text-slate-700',
       ].join(' ')}
     >
@@ -135,7 +135,7 @@ const LaundryCard = forwardRef(({
                   e.stopPropagation();
                   if (onToggleFavorite) onToggleFavorite();
                 }}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-full transition ${effectiveDarkTheme ? 'hover:bg-slate-700' : 'hover:bg-rose-50'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400`}
               >
                 <Heart className={`h-5 w-5 ${isFavorite ? 'fill-rose-500 text-rose-500' : 'text-rose-400'}`} />
               </button>
@@ -174,7 +174,7 @@ const LaundryCard = forwardRef(({
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); navigate(`/laundry/${laundry.id}`); }}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-[#3B82F6] px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
           >
             <img src={ExternalLinkIcon} alt="" aria-hidden="true" className="h-4 w-4" />
             {t('explorer.see_laundry', 'Consulter')}

@@ -113,7 +113,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
       {/* Sections principales : une seule colonne même sur desktop */}
       <div className="flex flex-col gap-y-8">
         {/* Statistiques principales */}
-        <div className={`text-left flex flex-col justify-between h-full rounded-[10px] p-4 md:p-8 min-w-0 ${effectiveDarkTheme ? 'bg-gray-800/70' : 'bg-white/70 md:bg-transparent'}`}>
+        <div className={`text-left flex flex-col justify-between h-full rounded-[10px] p-4 md:p-8 min-w-0 border ${effectiveDarkTheme ? 'bg-gray-800 border-gray-700' : 'bg-white border-transparent'}`}>
           <h2 className="text-[18px] md:text-[26px] font-semibold text-[#3B82F6] mb-4 md:mb-6">{t('dashboard.stats_title', 'Mes Statistiques')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-4">
             {/* Note moyenne */}
@@ -148,7 +148,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
             </div>
             {/* Laveries totales */}
             <div className={`shadow rounded-[10px] p-4 md:p-6 flex items-center min-w-0 ${effectiveDarkTheme ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
-              <div className="bg-[#1B4965] rounded-[4px] w-[30px] h-[30px] flex items-center justify-center mr-4">
+              <div className="bg-[#10B981] rounded-[4px] w-[30px] h-[30px] flex items-center justify-center mr-4">
                 <img src={TotalIcon} alt="Total Icon" className="mx-auto w-[21px] h-[21px]" />
               </div>
               <div className="flex flex-col items-start">
@@ -159,7 +159,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
           </div>
         </div>
         {/* Mes laveries */}
-        <div className={`flex flex-col h-full p-4 md:p-8 rounded-[10px] min-w-0 ${effectiveDarkTheme ? 'bg-gray-800/70' : 'bg-white/70'}`}>
+        <div className={`flex flex-col h-full p-4 md:p-8 rounded-[10px] min-w-0 border ${effectiveDarkTheme ? 'bg-gray-800 border-gray-700' : 'bg-white border-transparent'}`}>
           <div className="flex flex-wrap justify-between items-center mb-4 gap-2 md:mb-6">
             <h2 className="text-[18px] md:text-[26px] text-[#3B82F6] font-semibold mb-2 md:mb-0">{t('dashboard.my_laundries', 'Mes laveries')}</h2>
             <button
@@ -174,7 +174,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
               </svg>
             </button>
           </div>
-          <div className={`rounded-[10px] text-left overflow-x-auto ${effectiveDarkTheme ? 'bg-gray-900/30' : 'bg-[#FFFFFF]/20'}`}>
+          <div className="text-left overflow-x-auto">
             {/* Liste dynamique des laveries récupérées via l'API (voir useEffect plus haut) */}
             <div className="text-left">
               {laundries.length === 0 ? (
@@ -184,7 +184,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                   {paginatedLaundries.map((laundry, idx) => (
                     <div
                       key={laundry.id || idx}
-                      className={`${effectiveDarkTheme ? 'bg-gray-800 border-gray-700' : 'bg-white border-[#E5E7EB]'} border rounded-[12px] shadow-sm flex flex-col gap-4 w-full min-w-0 p-2 md:p-5`}
+                      className={`${effectiveDarkTheme ? 'bg-gray-900 border-gray-700' : 'bg-white border-[#E5E7EB]'} border rounded-[12px] shadow-sm flex flex-col gap-4 w-full min-w-0 p-2 md:p-5`}
                     >
                       {/* Header: nom + statut */}
                       <div className="flex items-start justify-between gap-3 min-w-0">
@@ -193,6 +193,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                         </span>
                         <StatusBadge
                           status={laundry.status === 'approved' ? 'approved' : laundry.status === 'pending' ? 'pending' : 'rejected'}
+                          darkTheme={effectiveDarkTheme}
                           label={
                             laundry.status === 'approved'
                               ? t('dashboard.status.approved', 'VALIDÉE')
@@ -216,7 +217,7 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                       <div className="flex flex-col gap-3 min-w-0">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                           <span className={`text-sm md:text-base font-semibold ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#0F172A]'} flex items-start gap-2`}>
-                            <img src={AddressIcon} alt="Address Icon" className="w-4 h-4 mt-[2px] shrink-0" />
+                            <img src={AddressIcon} alt="Address Icon" className={`w-4 h-4 mt-[2px] shrink-0 ${effectiveDarkTheme ? 'brightness-0 invert' : ''}`} />
                             <span className="break-words">
                               {laundry.address}
                             </span>
@@ -228,17 +229,6 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                             </span>
                           )}
                         </div>
-
-                        {(laundry.status === 'pending' || laundry.status === 'rejected') && (
-                          <div className={`hidden sm:flex w-full px-3 py-2 ${laundry.status === 'pending' ? 'bg-[#F59E0B]/20 border-l-2 border-[#F59E0B]' : 'bg-red-100 border-l-2 border-[#E11D48]'} rounded-[6px] items-center`}>
-                            <span className={`text-sm md:text-sm gap-2 flex items-center font-semibold ${laundry.status === 'pending' ? 'text-[#F59E42]' : 'text-[#E11D48]'}`}>
-                              <img src={laundry.status === 'pending' ? InfoIcon : WarningIcon} alt={laundry.status === 'pending' ? 'Info Icon' : t('dashboard.warning', 'Avertissement')} className="w-4 h-4 inline-block" />
-                              {laundry.status === 'pending'
-                                ? t('dashboard.pending_validation', 'En cours de validation par nos équipes')
-                                : t('dashboard.laundry_refused', 'Laverie refusée')}
-                            </span>
-                          </div>
-                        )}
 
                         <div className="flex flex-col gap-3 pt-1">
                           <div className="flex flex-col min-w-0 gap-1">
@@ -306,10 +296,14 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                         <button
                           onClick={() => handlePageChange(currentPage - 1)}
                           disabled={currentPage === 1}
-                          className={`w-10 h-10 flex rounded-lg items-center justify-center text-base font-medium ${
+                          className={`w-10 h-10 flex rounded-lg items-center justify-center text-base font-medium border ${
                             currentPage === 1
-                              ? 'border border-[#CBD5E1] text-black cursor-not-allowed bg-gray-50'
-                              : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
+                              ? effectiveDarkTheme
+                                ? 'border-gray-700 text-gray-600 cursor-not-allowed bg-gray-800'
+                                : 'border-[#CBD5E1] text-black cursor-not-allowed bg-gray-50'
+                              : effectiveDarkTheme
+                                ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600'
+                                : 'bg-white text-gray-700 hover:bg-gray-50 border-[#CBD5E1]'
                           }`}
                         >
                           &lt;
@@ -321,8 +315,10 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                             onClick={() => handlePageChange(page)}
                             className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-medium ${
                               currentPage === page
-                                ? 'bg-[#3B82F6] text-white'
-                                : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
+                                ? 'bg-[#3B82F6] text-white border border-[#3B82F6]'
+                                : effectiveDarkTheme
+                                  ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 border border-gray-600'
+                                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
                             }`}
                           >
                             {page}
@@ -332,10 +328,14 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
                         <button
                           onClick={() => handlePageChange(currentPage + 1)}
                           disabled={currentPage === totalPages}
-                          className={`w-10 h-10 rounded-lg flex items-center justify-center text-base font-medium ${
+                          className={`w-10 h-10 rounded-lg flex items-center justify-center text-base font-medium border ${
                             currentPage === totalPages
-                              ? 'border border-[#CBD5E1] text-gray-400 cursor-not-allowed bg-gray-50'
-                              : 'bg-white text-gray-700 hover:bg-gray-50 border border-[#CBD5E1]'
+                              ? effectiveDarkTheme
+                                ? 'border-gray-700 text-gray-600 cursor-not-allowed bg-gray-800'
+                                : 'border-[#CBD5E1] text-gray-400 cursor-not-allowed bg-gray-50'
+                              : effectiveDarkTheme
+                                ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 border-gray-600'
+                                : 'bg-white text-gray-700 hover:bg-gray-50 border-[#CBD5E1]'
                           }`}
                         >
                           &gt;
