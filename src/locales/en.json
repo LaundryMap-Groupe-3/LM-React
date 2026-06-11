@@ -766,6 +766,7 @@
     "history_action_update": "Updated",
     "history_action_delete": "Deleted",
     "history_action_suspend": "Suspended",
+    "history_action_unsuspend": "Unsuspended",
     "history_action_block_content": "Content blocked",
     "history_deleted": "Deleted"
   },
