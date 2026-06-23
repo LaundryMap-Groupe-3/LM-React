@@ -49,15 +49,18 @@ const Footer = ({ isDarkTheme, isLoggedIn }) => {
             <Link to="/mentions-legales" className={`text-[10px] font-regular transition duration-300 ${isDarkTheme ? 'text-[#CBD5E1] hover:text-[#3B82F6]' : 'text-[#64748B] hover:text-[#3B82F6]'}`}>
               {t('footer.legal')}
             </Link>
-            <a href="#" className={`text-[10px] font-regular transition duration-300 ${isDarkTheme ? 'text-[#CBD5E1] hover:text-[#3B82F6]' : 'text-[#64748B] hover:text-[#3B82F6]'}`}>
+            <Link to="/cgu" className={`text-[10px] font-regular transition duration-300 ${isDarkTheme ? 'text-[#CBD5E1] hover:text-[#3B82F6]' : 'text-[#64748B] hover:text-[#3B82F6]'}`}>
               {t('footer.cgu')}
-            </a>
-            <a href="#" className={`text-[10px] font-regular transition duration-300 ${isDarkTheme ? 'text-[#CBD5E1] hover:text-[#3B82F6]' : 'text-[#64748B] hover:text-[#3B82F6]'}`}>
+            </Link>
+            <Link to="/politique-de-confidentialite" className={`text-[10px] font-regular transition duration-300 ${isDarkTheme ? 'text-[#CBD5E1] hover:text-[#3B82F6]' : 'text-[#64748B] hover:text-[#3B82F6]'}`}>
               {t('footer.privacy')}
-            </a>
-            <a href="#" className={`text-[10px] font-regular transition duration-300 ${isDarkTheme ? 'text-[#CBD5E1] hover:text-[#3B82F6]' : 'text-[#64748B] hover:text-[#3B82F6]'}`}>
+            </Link>
+            <Link to="/cookies" className={`text-[10px] font-regular transition duration-300 ${isDarkTheme ? 'text-[#CBD5E1] hover:text-[#3B82F6]' : 'text-[#64748B] hover:text-[#3B82F6]'}`}>
               {t('footer.cookies')}
-            </a>
+            </Link>
+            <Link to="/accessibilite" className={`text-[10px] font-regular transition duration-300 ${isDarkTheme ? 'text-[#CBD5E1] hover:text-[#3B82F6]' : 'text-[#64748B] hover:text-[#3B82F6]'}`}>
+              {t('footer.accessibility')}
+            </Link>
           </div>
         </div>
       </div>

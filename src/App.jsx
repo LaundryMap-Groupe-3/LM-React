@@ -25,6 +25,10 @@ import Footer from './components/layout/Footer'
 import Page404 from './components/common/Page404'
 import Page500 from './components/common/Page500'
 import LegalNotice from './components/common/LegalNotice'
+import TermsOfUse from './components/common/TermsOfUse'
+import PrivacyPolicy from './components/common/PrivacyPolicy'
+import CookiesPolicy from './components/common/CookiesPolicy'
+import Accessibility from './components/common/Accessibility'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import authService from './services/authService'
 import './App.css'
@@ -366,6 +370,10 @@ function App() {
             </ProtectedAdminRoute>
           }/>
           <Route path="/mentions-legales" element={<LegalNotice isDarkTheme={isDarkTheme} />} />
+          <Route path="/cgu" element={<TermsOfUse isDarkTheme={isDarkTheme} />} />
+          <Route path="/politique-de-confidentialite" element={<PrivacyPolicy isDarkTheme={isDarkTheme} />} />
+          <Route path="/cookies" element={<CookiesPolicy isDarkTheme={isDarkTheme} />} />
+          <Route path="/accessibilite" element={<Accessibility isDarkTheme={isDarkTheme} />} />
           <Route path="*" element={<Page404 isDarkTheme={isDarkTheme} />} />
         </Routes>
         </div>
