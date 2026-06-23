@@ -39,7 +39,12 @@ const ProfessionalDashboard = ({ isDarkTheme }) => {
   const fetchProfessionalData = async () => {
     try {
       const response = await professionalService.getLaundriesStats();
-      setLaundries(response.laundries || []);
+      const sortedLaundries = (response.laundries || []).sort((a, b) => {
+        const dateA = new Date(a.createdAt);
+        const dateB = new Date(b.createdAt);
+        return dateB - dateA;
+      });
+      setLaundries(sortedLaundries);
       setStats(response.stats || { averageNote: '--', total: '--', pending: '--' });
     } catch (error) {
       console.error('Erreur API /api/professional/laundries', error);

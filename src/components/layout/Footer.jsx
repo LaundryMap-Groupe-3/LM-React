@@ -1,9 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from '../../context/I18nContext';
-import LogoFacebook from '../../assets/images/logos/logo-facebook.svg';
-import LogoTwitter from '../../assets/images/logos/logo-twitter.svg';
-import LogoInstagram from '../../assets/images/logos/logo-instagram.svg';
+import LogoYoutube from '../../assets/images/logos/logo-youtube.svg';
+import LogoX from '../../assets/images/logos/logo-x.svg';
 import LogoLinkedIn from '../../assets/images/logos/logo-linkedin.svg';
 
 const Footer = ({ isDarkTheme, isLoggedIn }) => {
@@ -13,26 +12,21 @@ const Footer = ({ isDarkTheme, isLoggedIn }) => {
       <div className="container mx-auto px-4 py-8">
         {/*Réseaux sociaux */}
         <div className="flex justify-center gap-[14px] space-x-4 mt-4">
-          <a href="#" className={`transition duration-300 ${isDarkTheme ? 'hover:text-[#3B82F6]' : 'hover:text-[#3B82F6]'}`}>
+          <Link to="https://www.youtube.com/@ec2enews" target="_blank" rel="noopener noreferrer" className={`transition duration-300 ${isDarkTheme ? 'hover:text-[#3B82F6]' : 'hover:text-[#3B82F6]'}`}>
             <div className={`w-9 h-9 ${isDarkTheme ? 'bg-[#334155]' : 'bg-[#F1F5F9]'} rounded-full flex items-center justify-center`}>
-              <img src={LogoFacebook} alt="Logo Facebook" className="w-5 h-5"/>
+              <img src={LogoYoutube} alt="Logo YouTube" className="w-5 h-5"/>
             </div>
-          </a>
-          <a href="#" className={`transition duration-300 ${isDarkTheme ? 'hover:text-[#3B82F6]' : 'hover:text-[#3B82F6]'}`}>
+          </Link>
+          <Link to="https://x.com/EC2E10" target="_blank" rel="noopener noreferrer" className={`transition duration-300 ${isDarkTheme ? 'hover:text-[#3B82F6]' : 'hover:text-[#3B82F6]'}`}>
             <div className={`w-9 h-9 ${isDarkTheme ? 'bg-[#334155]' : 'bg-[#F1F5F9]'} rounded-full flex items-center justify-center`}>
-              <img src={LogoTwitter} alt="Logo Twitter" className="w-5 h-5"/>
+              <img src={LogoX} alt="Logo X (Twitter)" className="w-5 h-5"/>
             </div>
-          </a>
-          <a href="#" className={`transition duration-300 ${isDarkTheme ? 'hover:text-[#3B82F6]' : 'hover:text-[#3B82F6]'}`}>
-            <div className={`w-9 h-9 ${isDarkTheme ? 'bg-[#334155]' : 'bg-[#F1F5F9]'} rounded-full flex items-center justify-center`}>
-              <img src={LogoInstagram} alt="Logo Instagram" className="w-5 h-5"/>
-            </div>
-          </a>
-          <a href="#" className={`transition duration-300 ${isDarkTheme ? 'hover:text-[#3B82F6]' : 'hover:text-[#3B82F6]'}`}>
+          </Link>
+          <Link to="https://www.linkedin.com/company/ec2e/" target="_blank" rel="noopener noreferrer" className={`transition duration-300 ${isDarkTheme ? 'hover:text-[#3B82F6]' : 'hover:text-[#3B82F6]'}`}>
             <div className={`w-9 h-9 ${isDarkTheme ? 'bg-[#334155]' : 'bg-[#F1F5F9]'} rounded-full flex items-center justify-center`}>
               <img src={LogoLinkedIn} alt="Logo LinkedIn" className="w-5 h-5"/>
             </div>
-          </a>
+          </Link>
         </div>
       </div>
 

@@ -9,7 +9,7 @@ const Accessibility = ({ isDarkTheme }) => {
   const titleClass = `text-base font-semibold md:text-lg ${isDarkTheme ? 'text-slate-100' : 'text-slate-900'}`
   const bodyClass = `mt-2 text-sm leading-6 ${isDarkTheme ? 'text-slate-300' : 'text-slate-600'}`
 
-  const sections = ['commitment', 'implemented', 'known_limitations', 'contact']
+  const sections = ['commitment', 'implemented', 'contact']
 
   return (
     <div className={`min-h-screen px-4 py-8 md:px-8 md:py-10 ${isDarkTheme ? 'bg-[#0F172A]' : 'bg-slate-50'}`}>
@@ -26,15 +26,7 @@ const Accessibility = ({ isDarkTheme }) => {
         {sections.map((key) => (
           <section key={key} className={sectionClass}>
             <h2 className={titleClass}>{t(`accessibility_page.${key}_title`)}</h2>
-            {key === 'known_limitations' ? (
-              <div className={`${bodyClass} space-y-2`}>
-                {[1, 2, 3].map((i) => (
-                  <p key={i}>{t(`accessibility_page.known_limitations_item_${i}`)}</p>
-                ))}
-              </div>
-            ) : (
-              <p className={`${bodyClass} whitespace-pre-line`}>{t(`accessibility_page.${key}_body`)}</p>
-            )}
+            <p className={`${bodyClass} whitespace-pre-line`}>{t(`accessibility_page.${key}_body`)}</p>
           </section>
         ))}
       </div>

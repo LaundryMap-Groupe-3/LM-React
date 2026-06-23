@@ -5,7 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 import { useTranslation } from '../../context/I18nContext.jsx';
 import usePageTitle from '../../hooks/usePageTitle.js';
 import Toast from './Toast.jsx';
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, AttributionControl } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import laundryService from '../../services/laundryService.js';
@@ -531,7 +531,9 @@ const LaundryDetails = ({ isDarkTheme }) => {
                     zoom={15}
                     className="h-full w-full"
                     scrollWheelZoom={false}
+                    attributionControl={false}
                   >
+                    <AttributionControl position="bottomright" prefix={false} />
                     <TileLayer
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

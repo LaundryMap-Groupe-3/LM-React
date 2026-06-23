@@ -1,7 +1,7 @@
 // 1. Librairies externes
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import L from "leaflet";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap, AttributionControl } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 // 2. Contextes et services
@@ -145,8 +145,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 	const [radiusValue,          setRadiusValue]          = useState('');
 	const [selectedServices,     setSelectedServices]     = useState([]);
 	const [selectedPayments,     setSelectedPayments]     = useState([]);
-	const [startTimeValue,       setStartTimeValue]       = useState('');
-	const [endTimeValue,         setEndTimeValue]         = useState('');
+	const [showOnlyOpen,         setShowOnlyOpen]         = useState(false);
 	const [favoriteIds,          setFavoriteIds]          = useState([]);
 	const [loadingFavorites,     setLoadingFavorites]     = useState(false);
 	const [suggestions,          setSuggestions]          = useState([]);
@@ -192,49 +191,9 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 		setRadiusValue(e.target.value.replace(/[^0-9]/g, ''));
 	}
 
-	function handleTimeChange(value, setter) {
-		const d = value.replace(/\D/g, '').slice(0, 4);
-		setter(d.length <= 2 ? d : `${d.slice(0, 2)}:${d.slice(2)}`);
-	}
-
-	function normalizeTimeOnBlur(value, setter) {
-		const trimmed = value.trim();
-		if (!/^\d{1,2}$/.test(trimmed)) return;
-		const h = Number.parseInt(trimmed, 10);
-		if (Number.isNaN(h) || h < 0 || h > 23) return;
-		setter(`${String(h).padStart(2, '0')}:00`);
-	}
-
 	function getRadiusKm() {
 		const parsed = Number.parseInt(radiusValue, 10);
 		return Number.isNaN(parsed) ? 5 : Math.max(1, Math.min(100, parsed));
-	}
-
-	function isValidTimeHHMM(v) {
-		return /^([01]\d|2[0-3]):([0-5]\d)$/.test(v);
-	}
-
-	function toMinutes(v) {
-		if (!isValidTimeHHMM(v)) return null;
-		const [h, m] = v.split(':').map(Number);
-		return h * 60 + m;
-	}
-
-	function getTimeFilterState() {
-		const start    = startTimeValue.trim();
-		const end      = endTimeValue.trim();
-		const hasStart = start.length > 0;
-		const hasEnd   = end.length > 0;
-		if ((!hasStart || isValidTimeHHMM(start)) && (!hasEnd || isValidTimeHHMM(end))) {
-			if (hasStart && hasEnd) {
-				const sm = toMinutes(start), em = toMinutes(end);
-				if (sm !== null && em !== null && sm > em) {
-					return { openAt: '', closeAt: '', errorKey: 'explorer.filter_time_invalid_range' };
-				}
-			}
-			return { openAt: hasStart ? start : '', closeAt: hasEnd ? end : '', errorKey: null };
-		}
-		return { openAt: '', closeAt: '', errorKey: null };
 	}
 
 	function looksLikeAddress(v) {
@@ -258,7 +217,6 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 
 	useEffect(() => {
 		const PARIS = [48.8666, 2.3333];
-		const { openAt, closeAt } = getTimeFilterState();
 		const refPoint = isLocationSearch && searchLocation ? searchLocation : (position ?? PARIS);
 		const controller = new AbortController();
 		laundryService.getNearbyLaundries({
@@ -269,8 +227,6 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 			query:     '',
 			services:  selectedServices,
 			payments:  selectedPayments,
-			openAt,
-			closeAt,
 			signal:    controller.signal,
 		})
 			.then(data => {
@@ -283,7 +239,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 				console.error('[LaundryExplorer] Erreur récupération laveries:', err);
 			});
 		return () => controller.abort();
-	}, [selectedServices, selectedPayments, startTimeValue, endTimeValue, radiusValue, position, searchLocation, isLocationSearch]);
+	}, [selectedServices, selectedPayments, radiusValue, position, searchLocation, isLocationSearch]);
 
 	useEffect(() => {
 		const PARIS = [48.8666, 2.3333];
@@ -449,10 +405,12 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 		}
 	}
 
-	const laundriesVisible = laundries.map(laundry => ({
-		...laundry,
-		distance: laundry.distanceKm ?? null,
-	}));
+	const laundriesVisible = laundries
+		.filter(laundry => !showOnlyOpen || laundry.isOpenNow)
+		.map(laundry => ({
+			...laundry,
+			distance: laundry.distanceKm ?? null,
+		}));
 
 	const isPositionNearestMode = !isLocationSearch && !!position;
 	const isParisDefaultMode = !isLocationSearch && !position;
@@ -467,7 +425,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 
 	const initialZoom = position ? 15 : 12;
 
-	const hasActiveFilters = radiusValue || selectedServices.length > 0 || selectedPayments.length > 0 || startTimeValue || endTimeValue;
+	const hasActiveFilters = radiusValue || selectedServices.length > 0 || selectedPayments.length > 0 || showOnlyOpen;
 
 	return (
 		<div className="relative w-full overflow-hidden" style={{ height: mapHeight }}>
@@ -480,7 +438,9 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 					zoom={initialZoom}
 					style={{ position: 'absolute', inset: 0, height: '100%', width: '100%', zIndex: 0 }}
 					zoomControl={false}
+					attributionControl={false}
 				>
+					<AttributionControl position="bottomright" prefix={false} />
 					{flyToTarget && <SetViewOnCenter target={flyToTarget} />}
 					<MapEventsSync mapRef={mapRef} setMapBounds={setMapBounds} />
 
@@ -697,7 +657,7 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 							<div className="flex justify-end mb-3">
 								<button
 									type="button"
-									onClick={() => { setRadiusValue(''); setSelectedServices([]); setSelectedPayments([]); setStartTimeValue(''); setEndTimeValue(''); setShowAll(false); }}
+									onClick={() => { setRadiusValue(''); setSelectedServices([]); setSelectedPayments([]); setShowOnlyOpen(false); setShowAll(false); }}
 									className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-white bg-[#3B82F6] rounded-lg px-3 py-1.5 hover:bg-blue-600 transition-colors"
 								>
 									<img src={EraseIcon} alt="" className="w-3 h-3" />
@@ -712,16 +672,17 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 										<span className={`text-sm whitespace-nowrap ${effectiveDarkTheme ? 'text-slate-300' : 'text-slate-500'}`}>km</span>
 									</div>
 								</div>
-								<div className="flex flex-wrap items-center gap-2">
-									<div className="flex-1 min-w-20 flex flex-col gap-1">
-										<label className={`block text-[10px] font-semibold uppercase tracking-widest ${effectiveDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>{t('explorer.filter_time_start', 'Ouverture')}</label>
-										<input type="text" inputMode="numeric" value={startTimeValue} onChange={e => handleTimeChange(e.target.value, setStartTimeValue)} onBlur={e => normalizeTimeOnBlur(e.target.value, setStartTimeValue)} placeholder="11:00" className={`h-9 w-full border rounded-lg px-3 text-sm text-center outline-none focus:border-blue-400 transition-colors ${effectiveDarkTheme ? 'bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'}`} />
-									</div>
-									<span className={`text-base mt-4 ${effectiveDarkTheme ? 'text-slate-300' : 'text-slate-400'}`}>→</span>
-									<div className="flex-1 min-w-20 flex flex-col gap-1">
-										<label className={`block text-[10px] font-semibold uppercase tracking-widest ${effectiveDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>{t('explorer.filter_time_end', 'Fermeture')}</label>
-										<input type="text" inputMode="numeric" value={endTimeValue} onChange={e => handleTimeChange(e.target.value, setEndTimeValue)} onBlur={e => normalizeTimeOnBlur(e.target.value, setEndTimeValue)} placeholder="18:00" className={`h-9 w-full border rounded-lg px-3 text-sm text-center outline-none focus:border-blue-400 transition-colors ${effectiveDarkTheme ? 'bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'}`} />
-									</div>
+								<div className="flex items-center justify-between">
+									<label className={`text-[10px] font-semibold uppercase tracking-widest ${effectiveDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>{t('explorer.filter_open_now', 'Afficher uniquement les laveries ouvertes')}</label>
+									<button
+										type="button"
+										role="switch"
+										aria-checked={showOnlyOpen}
+										onClick={() => setShowOnlyOpen(v => !v)}
+										className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors cursor-pointer ${showOnlyOpen ? 'bg-[#3B82F6]' : effectiveDarkTheme ? 'bg-slate-600' : 'bg-slate-300'}`}
+									>
+										<span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showOnlyOpen ? 'translate-x-6' : 'translate-x-1'}`} />
+									</button>
 								</div>
 								<div>
 									<label className={`block text-[10px] font-semibold uppercase tracking-widest mb-2 ${effectiveDarkTheme ? 'text-slate-400' : 'text-slate-500'}`}>{t('explorer.filter_service', 'Services')}</label>
