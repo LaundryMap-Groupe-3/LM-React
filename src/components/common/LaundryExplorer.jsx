@@ -328,11 +328,24 @@ const LaundryExplorer = ({ isDarkTheme, userType }) => {
 		}
 		suggestDebounce.current = setTimeout(async () => {
 			try {
-				const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=fr&addressdetails=1&q=${encodeURIComponent(value.trim())}`;
+				const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=10&countrycodes=fr&addressdetails=1&q=${encodeURIComponent(value.trim())}`;
 				const res = await fetch(url, { headers: { Accept: 'application/json', 'Accept-Language': 'fr' } });
 				if (!res.ok) return;
 				const data = await res.json();
-				setSuggestions(data.map(item => {
+				const seenLabels = new Set();
+				const filtered = data.filter(item => {
+					const a = item.address || {};
+					const parts = [
+						a.house_number && a.road ? `${a.house_number} ${a.road}` : a.road,
+						a.city || a.town || a.village || a.municipality,
+						a.postcode,
+					].filter(Boolean);
+					const label = parts.length ? parts.join(', ') : item.display_name.split(',').slice(0, 3).join(',').trim();
+					if (seenLabels.has(label)) return false;
+					seenLabels.add(label);
+					return true;
+				});
+				setSuggestions(filtered.map(item => {
 					const a = item.address || {};
 					const parts = [
 						a.house_number && a.road ? `${a.house_number} ${a.road}` : a.road,

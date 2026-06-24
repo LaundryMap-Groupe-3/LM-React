@@ -675,18 +675,23 @@ const LaundryDetails = ({ isDarkTheme }) => {
                   key={eq.id ?? index}
                   className={`rounded-2xl border p-4 flex flex-col gap-3 ${card}`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-[#3B82F6]/10">
-                      <img src={WashingMachineIcon} alt={eq.name} className="h-5 w-5 object-contain" />
+                  <div className="flex items-center gap-3 justify-between">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center bg-[#3B82F6]/10">
+                        <img src={WashingMachineIcon} alt={eq.name} className="h-5 w-5 object-contain" />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <p className={`text-sm font-semibold truncate text-left ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
+                          {eq.name}
+                        </p>
+                        <span className={`text-left text-xs ${isDarkTheme ? 'text-gray-400' : 'text-slate-400'}`}>
+                          {t(`equipment.${eq.type}`)}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col min-w-0">
-                      <p className={`text-sm font-semibold truncate text-left ${isDarkTheme ? 'text-gray-100' : 'text-slate-800'}`}>
-                        {eq.name}
-                      </p>
-                      <span className={`text-left text-xs ${isDarkTheme ? 'text-gray-400' : 'text-slate-400'}`}>
-                        {t(`equipment.${eq.type}`)}
-                      </span>
-                    </div>
+                    <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-semibold bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20 whitespace-nowrap flex-shrink-0">
+                      {t('laundry.available', 'Disponible')}
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between gap-2 pt-1 border-t border-dashed border-slate-200/60">
@@ -702,7 +707,9 @@ const LaundryDetails = ({ isDarkTheme }) => {
                         {eq.duration} min
                       </span>
                     </div>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-[#0E9620]/10 text-[#0E9620] border border-[#0E9620]/20 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border whitespace-nowrap ${
+                      isDarkTheme ? 'bg-gray-700 border-gray-600 text-gray-300' : 'bg-slate-50 border-slate-200 text-slate-600'
+                    }`}>
                       {eq.price} € / cycle
                     </span>
                   </div>
@@ -876,7 +883,6 @@ const LaundryDetails = ({ isDarkTheme }) => {
           {/* Invitation à se connecter */}
           {!currentUser && (
             <div className={`rounded-2xl border p-5 mb-8 flex items-center gap-3 ${card}`}>
-              <span className="text-xl">💬</span>
               <p className={`text-sm ${isDarkTheme ? 'text-gray-400' : 'text-slate-500'}`}>
                 {t('laundry.review_login_required', 'Connectez-vous pour laisser un avis sur cette laverie.')}
               </p>
