@@ -36,6 +36,11 @@ const defaultValues = {
   establishmentName: '',
   contactPhone: '',
   description: '',
+  websiteLink: '',
+  facebookLink: '',
+  instagramLink: '',
+  xLink: '',
+  linkedinLink: '',
   logo: null,
   mediaFiles: null,
   street: '',
@@ -169,6 +174,11 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     establishmentName: laundry?.establishmentName ?? '',
     contactPhone: laundry?.contactPhone ?? '',
     description: laundry?.description ?? '',
+    websiteLink: laundry?.websiteLink ?? '',
+    facebookLink: laundry?.facebookLink ?? '',
+    instagramLink: laundry?.instagramLink ?? '',
+    xLink: laundry?.xLink ?? '',
+    linkedinLink: laundry?.linkedinLink ?? '',
     street: laundry?.address?.street ?? '',
     postalCode: laundry?.address?.postalCode?.toString?.() ?? '',
     city: laundry?.address?.city ?? '',
@@ -331,6 +341,11 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
       establishmentName: values.establishmentName?.trim() || '',
       contactPhone: values.contactPhone?.trim() || '',
       description: values.description?.trim() || '',
+      websiteLink: values.websiteLink?.trim() || null,
+      facebookLink: values.facebookLink?.trim() || null,
+      instagramLink: values.instagramLink?.trim() || null,
+      xLink: values.xLink?.trim() || null,
+      linkedinLink: values.linkedinLink?.trim() || null,
       showPreciseAddress: Boolean(values.showPreciseAddress),
       wiLineReference: values.showPreciseAddress ? (values.wiLineReference?.trim() || null) : null,
       address: {
@@ -581,6 +596,123 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                       <img src={InfoGrayIcon} alt="" className="h-[12px] w-[12px]" />
                       {t('professional.laundry_form.description_helper', 'Une bonne description améliore votre visibilité')}
                     </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className={`text-[13px] font-semibold mb-3 ${isDarkTheme ? 'text-gray-300' : 'text-slate-700'}`}>
+                  {t('professional.laundry_form.social_networks')}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
+                    <label htmlFor="websiteLink" className={labelClass}>{t('professional.laundry_form.website')}</label>
+                    <input
+                      id="websiteLink"
+                      type="url"
+                      {...register('websiteLink', {
+                        validate: (value) => {
+                          if (!value || value.trim() === '') return true;
+                          try {
+                            new URL(value);
+                            return true;
+                          } catch {
+                            return t('validation.url_invalid');
+                          }
+                        },
+                      })}
+                      className={inputClass(errors.websiteLink)}
+                      placeholder="https://example.com"
+                    />
+                    {errors.websiteLink && <p className="mt-1 text-xs text-red-500">{errors.websiteLink.message}</p>}
+                  </div>
+
+                  <div>
+                    <label htmlFor="facebookLink" className={labelClass}>{t('professional.laundry_form.facebook')}</label>
+                    <input
+                      id="facebookLink"
+                      type="url"
+                      {...register('facebookLink', {
+                        validate: (value) => {
+                          if (!value || value.trim() === '') return true;
+                          try {
+                            new URL(value);
+                            return true;
+                          } catch {
+                            return t('validation.url_invalid');
+                          }
+                        },
+                      })}
+                      className={inputClass(errors.facebookLink)}
+                      placeholder="https://facebook.com/..."
+                    />
+                    {errors.facebookLink && <p className="mt-1 text-xs text-red-500">{errors.facebookLink.message}</p>}
+                  </div>
+
+                  <div>
+                    <label htmlFor="instagramLink" className={labelClass}>{t('professional.laundry_form.instagram')}</label>
+                    <input
+                      id="instagramLink"
+                      type="url"
+                      {...register('instagramLink', {
+                        validate: (value) => {
+                          if (!value || value.trim() === '') return true;
+                          try {
+                            new URL(value);
+                            return true;
+                          } catch {
+                            return t('validation.url_invalid');
+                          }
+                        },
+                      })}
+                      className={inputClass(errors.instagramLink)}
+                      placeholder="https://instagram.com/..."
+                    />
+                    {errors.instagramLink && <p className="mt-1 text-xs text-red-500">{errors.instagramLink.message}</p>}
+                  </div>
+
+                  <div>
+                    <label htmlFor="xLink" className={labelClass}>{t('professional.laundry_form.x')}</label>
+                    <input
+                      id="xLink"
+                      type="url"
+                      {...register('xLink', {
+                        validate: (value) => {
+                          if (!value || value.trim() === '') return true;
+                          try {
+                            new URL(value);
+                            return true;
+                          } catch {
+                            return t('validation.url_invalid');
+                          }
+                        },
+                      })}
+                      className={inputClass(errors.xLink)}
+                      placeholder="https://x.com/..."
+                    />
+                    {errors.xLink && <p className="mt-1 text-xs text-red-500">{errors.xLink.message}</p>}
+                  </div>
+
+                  <div>
+                    <label htmlFor="linkedinLink" className={labelClass}>{t('professional.laundry_form.linkedin')}</label>
+                    <input
+                      id="linkedinLink"
+                      type="url"
+                      {...register('linkedinLink', {
+                        validate: (value) => {
+                          if (!value || value.trim() === '') return true;
+                          try {
+                            new URL(value);
+                            return true;
+                          } catch {
+                            return t('validation.url_invalid');
+                          }
+                        },
+                      })}
+                      className={inputClass(errors.linkedinLink)}
+                      placeholder="https://linkedin.com/company/..."
+                    />
+                    {errors.linkedinLink && <p className="mt-1 text-xs text-red-500">{errors.linkedinLink.message}</p>}
                   </div>
                 </div>
               </div>

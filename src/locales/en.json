@@ -300,7 +300,13 @@
       "price_per_wash": "Price (€)",
       "price_per_dry": "Price (€)",
       "no_services_available": "No services available",
-      "no_payment_methods_available": "No payment methods available"
+      "no_payment_methods_available": "No payment methods available",
+      "social_networks": "Social Networks",
+      "website": "Website",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "x": "X",
+      "linkedin": "LinkedIn"
     }
   },
   "profile": {
@@ -651,6 +657,7 @@
     "opening_hours_overlap": "Two time slots overlap.",
     "wiline_client_code_required": "WI-LINE client code is required.",
     "wiline_client_code_invalid": "WI-LINE client code must contain digits only.",
+    "url_invalid": "Please enter a valid URL",
     "language_not_found": "Language not found",
     "invalid_theme": "Invalid theme"
   },
