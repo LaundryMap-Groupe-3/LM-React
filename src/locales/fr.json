@@ -991,7 +991,13 @@
     "review_login_required": "Connectez-vous pour laisser un avis sur cette laverie.",
     "review_mine": "Mon avis",
     "review_owner_reply": "Réponse du propriétaire",
-    "no_reviews_hint": "Soyez le premier à laisser un commentaire !"
+    "no_reviews_hint": "Soyez le premier à laisser un commentaire !",
+    "website": "Site web",
+    "visit_website": "Visiter le site web",
+    "visit_facebook": "Visiter Facebook",
+    "visit_instagram": "Visiter Instagram",
+    "visit_x": "Visiter X",
+    "visit_linkedin": "Visiter LinkedIn"
   },
   "equipment": {
     "washing_machine": "Lave-linge",

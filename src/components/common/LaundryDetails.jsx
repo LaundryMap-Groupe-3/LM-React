@@ -22,6 +22,11 @@ import WazeIcon from '../../assets/images/icons/Waze.svg';
 import StarIcon from '../../assets/images/icons/Star-yellow.svg';
 import LocationIcon from '../../assets/images/icons/Location-blue.svg';
 import laundryIconPng from '../../assets/images/icons/machine.png';
+import GlobeIcon from '../../assets/images/icons/globe.svg';
+import FacebookIcon from '../../assets/images/icons/facebook.svg';
+import InstagramIcon from '../../assets/images/icons/instagram.svg';
+import XIcon from '../../assets/images/icons/x.svg';
+import LinkedinIcon from '../../assets/images/icons/linkedin.svg';
 
 
 const laundryIcon = L.icon({
@@ -416,7 +421,7 @@ const LaundryDetails = ({ isDarkTheme }) => {
               <img
                 src={resolveMediaUrl(laundry.logo?.location)}
                 alt={laundry.establishmentName}
-                className="h-20 w-20 md:h-30 md:w-30 rounded-2xl object-cover shadow-sm shrink-0"
+                className="h-20 w-20 md:h-41 md:w-41 rounded-2xl object-cover shadow-sm shrink-0"
               />
             )}
 
@@ -492,6 +497,67 @@ const LaundryDetails = ({ isDarkTheme }) => {
                     <span>Waze</span>
                   </a>
               </div>
+
+              {/* Réseaux sociaux */}
+              {(laundry?.websiteLink || laundry?.facebookLink || laundry?.instagramLink || laundry?.xLink || laundry?.linkedinLink) && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {laundry?.websiteLink && (
+                    <a
+                      href={laundry.websiteLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={t('laundry.visit_website')}
+                      className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#E8F0FE] text-[#1a73e8] hover:bg-[#d2e3fc] transition-colors"
+                    >
+                      <img src={GlobeIcon} alt="" className="w-4 h-4" />
+                    </a>
+                  )}
+                  {laundry?.facebookLink && (
+                    <a
+                      href={laundry.facebookLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={t('laundry.visit_facebook')}
+                      className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#E8F0FE] text-[#1a73e8] hover:bg-[#d2e3fc] transition-colors"
+                    >
+                      <img src={FacebookIcon} alt="" className="w-4 h-4" />
+                    </a>
+                  )}
+                  {laundry?.instagramLink && (
+                    <a
+                      href={laundry.instagramLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={t('laundry.visit_instagram')}
+                      className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#E8F0FE] text-[#1a73e8] hover:bg-[#d2e3fc] transition-colors"
+                    >
+                      <img src={InstagramIcon} alt="" className="w-4 h-4" />
+                    </a>
+                  )}
+                  {laundry?.xLink && (
+                    <a
+                      href={laundry.xLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={t('laundry.visit_x')}
+                      className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#E8F0FE] text-[#1a73e8] hover:bg-[#d2e3fc] transition-colors"
+                    >
+                      <img src={XIcon} alt="" className="w-4 h-4" />
+                    </a>
+                  )}
+                  {laundry?.linkedinLink && (
+                    <a
+                      href={laundry.linkedinLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={t('laundry.visit_linkedin')}
+                      className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#E8F0FE] text-[#1a73e8] hover:bg-[#d2e3fc] transition-colors"
+                    >
+                      <img src={LinkedinIcon} alt="" className="w-4 h-4" />
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -991,7 +991,13 @@
     "review_login_required": "Log in to leave a review for this laundry.",
     "review_mine": "My review",
     "review_owner_reply": "Owner's reply",
-    "no_reviews_hint": "Be the first to leave a comment!"
+    "no_reviews_hint": "Be the first to leave a comment!",
+    "website": "Website",
+    "visit_website": "Visit website",
+    "visit_facebook": "Visit Facebook",
+    "visit_instagram": "Visit Instagram",
+    "visit_x": "Visit X",
+    "visit_linkedin": "Visit LinkedIn"
   },
   "equipment": {
     "washing_machine": "Washing machine",
