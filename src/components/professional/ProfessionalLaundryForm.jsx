@@ -36,6 +36,11 @@ const defaultValues = {
   establishmentName: '',
   contactPhone: '',
   description: '',
+  websiteLink: '',
+  facebookLink: '',
+  instagramLink: '',
+  twitterLink: '',
+  linkedinLink: '',
   logo: null,
   mediaFiles: null,
   street: '',
@@ -169,6 +174,11 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
     establishmentName: laundry?.establishmentName ?? '',
     contactPhone: laundry?.contactPhone ?? '',
     description: laundry?.description ?? '',
+    websiteLink: laundry?.websiteLink,
+    facebookLink: laundry?.facebookLink,
+    instagramLink: laundry?.instagramLink,
+    twitterLink: laundry?.twitterLink,
+    linkedinLink: laundry?.linkedinLink,
     street: laundry?.address?.street ?? '',
     postalCode: laundry?.address?.postalCode?.toString?.() ?? '',
     city: laundry?.address?.city ?? '',
@@ -339,6 +349,11 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
         city: values.city?.trim() || '',
         country: values.country?.trim() || '',
       },
+      websiteLink: values.websiteLink,
+      facebookLink: values.facebookLink,
+      instagramLink: values.instagramLink,
+      twitterLink: values.twitterLink,
+      linkedinLink: values.linkedinLink,
       serviceIds: normalizeSelectedIds(values.serviceIds),
       paymentMethodIds: normalizeSelectedIds(values.paymentMethodIds),
       openingHours: values.openingHours || defaultValues.openingHours,
@@ -581,6 +596,64 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                       <img src={InfoGrayIcon} alt="" className="h-[12px] w-[12px]" />
                       {t('professional.laundry_form.description_helper', 'Une bonne description améliore votre visibilité')}
                     </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label htmlFor="websiteLink" className={labelClass}>{t('professional.laundry_form.website_link', 'Lien site web')}</label>
+                      <input
+                        id="websiteLink"
+                        type="url"
+                        {...register('websiteLink', { pattern: { value: /^https?:\/\/.+\..+/, message: 'URL invalide' } })}
+                        className={inputClass(errors.websiteLink)}
+                      />
+                      {errors.websiteLink && <p className="mt-1 text-xs text-red-500">{errors.websiteLink.message}</p>}
+                    </div>
+                    <div>
+                      <label htmlFor="facebookLink" className={labelClass}>{t('professional.laundry_form.facebook_link', 'Lien facebook')}</label>
+                      <input
+                        id="facebookLink"
+                        type="url"
+                        {...register('facebookLink', { pattern: { value: /^https?:\/\/.+\..+/, message: 'URL invalide' } })}
+                        className={inputClass(errors.facebookLink)}
+                      />
+                      {errors.facebookLink && <p className="mt-1 text-xs text-red-500">{errors.facebookLink.message}</p>}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label htmlFor="instagramLink" className={labelClass}>{t('professional.laundry_form.instagram_link', 'Lien instagram')}</label>
+                    <input
+                      id="instagramLink"
+                      type="url"
+                      {...register('instagramLink', { pattern: { value: /^https?:\/\/.+\..+/, message: 'URL invalide' } })}
+                      className={inputClass(errors.instagramLink)}
+                    />
+                    {errors.instagramLink && <p className="mt-1 text-xs text-red-500">{errors.instagramLink.message}</p>}
+                  </div>
+                  <div>
+                    <label htmlFor="twitterLink" className={labelClass}>{t('professional.laundry_form.twitter_link', 'Lien X')}</label>
+                    <input
+                      id="twitterLink"
+                      type="url"
+                      {...register('twitterLink', { pattern: { value: /^https?:\/\/.+\..+/, message: 'URL invalide' } })}
+                      className={inputClass(errors.twitterLink)}
+                    />
+                    {errors.twitterLink && <p className="mt-1 text-xs text-red-500">{errors.twitterLink.message}</p>}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label htmlFor="linkedinLink" className={labelClass}>{t('professional.laundry_form.linkedin_link', 'Lien linkedin')}</label>
+                    <input
+                      id="linkedinLink"
+                      type="url"
+                      {...register('linkedinLink', { pattern: { value: /^https?:\/\/.+\..+/, message: 'URL invalide' } })}
+                      className={inputClass(errors.linkedinLink)}
+                    />
+                    {errors.linkedinLink && <p className="mt-1 text-xs text-red-500">{errors.linkedinLink.message}</p>}
                   </div>
                 </div>
               </div>

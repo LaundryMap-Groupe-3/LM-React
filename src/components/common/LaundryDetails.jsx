@@ -22,6 +22,9 @@ import WazeIcon from '../../assets/images/icons/Waze.svg';
 import StarIcon from '../../assets/images/icons/Star-yellow.svg';
 import LocationIcon from '../../assets/images/icons/Location-blue.svg';
 import laundryIconPng from '../../assets/images/icons/machine.png';
+import LogoX from '../../assets/images/logos/logo-x.svg';
+import LogoLinkedIn from '../../assets/images/logos/logo-linkedin.svg';
+import { Facebook, Instagram } from "lucide-react";
 
 
 const laundryIcon = L.icon({
@@ -387,6 +390,18 @@ const LaundryDetails = ({ isDarkTheme }) => {
       return `${API_BASE_URL}${normalizedPath}`;
     }
   };
+
+  const sanitizeUrl = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    const trimmed = url.trim();
+    if (!/^https:\/\//i.test(trimmed)) return null;
+    try {
+      new URL(trimmed);
+      return trimmed;
+    } catch {
+      return null;
+    }
+  };
   const addressLabel = laundry?.address?.address ||
     `${laundry?.address?.street || ''} ${laundry?.address?.postalCode || ''} ${laundry?.address?.city || ''}`.trim() || 'N/A';
 
@@ -491,6 +506,60 @@ const LaundryDetails = ({ isDarkTheme }) => {
                     <img src={WazeIcon} alt="Waze" className="h-4 w-4 shrink-0" />
                     <span>Waze</span>
                   </a>
+                  {sanitizeUrl(laundry?.websiteLink) && (
+                  <a
+                    href={sanitizeUrl(laundry.websiteLink)}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg no-underline text-xs font-semibold transition-colors ${isDarkTheme ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                  >
+                    {t('laundry.website', 'Site web')}
+                  </a>
+                )}
+                {sanitizeUrl(laundry?.facebookLink) && (
+                  <a
+                    href={sanitizeUrl(laundry.facebookLink)}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className={`inline-flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${isDarkTheme ? 'bg-blue-900/40 text-blue-400 hover:bg-blue-900/60' : 'bg-[#E8F0FE] text-[#1a73e8] hover:bg-[#d2e3fc]'}`}
+                    title="Facebook"
+                  >
+                    <Facebook className="h-4 w-4" />
+                  </a>
+                )}
+                {sanitizeUrl(laundry?.instagramLink) && (
+                  <a
+                    href={sanitizeUrl(laundry.instagramLink)}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className={`inline-flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${isDarkTheme ? 'bg-pink-900/40 text-pink-400 hover:bg-pink-900/60' : 'bg-pink-50 text-pink-600 hover:bg-pink-100'}`}
+                    title="Instagram"
+                  >
+                    <Instagram className="h-4 w-4" />
+                  </a>
+                )}
+                {sanitizeUrl(laundry?.twitterLink) && (
+                  <a
+                    href={sanitizeUrl(laundry.twitterLink)}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className={`inline-flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${isDarkTheme ? 'bg-gray-700 hover:bg-gray-600' : 'bg-slate-100 hover:bg-slate-200'}`}
+                    title="X"
+                  >
+                    <img src={LogoX} alt="X" className="h-4 w-4" />
+                  </a>
+                )}
+                {sanitizeUrl(laundry?.linkedinLink) && (
+                  <a
+                    href={sanitizeUrl(laundry.linkedinLink)}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className={`inline-flex items-center justify-center w-8 h-8 rounded-lg transition-colors ${isDarkTheme ? 'bg-blue-900/40 hover:bg-blue-900/60' : 'bg-[#E8F0FE] hover:bg-[#d2e3fc]'}`}
+                    title="LinkedIn"
+                  >
+                    <img src={LogoLinkedIn} alt="LinkedIn" className="h-4 w-4" />
+                  </a>
+                )}
               </div>
             </div>
           </div>
