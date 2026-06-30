@@ -1,10 +1,11 @@
-.PHONY: up start stop logs ssh-backend vendor db cc rm
+.PHONY: up start stop logs ssh-backend vendor db cc rm submodule
 
 COMPOSE=docker compose -f docker-compose.yml
 CONSOLE=php bin/console
 BACKEND_EXEC=exec backend
 
-start: up vendor db cc
+start: submodule up vendor db cc
+	${COMPOSE} start
 
 up:
 	docker kill $$(docker ps -q) || true
@@ -12,8 +13,8 @@ up:
 	${COMPOSE} build --force-rm
 	${COMPOSE} up -d --remove-orphans
 
-start:
-	${COMPOSE} start
+submodule:
+	git submodule update --init --recursive
 
 stop:
 	${COMPOSE} stop
