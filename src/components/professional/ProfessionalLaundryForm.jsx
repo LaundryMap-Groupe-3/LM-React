@@ -106,6 +106,23 @@ const equipmentToPayload = (equipments) => ({
   })),
 });
 
+const validateSocialUrl = (allowedDomains, urlString, t) => {
+  if (!urlString || urlString.trim() === '') return true;
+  try {
+    const url = new URL(urlString);
+    const hostname = url.hostname.toLowerCase();
+    const isValid = allowedDomains.some(domain =>
+      hostname === domain || hostname.endsWith('.' + domain)
+    );
+    if (!isValid) {
+      return t('validation.social_url_invalid_domain', `L'URL doit diriger vers le bon site`);
+    }
+    return true;
+  } catch {
+    return t('validation.url_invalid');
+  }
+};
+
 const ProfessionalLaundryForm = ({ isDarkTheme }) => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -633,15 +650,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                       id="facebookLink"
                       type="url"
                       {...register('facebookLink', {
-                        validate: (value) => {
-                          if (!value || value.trim() === '') return true;
-                          try {
-                            new URL(value);
-                            return true;
-                          } catch {
-                            return t('validation.url_invalid');
-                          }
-                        },
+                        validate: (value) => validateSocialUrl(['facebook.com'], value, t),
                       })}
                       className={inputClass(errors.facebookLink)}
                       placeholder="https://facebook.com/..."
@@ -655,15 +664,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                       id="instagramLink"
                       type="url"
                       {...register('instagramLink', {
-                        validate: (value) => {
-                          if (!value || value.trim() === '') return true;
-                          try {
-                            new URL(value);
-                            return true;
-                          } catch {
-                            return t('validation.url_invalid');
-                          }
-                        },
+                        validate: (value) => validateSocialUrl(['instagram.com'], value, t),
                       })}
                       className={inputClass(errors.instagramLink)}
                       placeholder="https://instagram.com/..."
@@ -677,15 +678,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                       id="xLink"
                       type="url"
                       {...register('xLink', {
-                        validate: (value) => {
-                          if (!value || value.trim() === '') return true;
-                          try {
-                            new URL(value);
-                            return true;
-                          } catch {
-                            return t('validation.url_invalid');
-                          }
-                        },
+                        validate: (value) => validateSocialUrl(['x.com', 'twitter.com'], value, t),
                       })}
                       className={inputClass(errors.xLink)}
                       placeholder="https://x.com/..."
@@ -699,15 +692,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                       id="linkedinLink"
                       type="url"
                       {...register('linkedinLink', {
-                        validate: (value) => {
-                          if (!value || value.trim() === '') return true;
-                          try {
-                            new URL(value);
-                            return true;
-                          } catch {
-                            return t('validation.url_invalid');
-                          }
-                        },
+                        validate: (value) => validateSocialUrl(['linkedin.com'], value, t),
                       })}
                       className={inputClass(errors.linkedinLink)}
                       placeholder="https://linkedin.com/company/..."

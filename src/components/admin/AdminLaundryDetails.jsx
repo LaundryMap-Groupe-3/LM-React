@@ -474,6 +474,94 @@ const AdminLaundryDetails = ({ isDarkTheme }) => {
 
               <div>
                 <h3 className={`text-[14px] font-semibold mb-4 ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
+                  {t('professional.laundry_form.social_networks')}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {laundry.websiteLink && (
+                    <div>
+                      <p className={`text-[12px] font-semibold uppercase mb-2 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
+                        {t('laundry.website')}
+                      </p>
+                      <a
+                        href={laundry.websiteLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`text-[14px] break-all underline ${effectiveDarkTheme ? 'text-blue-400 hover:text-blue-300' : 'text-[#3B82F6] hover:text-[#2563EB]'}`}
+                      >
+                        {laundry.websiteLink}
+                      </a>
+                    </div>
+                  )}
+                  {laundry.facebookLink && (
+                    <div>
+                      <p className={`text-[12px] font-semibold uppercase mb-2 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
+                        Facebook
+                      </p>
+                      <a
+                        href={laundry.facebookLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`text-[14px] break-all underline ${effectiveDarkTheme ? 'text-blue-400 hover:text-blue-300' : 'text-[#3B82F6] hover:text-[#2563EB]'}`}
+                      >
+                        {laundry.facebookLink}
+                      </a>
+                    </div>
+                  )}
+                  {laundry.instagramLink && (
+                    <div>
+                      <p className={`text-[12px] font-semibold uppercase mb-2 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
+                        Instagram
+                      </p>
+                      <a
+                        href={laundry.instagramLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`text-[14px] break-all underline ${effectiveDarkTheme ? 'text-blue-400 hover:text-blue-300' : 'text-[#3B82F6] hover:text-[#2563EB]'}`}
+                      >
+                        {laundry.instagramLink}
+                      </a>
+                    </div>
+                  )}
+                  {laundry.xLink && (
+                    <div>
+                      <p className={`text-[12px] font-semibold uppercase mb-2 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
+                        X
+                      </p>
+                      <a
+                        href={laundry.xLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`text-[14px] break-all underline ${effectiveDarkTheme ? 'text-blue-400 hover:text-blue-300' : 'text-[#3B82F6] hover:text-[#2563EB]'}`}
+                      >
+                        {laundry.xLink}
+                      </a>
+                    </div>
+                  )}
+                  {laundry.linkedinLink && (
+                    <div>
+                      <p className={`text-[12px] font-semibold uppercase mb-2 ${effectiveDarkTheme ? 'text-gray-400' : 'text-[#6B7280]'}`}>
+                        LinkedIn
+                      </p>
+                      <a
+                        href={laundry.linkedinLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`text-[14px] break-all underline ${effectiveDarkTheme ? 'text-blue-400 hover:text-blue-300' : 'text-[#3B82F6] hover:text-[#2563EB]'}`}
+                      >
+                        {laundry.linkedinLink}
+                      </a>
+                    </div>
+                  )}
+                  {!laundry.websiteLink && !laundry.facebookLink && !laundry.instagramLink && !laundry.xLink && !laundry.linkedinLink && (
+                    <p className={`text-[14px] ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>-</p>
+                  )}
+                </div>
+              </div>
+
+              <div className={`border-t ${effectiveDarkTheme ? 'border-gray-700' : 'border-gray-200'}`}></div>
+
+              <div>
+                <h3 className={`text-[14px] font-semibold mb-4 ${effectiveDarkTheme ? 'text-gray-100' : 'text-[#111827]'}`}>
                   {t('dashboard.machines')}
                 </h3>
                 {sortedEquipmentItems.length > 0 ? (
