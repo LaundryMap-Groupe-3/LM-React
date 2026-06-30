@@ -603,7 +603,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                       <input
                         id="websiteLink"
                         type="url"
-                        {...register('websiteLink')}
+                        {...register('websiteLink', { pattern: { value: /^https?:\/\/.+\..+/, message: 'URL invalide' } })}
                         className={inputClass(errors.websiteLink)}
                       />
                       {errors.websiteLink && <p className="mt-1 text-xs text-red-500">{errors.websiteLink.message}</p>}
@@ -613,7 +613,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                       <input
                         id="facebookLink"
                         type="url"
-                        {...register('facebookLink')}
+                        {...register('facebookLink', { pattern: { value: /^https?:\/\/.+\..+/, message: 'URL invalide' } })}
                         className={inputClass(errors.facebookLink)}
                       />
                       {errors.facebookLink && <p className="mt-1 text-xs text-red-500">{errors.facebookLink.message}</p>}
@@ -627,7 +627,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                     <input
                       id="instagramLink"
                       type="url"
-                      {...register('instagramLink')}
+                      {...register('instagramLink', { pattern: { value: /^https?:\/\/.+\..+/, message: 'URL invalide' } })}
                       className={inputClass(errors.instagramLink)}
                     />
                     {errors.instagramLink && <p className="mt-1 text-xs text-red-500">{errors.instagramLink.message}</p>}
@@ -637,7 +637,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                     <input
                       id="twitterLink"
                       type="url"
-                      {...register('twitterLink')}
+                      {...register('twitterLink', { pattern: { value: /^https?:\/\/.+\..+/, message: 'URL invalide' } })}
                       className={inputClass(errors.twitterLink)}
                     />
                     {errors.twitterLink && <p className="mt-1 text-xs text-red-500">{errors.twitterLink.message}</p>}
@@ -650,7 +650,7 @@ const ProfessionalLaundryForm = ({ isDarkTheme }) => {
                     <input
                       id="linkedinLink"
                       type="url"
-                      {...register('instagramLink')}
+                      {...register('linkedinLink', { pattern: { value: /^https?:\/\/.+\..+/, message: 'URL invalide' } })}
                       className={inputClass(errors.linkedinLink)}
                     />
                     {errors.linkedinLink && <p className="mt-1 text-xs text-red-500">{errors.linkedinLink.message}</p>}
